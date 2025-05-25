@@ -1,17 +1,19 @@
-// Testing connection with databse 
-import { NextResponse } from 'next/server';
-import { sequelize } from '../../../lib/db';
-import { initSchemas } from '@/lib/initSchemas';
+// Testing connection with databse
+import { establishConnection } from "@/lib/dbConfig";
+import { initSchemas } from "@/lib/initSchemas";
+import { NextResponse } from "next/server";
 export async function GET() {
   try {
-    await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
+    await establishConnection();
     await initSchemas();
     return NextResponse.json({ success: true, message: "DB connected!" });
+
   } catch (error) {
-    console.error("Unable to connect to the database:", error);
-    return NextResponse.json({ success: false, message: "DB connection failed!" }, { status: 500 });
+
+    return NextResponse.json(
+      { success: false, message: "DB connection failed!" },
+      { status: 500 }
+    );
+   
   }
 }
-
-
