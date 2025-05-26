@@ -1,7 +1,6 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import Navbar from '@/components/Navbar';
 import { useState } from 'react';
 
 export default function ProfilePage() {
@@ -24,8 +23,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#1a1625]">
-      <Navbar />
-      
       <main className="ml-16 px-8 py-6">
         {/* Logout Button */}
         <div className="flex justify-between items-center mb-8">
