@@ -6,6 +6,7 @@ try {
   await establishConnection();
   await initSchemas();
 } catch (error) {
-  console.log(error);
+  console.error("❌ Database connection failed:", error);
+    throw new Error("Database connection failed");
 }
 }
