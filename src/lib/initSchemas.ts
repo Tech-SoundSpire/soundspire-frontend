@@ -1,5 +1,4 @@
 // This is used to sync the latest tables with the databases
-import { NextResponse } from "next/server";
 import { sequelize } from "./dbConfig";
 import "../models/User"; //Importing all the models
 

@@ -1,111 +1,44 @@
-// import { DataTypes } from "sequelize";
-// import { sequelize } from "../lib/dbConfig";
 
-// export const User = sequelize.define("User", {
-//   name: {
-//     type: DataTypes.STRING,
-//     allowNull: false,
-//     validate: {
-//       notNull: {
-//         msg: "Provide name",
-//       },
-//       notEmpty: {
-//         msg: " name cannot be empty",
-//       },
-//     },
-//   },
-//   username: {
-//     type: DataTypes.STRING,
-//     allowNull: false,
-//     validate: {
-//       notNull: {
-//         msg: "Provide user name",
-//       },
-//       notEmpty: {
-//         msg: "User name cannot be empty",
-//       },
-//     },
-//     unique: true,
-//   },
-//   gender: {
-//     type: DataTypes.ENUM("male", "female"),
-//     allowNull: false,
-//     validate: {
-//       notNull: {
-//         msg: "Enter your gender",
-//       },
-//     },
-//   },
-//   dateOfBirth: {
-//     type: DataTypes.DATEONLY,
-//     allowNull: false,
-//   },
-//   city: {
-//     type: DataTypes.STRING,
-//     allowNull: false,
-//   },
-//   mobile_no: {
-//     type: DataTypes.STRING,
-//     allowNull: false,
-//     validate: {
-//       is: {
-//         args: /^[0-9]{10}$/,
-//         msg: "Provide a valid 10-digit mobile number",
-//       },
-//     },
-//   },
-//   email: {
-//     type: DataTypes.STRING,
-//     allowNull: false,
-//     validate: {
-//       isEmail: {
-//         msg: "Enter a valid email",
-//       },
-//       notNull: {
-//         msg: "Email is required",
-//       },
-//     },
-//     unique: true,
-//   },
-//   password: {
-//     type: DataTypes.STRING,
-//     allowNull: false,
-//     validate: {
-//       notNull: {
-//         msg: "Provide a valid password",
-//       },
-//     },
-//   },
-//   isVerified: {
-//     //If user is verified or not
-//     type: DataTypes.BOOLEAN,
-//     defaultValue: false,
-//   },
-//   isAdmin: {
-//     //If user is admin or not
-//     type: DataTypes.BOOLEAN,
-//     defaultValue: false,
-//   },
-//   forgotPasswordToken: {
-//     type: DataTypes.STRING,
-//   },
-//   forgotPasswordTokenExpiry: {
-//     type: DataTypes.DATE,
-//   },
-//   verifyToken: {
-//     type: DataTypes.STRING,
-//   },
-//   verifyTokenExpiry: {
-//     type: DataTypes.DATE,
-//   },
-// });
-
-
-import { DataTypes, Sequelize } from "sequelize";
+import { Model, DataTypes, Sequelize, Optional } from "sequelize";
 import { sequelize } from "../lib/dbConfig";
 import {v4 as uuidv4} from 'uuid';
+import { UserAttributes } from "@/types/user";
 
-export const User = sequelize.define(
+
+// Some fields are optional when creating a new user:
+type UserCreationAttributes = Optional<UserAttributes, 'user_id' | 'created_at' | 'updated_at' | 'isVerified' | 'is_artist' | 'spotify_linked' | 'isAdmin'>;
+
+export class UserInstance extends Model<UserAttributes, UserCreationAttributes>
+  implements UserAttributes {
+  user_id!: string;
+  username!: string;
+  email!: string;
+  password_hash!: string;
+  full_name!: string;
+  gender!: 'male' | 'female';
+  date_of_birth?: Date;
+  city?: string;
+  country?: string;
+  mobile_number!: string;
+  profile_picture_url?: string;
+  bio?: string;
+  isVerified!: boolean;
+  is_artist!: boolean;
+  google_id?: string;
+  spotify_linked!: boolean;
+  created_at?: Date;
+  updated_at?: Date;
+  last_login?: Date;
+  deleted_at?: Date;
+  isAdmin!: boolean;
+  forgotPasswordToken?: string;
+  forgotPasswordTokenExpiry?: Date;
+  verifyToken?: string;
+  verifyTokenExpiry?: Date;
+}
+
+
+export const User = sequelize.define<UserInstance>(
   "User",
   {
     user_id: {
@@ -241,7 +174,7 @@ export const User = sequelize.define(
     tableName: "users",
     timestamps: false,
     paranoid: true,
-    indexes: [
+    indexes: [ //for immediate searching
       {
         name: "idx_users_email",
         fields: ["email"],

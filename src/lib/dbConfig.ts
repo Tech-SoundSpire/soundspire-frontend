@@ -1,10 +1,10 @@
 //Connecting database
 import { Sequelize } from "sequelize";
-import { NextResponse } from "next/server";
-
+import { initSchemas } from "./initSchemas";
 import pg from 'pg';
-import  dotenv  from 'dotenv';
-dotenv.config();
+
+
+let connected = false;//Check for connection
 
 export const sequelize = new Sequelize(
   process.env.DB_NAME as string,
@@ -20,9 +20,13 @@ export const sequelize = new Sequelize(
 
 //Establising the connection with the database and as db in other country use try catch
 export async function establishConnection() {
+  if (connected) return;
+
   try {
     await sequelize.authenticate();
+    // await initSchemas();
     console.log("Database connection established!");
+    connected = true;
   } catch (error) {
     console.error("Unable to connect to the database:", error);
   }
