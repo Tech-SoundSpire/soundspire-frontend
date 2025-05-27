@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { FaGoogle } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const { login, isLoading, user } = useAuth();
@@ -36,7 +37,12 @@ export default function LoginPage() {
         {/* Logo and Title */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-2">
-            <img src="images/logo.png" alt="SoundSpire Logo" className="inline-block" /> 
+            {/* <img src="images/logo-Photoroom.png" alt="SoundSpire Logo" className="inline-block"/>  */}
+            <Image 
+            src="images/logo-Photoroom.png"
+            alt='SoundSpire Logo'
+            className="inline-block"
+            />
           </h1>
           <p className="text-white">
             The SuperFandom platform
@@ -57,7 +63,7 @@ export default function LoginPage() {
 
         {/* Terms and Privacy */}
         <div className="mt-8 text-center text-sm text-white">
-          By continuing, you agree to SoundSpire's{' '}
+          By continuing, you agree to SoundSpire&apos;s{' '}
           <a href="#" className="text-primary hover:underline">
             Terms of Service
           </a>{' '}

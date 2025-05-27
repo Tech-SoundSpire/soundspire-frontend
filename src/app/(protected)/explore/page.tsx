@@ -1,6 +1,5 @@
 'use client';
 
-import Navbar from '@/components/Navbar';
 import Carousel from '@/components/Carousel';
 import ArtistCard from '@/components/ArtistCard';
 import ReviewCard from '@/components/ReviewCard';
@@ -61,8 +60,6 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen bg-[#1a1625]">
-      <Navbar />
-      
       <main className="ml-16 px-8 py-6">
         {/* Search Bar and Logout */}
         <div className="flex justify-between items-center mb-8">

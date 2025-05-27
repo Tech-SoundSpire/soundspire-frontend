@@ -1,0 +1,42 @@
+#This will do the clean installation of dependencises
+name: build
+
+on:
+  #This will be triggered after the validation workflow will be completed.
+  workflow_run: 
+    workflows: [test]
+    types: 
+      - completed
+
+jobs:
+  #For checking build is successfull
+  build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x, 23.x]
+
+    steps:
+      #Checking for feasibility
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      #setting node versions
+      - name: Use Node.js ${{matrix.node-version}}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{matrix.node-version}}
+          cache: 'npm' #Selecting package manager
+
+       # installing all the packages and dependencies to run the app
+      - name: Installing dependencies
+        run: npm ci
+     
+      # Building the environment
+      - name: Build
+        run: npm run build  
+ 
+        
+    

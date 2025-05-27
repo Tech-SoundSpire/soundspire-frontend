@@ -1,8 +1,9 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
+
 import Navbar from '@/components/Navbar';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react'; 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { countriesWithCities } from '@/lib/locationData';
@@ -41,6 +42,9 @@ const getInitialAvatar = (email: string) => {
 // Simulated database of existing usernames
 // In a real app, this would be a server API call
 const existingUsernames = ['john_doe', 'jane_smith', 'edsheeran', 'test_user'];
+
+
+
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
@@ -281,8 +285,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#1a1625]">
-      <Navbar />
-      
       <main className="ml-16 px-8 py-6">
         <div className="max-w-5xl mx-auto">
           {/* Header with Title and Edit/Save Buttons */}
