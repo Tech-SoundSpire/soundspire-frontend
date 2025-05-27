@@ -3,11 +3,13 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
   image?: string;
+  photoURL?: string;
+  displayName?: string | null;
   provider: 'google' | 'spotify';
   accessToken?: string;
   refreshToken?: string;
@@ -32,14 +34,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check if user is logged in
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/session');
+        const response = await fetch('/api/auth/session', {
+          credentials: 'include',
+        });
         const data = await response.json();
         
         if (data.user) {
           setUser(data.user);
+        } else {
+          setUser(null);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -50,10 +57,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Protect routes
   useEffect(() => {
-    if (!isLoading) {
-      if (!user && pathname !== '/') {
-        router.push('/');
-      }
+    if (!isLoading && !user && pathname !== '/') {
+      router.push('/');
     }
   }, [user, isLoading, pathname, router]);
 
@@ -79,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       setIsLoading(true);
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
       setUser(null);
       router.push('/');
     } catch (error) {
@@ -103,4 +108,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}

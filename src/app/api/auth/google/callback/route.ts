@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { User } from '@/models';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,7 +8,6 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = process.env.NEXT_PUBLIC_BASE_URL + '/api/auth/google/callback';
 const FRONTEND_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-// Google OAuth endpoints
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo';
 
@@ -18,23 +18,20 @@ export async function GET(request: Request) {
     const state = searchParams.get('state');
     const error = searchParams.get('error');
 
-    // Check if there was an error in the OAuth process
     if (error) {
       return NextResponse.redirect(`${FRONTEND_URL}?error=${error}`);
     }
 
-    // Get the stored state from cookies
     const cookies = request.headers.get('cookie');
-    const storedState = cookies?.split(';')
-      .find(c => c.trim().startsWith('oauth_state='))
+    const storedState = cookies
+      ?.split(';')
+      .find((c) => c.trim().startsWith('oauth_state='))
       ?.split('=')[1];
 
-    // Verify state to prevent CSRF attacks
     if (!state || state !== storedState) {
       return NextResponse.redirect(`${FRONTEND_URL}?error=invalid_state`);
     }
 
-    // Exchange code for tokens
     const tokenResponse = await fetch(GOOGLE_TOKEN_URL, {
       method: 'POST',
       headers: {
@@ -44,7 +41,7 @@ export async function GET(request: Request) {
         code: code!,
         client_id: GOOGLE_CLIENT_ID!,
         client_secret: GOOGLE_CLIENT_SECRET!,
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: REDIRECT_URI!,
         grant_type: 'authorization_code',
       }),
     });
@@ -52,10 +49,9 @@ export async function GET(request: Request) {
     const tokenData = await tokenResponse.json();
 
     if (!tokenResponse.ok) {
-      throw new Error('Failed to get access token');
+      throw new Error(tokenData.error || 'Failed to get access token');
     }
 
-    // Get user info using access token
     const userResponse = await fetch(GOOGLE_USERINFO_URL, {
       headers: {
         Authorization: `Bearer ${tokenData.access_token}`,
@@ -68,32 +64,42 @@ export async function GET(request: Request) {
       throw new Error('Failed to get user info');
     }
 
-    // Create the user object
-    const user = {
+    const existingUser = await User.findOne({ where: { email: userData.email } });
+    const username = existingUser?.username || userData.email.split('@')[0].toLowerCase();
+
+    await User.upsert({
+      google_id: userData.id,
+      email: userData.email,
+      full_name: userData.name || existingUser?.full_name || userData.email.split('@')[0],
+      profile_picture_url: userData.picture || existingUser?.profile_picture_url,
+      username,
+      is_verified: true,
+      created_at: existingUser?.created_at || new Date(),
+      updated_at: new Date(),
+    });
+
+    const authUser = {
       id: userData.id,
       name: userData.name,
+      displayName: userData.name,
       email: userData.email,
-      image: userData.picture,
-      provider: 'google',
-      accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token,
+      photoURL: userData.picture,
+      username,
     };
 
-    // Create response with user data
-    const response = NextResponse.redirect(`${FRONTEND_URL}/explore`);
-    
-    // Set user data in an httpOnly cookie
-    response.cookies.set('user', JSON.stringify(user), {
+    const response = NextResponse.redirect(`${FRONTEND_URL}/profile`);
+
+    response.cookies.set('user', JSON.stringify(authUser), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 1 week
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
     });
 
     return response;
-
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('OAuth callback error:', error);
     return NextResponse.redirect(`${FRONTEND_URL}?error=oauth_error`);
   }
-} 
+}
