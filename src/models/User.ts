@@ -64,7 +64,7 @@ export const User = sequelize.define<UserInstance>(
         isEmail: { msg: "Enter a valid email" },
       },
     },
-    password_hash: {
+    password_hash: { //Change this name
       type: DataTypes.STRING(255),
       allowNull: false,
       validate: {
