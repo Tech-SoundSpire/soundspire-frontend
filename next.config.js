@@ -12,7 +12,10 @@ const nextConfig = {
         ]
       }
     ];
-  }
+  },
+  images: {
+    domains: ['lh3.googleusercontent.com'], // Allows Google-hosted images
+  },
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;
