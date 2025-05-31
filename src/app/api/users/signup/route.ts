@@ -11,7 +11,7 @@ export async function POST(request: NextRequest){
     const reqBody = await request.json();//getting all the parameter in the body we don't need middleware here
 
     //things we need
-    const { username, email, password_hash, full_name, gender, mobile_number } = reqBody; //taking what is needed
+    const { username, email, password_hash, full_name, gender, mobile_number, date_of_birth, city } = reqBody; //taking what is needed
     console.log(reqBody);
 
     /***********Validation****************/
@@ -41,7 +41,10 @@ export async function POST(request: NextRequest){
       password_hash: hashedPassword,
       full_name,
       gender,
-      mobile_number
+      mobile_number,
+      date_of_birth,
+      city,
+
     });
 
     console.log("✅ New user created:", newUser.toJSON());
