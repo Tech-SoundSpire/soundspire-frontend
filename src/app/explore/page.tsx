@@ -7,7 +7,7 @@ import ReviewCard from '@/components/ReviewCard';
 import GenreCard from '@/components/GenreCard';
 import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+// import { useAuth } from '@/context/AuthContext';
 
 const carouselItems = [
   {
@@ -32,7 +32,7 @@ const carouselItems = [
 
 export default function ExplorePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const { logout } = useAuth();
+  // const { logout } = useAuth();
 
   // Auto-rotate carousel
   useEffect(() => {
@@ -51,13 +51,13 @@ export default function ExplorePage() {
     setCurrentSlide((prev) => (prev - 1 + carouselItems.length) % carouselItems.length);
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
+  // const handleLogout = async () => {
+  //   try {
+  //     await logout();
+  //   } catch (error) {
+  //     console.error('Logout failed:', error);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-[#1a1625]">
@@ -76,12 +76,12 @@ export default function ExplorePage() {
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
           </div>
-          <button
+          {/* <button
             onClick={handleLogout}
             className="px-4 py-2 ml-4 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors duration-200"
           >
             Logout
-          </button>
+          </button> */}
         </div>
 
         {/* Featured Carousel */}

@@ -1,13 +1,13 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
+// import { useAuth } from '@/context/AuthContext';
 import { FaHome, FaCompass, FaHeadphones, FaUsers, FaClipboard, FaBell, FaUser, FaCog } from 'react-icons/fa';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 
 const Navbar = () => {
-  const { logout } = useAuth();
+  // const { logout } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const menuItems = [

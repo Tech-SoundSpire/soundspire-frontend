@@ -218,6 +218,14 @@ export default function SignupPage() {
         >
           {loading ? "Signing Up..." : "Sign Up"}
         </button>
+
+         {/* Optional Google Login placeholder */}
+         <button
+          className="w-full py-3 my-2 flex justify-center items-center bg-red-600 hover:bg-red-700 rounded text-white font-semibold disabled:opacity-50 transition"
+        >
+          <FaGoogle className="mr-2" /> Login with Google
+        </button>
+
         <h4 className="text-center text-sm mt-2">
           Already have an account ? {" "}
           <Link
