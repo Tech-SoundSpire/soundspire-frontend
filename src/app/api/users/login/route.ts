@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
     console.log("password validated");
 
     console.log("Creating the tokens");
+  
     //If password is authenticated creating the token
     const tokenPayload = {
       //token data created

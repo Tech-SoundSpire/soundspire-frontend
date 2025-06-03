@@ -75,7 +75,6 @@ export default function SignupPage() {
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [tempUser, setTempUser] = useState<any>(null);
 
   const onSignup = async () => {
     try {
