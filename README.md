@@ -30,14 +30,21 @@ NEXTAUTH_URL=https://localhost:3000
 NEXTAUTH_SECRET="" 
 ```
 
+Install Dependencies:
 
+```bash
+
+npm install
+npm install -g pg --save
+npm install sequelize pg pg-hstore
+
+```
 
 Install dependencies:
 
 ```bash
 npm install
 ```
-
 
 Then, run the development server:
 

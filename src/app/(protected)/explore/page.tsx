@@ -7,6 +7,7 @@ import GenreCard from '@/components/GenreCard';
 import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const carouselItems = [
   {
@@ -32,6 +33,7 @@ const carouselItems = [
 export default function ExplorePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { logout } = useAuth();
+  const router = useRouter();
 
   // Auto-rotate carousel
   useEffect(() => {
@@ -161,8 +163,8 @@ export default function ExplorePage() {
             <a href="#" className="text-gray-400 hover:text-white">See All</a>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array(3).fill(null).map((_, index) => (
-              <div key={index} className="bg-[#2d2838] rounded-lg overflow-hidden">
+            {[1,2,3].map((id, index) => (
+              <div key={id} className="bg-[#2d2838] rounded-lg overflow-hidden">
                 <img
                   src="/images/placeholder.jpg"
                   alt={`Review ${index + 1}`}
@@ -173,7 +175,12 @@ export default function ExplorePage() {
                   <p className="text-gray-400 text-sm mb-4">Lorem ipsum dolor sit amet sed do eiusmod tempor Lorem ipsum dolor sit amet sed do eiusmod tempor</p>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Ashish Paul, 20th Dec</span>
-                    <button className="px-4 py-1 bg-[#ff4d4d] text-white rounded-full text-sm">Read More</button>
+                    <button
+                      className="px-4 py-1 bg-[#ff4d4d] text-white rounded-full text-sm"
+                      onClick={() => router.push(`/reviews/${id}`)}
+                    >
+                      Read More
+                    </button>
                   </div>
                 </div>
               </div>
