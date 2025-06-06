@@ -49,7 +49,8 @@ export default function ReviewDetailPage() {
     });
     const data = await res.json();
     setLiked(data.liked);
-    setLikeCount(count => data.liked ? count + 1 : Math.max(0, count - 1));
+    // Refetch the total like count from the backend
+    fetch(`/api/reviews/${params.id}/like/count`).then(res => res.json()).then(data => setLikeCount(data.count || 0));
   };
 
   if (!review) return <div className="text-white">Loading...</div>;

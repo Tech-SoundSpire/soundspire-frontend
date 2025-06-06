@@ -9,6 +9,13 @@ interface Comment {
   likes: number;
 }
 
+async function fetchCommentLikeCount(comment_id: string): Promise<number> {
+  const res = await fetch(`/api/comments/${comment_id}/like/count`);
+  if (!res.ok) return 0;
+  const data = await res.json();
+  return data.count || 0;
+}
+
 export default function CommentsSection({ reviewId, userId }: { reviewId: string, userId: string }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -17,7 +24,14 @@ export default function CommentsSection({ reviewId, userId }: { reviewId: string
   useEffect(() => {
     fetch(`/api/reviews/${reviewId}/comments`)
       .then(res => res.json())
-      .then(setComments);
+      .then(async (comments) => {
+        // Fetch like counts for each comment
+        const withLikes = await Promise.all(comments.map(async (c: Comment) => ({
+          ...c,
+          likes: await fetchCommentLikeCount(c.comment_id),
+        })));
+        setComments(withLikes);
+      });
   }, [reviewId]);
 
   const handleAddComment = async () => {
@@ -29,7 +43,8 @@ export default function CommentsSection({ reviewId, userId }: { reviewId: string
       body: JSON.stringify({ user_id: userId, content: newComment }),
     });
     const comment = await res.json();
-    setComments([{ ...comment, replies: [], likes: 0 }, ...comments]);
+    const likes = await fetchCommentLikeCount(comment.comment_id);
+    setComments([{ ...comment, replies: [], likes }, ...comments]);
     setNewComment('');
     setLoading(false);
   };
@@ -48,14 +63,14 @@ export default function CommentsSection({ reviewId, userId }: { reviewId: string
   };
 
   const handleLikeComment = async (commentId: string) => {
-    await fetch(`/api/comments/${commentId}/like`, {
+    const res = await fetch(`/api/comments/${commentId}/like`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: userId }),
     });
-    // Optimistically update UI (in real app, refetch or update with response)
+    const data = await res.json();
     setComments(comments => comments.map(c =>
-      c.comment_id === commentId ? { ...c, likes: (c.likes || 0) + 1 } : c
+      c.comment_id === commentId ? { ...c, likes: data.likeCount } : c
     ));
   };
 
@@ -73,7 +88,7 @@ export default function CommentsSection({ reviewId, userId }: { reviewId: string
         <button onClick={handleAddComment} className="bg-purple-600 text-white px-4 py-2 rounded-r" disabled={loading}>Post</button>
       </div>
       {comments.map(comment => (
-        <div key={comment.comment_id} className="mb-4 p-3 bg-[#2d2838] rounded">
+        <div key={comment.comment_id || Math.random()} className="mb-4 p-3 bg-[#2d2838] rounded">
           <div className="flex items-center mb-1">
             <span className="text-white font-semibold mr-2">User {comment.user_id ? comment.user_id.slice(0, 6) : 'Unknown'}</span>
             <button onClick={() => handleLikeComment(comment.comment_id)} className="text-red-400 ml-2">♥ {comment.likes || 0}</button>
@@ -91,7 +106,7 @@ function RepliesSection({ parentId, replies, onAddReply }: { parentId: string, r
   return (
     <div className="ml-6 mt-2">
       {replies.map(reply => (
-        <div key={reply.comment_id} className="mb-2 p-2 bg-[#231b32] rounded">
+        <div key={reply.comment_id || Math.random()} className="mb-2 p-2 bg-[#231b32] rounded">
           <span className="text-white font-semibold mr-2">User {reply.user_id ? reply.user_id.slice(0, 6) : 'Unknown'}</span>
           <span className="text-gray-200">{reply.content}</span>
         </div>
