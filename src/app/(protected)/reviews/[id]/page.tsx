@@ -1,7 +1,9 @@
-"use client";
+'use client';
+
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import DetailedReview from '@/components/DetailedReview';
+import CommentsSection from '@/components/CommentsSection';
 
 interface Review {
   review_id: string;
@@ -34,6 +36,7 @@ export default function ReviewDetailPage() {
   }, [params.id]);
 
   if (!review) return <div className="text-white">Loading...</div>;
+
   return (
     <div className="min-h-screen bg-[#1a1625] ml-16 px-8 py-6">
       <button
@@ -42,11 +45,19 @@ export default function ReviewDetailPage() {
       >
         ← Back to All Reviews
       </button>
+
       <div className="w-full max-w-4xl mx-auto mb-12">
         <div className="flex flex-col md:flex-row bg-[#231b32] rounded-lg shadow-lg overflow-hidden">
           <div className="md:w-1/2 flex items-center justify-center bg-[#2d2838] p-8">
-            <img src={(review.image_urls && review.image_urls.length > 0) ? review.image_urls[0] : '/images/placeholder.jpg'} alt={review.title} className="rounded-lg w-full max-w-xs object-cover" />
+            <img
+              src={(review.image_urls && review.image_urls.length > 0)
+                ? review.image_urls[0]
+                : '/images/placeholder.jpg'}
+              alt={review.title}
+              className="rounded-lg w-full max-w-xs object-cover"
+            />
           </div>
+
           <div className="md:w-1/2 p-8 flex flex-col justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">{review.title}</h1>
@@ -54,11 +65,17 @@ export default function ReviewDetailPage() {
               <div className="text-sm text-gray-400 mb-4">{review.artist_name || 'Unknown Artist'}</div>
               <div className="text-gray-200 whitespace-pre-line mb-4">{review.text_content}</div>
             </div>
-            <div className="text-xs text-gray-400 mt-4">{review.created_at ? new Date(review.created_at).toLocaleDateString() : ''}</div>
+            <div className="text-xs text-gray-400 mt-4">
+              {review.created_at ? new Date(review.created_at).toLocaleDateString() : ''}
+            </div>
           </div>
         </div>
       </div>
-      {/* Comments and likes can be added here if needed */}
+
+      {/* ✅ Comments Section */}
+      <div className="w-full max-w-4xl mx-auto">
+        <CommentsSection reviewId={review.review_id} />
+      </div>
     </div>
   );
-} 
+}

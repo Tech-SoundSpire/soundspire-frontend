@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "next": "15.3.0",
+    "next-auth": "^4.24.11",
     "pg": "^8.16.0",
     "pg-hstore": "^2.3.4",
     "react": "^18",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pg": "^8.15.2",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",

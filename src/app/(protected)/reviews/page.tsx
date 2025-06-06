@@ -35,6 +35,9 @@ export default function ReviewsPage() {
       .then(data => setReviews(data));
   }, []);
 
+  
+  console.log("reviews data:", reviews);
+
   return (
     <div className="min-h-screen bg-[#1a1625] ml-16 px-8 py-6">
       <div className="max-w-4xl mx-auto mb-12">
@@ -42,6 +45,7 @@ export default function ReviewsPage() {
       </div>
       <h2 className="text-3xl font-bold text-white mt-12 mb-6">ALL REVIEWS</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
         {reviews.map(review => (
           <div key={review.review_id} className="flex flex-col bg-[#231b32] rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
             <img src={(review.image_urls && review.image_urls.length > 0) ? review.image_urls[0] : '/images/placeholder.jpg'} alt={review.title} className="w-full h-56 object-cover" />
