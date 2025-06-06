@@ -28,12 +28,11 @@ export default function VerifyEmailPage() {
         setVerified(true);
         setError(false);
         setLoadding(false);
-        
+
         setTimeout(() => {
           toast.success("Email verified successfully!");
           router.push("/explore");
-        },2000);
-
+        }, 2000);
       } catch (err: any) {
         setLoadding(false);
         setError(true);
@@ -52,7 +51,7 @@ export default function VerifyEmailPage() {
     <div className="flex flex-col items-center justify-center min-h-screen py-2 text-white">
       <h1 className="text-4xl font-semibold mb-4">Verify Email</h1>
 
-       {loading && (
+      {loading && (
         <div className="mt-4 flex items-center space-x-2">
           <div className="w-6 h-6 border-4 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
           <span className="text-orange-300">Verifying your email...</span>

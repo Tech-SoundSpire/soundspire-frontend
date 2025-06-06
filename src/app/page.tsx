@@ -93,7 +93,6 @@ export default function SignupPage() {
         date_of_birth: "",
         city: "",
       });
-
     } catch (error: any) {
       console.log("Signup failed!");
       toast.error(error?.response?.data?.error || "Signup failed. Try again!");
@@ -125,33 +124,31 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white">
+      {/* Left Side: Branding & Welcome */}
+      <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
+        {/* Logo at Top */}
+        <div>
+          <img
+            src="/images/logo-Photoroom.png"
+            alt="SoundSpire logo"
+            width={200}
+            height={200}
+            className="mb-4"
+          />
+        </div>
 
-       {/* Left Side: Branding & Welcome */}
-  <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
-    
-    {/* Logo at Top */}
-    <div>
-      <img
-        src="/images/logo-Photoroom.png"
-        alt="SoundSpire logo"
-        width={200}
-        height={200}
-        className="mb-4"
-      />
-    </div>
-
-    {/* Welcome Text at Bottom */}
-    <div className="mb-12">
-      <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">
-        Welcome Back_
-      </h1>
-      <div className="text-5xl bg-gradient-to-t from-gray-400 to-gray-50 font-light bg-clip-text text-transparent space-y-2 italic">
-        <h2>Your Vibe,</h2>
-        <h2>Your Beats,</h2>
-        <h2>Your World Awaits.</h2>
+        {/* Welcome Text at Bottom */}
+        <div className="mb-12">
+          <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">
+            Welcome Back_
+          </h1>
+          <div className="text-5xl bg-gradient-to-t from-gray-400 to-gray-50 font-light bg-clip-text text-transparent space-y-2 italic">
+            <h2>Your Vibe,</h2>
+            <h2>Your Beats,</h2>
+            <h2>Your World Awaits.</h2>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
 
       {/* Right Side: Login Form */}
       <div className="bg-white text-black flex flex-col justify-center items-center w-full md:w-1/2 p-8">

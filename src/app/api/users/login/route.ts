@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     //Checking if the user exists
     if (!user) {
-      toast.error("User not exists Please Sign in!")
+      toast.error("User not exists Please Sign in!");
       return NextResponse.json(
         { error: "User does not exists" },
         { status: 400 }
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       message: "Logged In Success",
       success: true,
     });
-    
+
     return response; //seding response and user is loggedin
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

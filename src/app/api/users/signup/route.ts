@@ -49,19 +49,6 @@ export async function POST(request: NextRequest) {
     //Creating new User
     console.log("🧑‍💻 Creating new user...");
 
-    // const newUser = await User.create({
-    //   username,
-    //   email,
-    //   password_hash: hashedPassword,
-    //   full_name,
-    //   gender,
-    //   mobile_number,
-    //   date_of_birth,
-    //   city,
-    // });
-
-    // console.log("✅ New user created:", newUser.toJSON());
-
     //If password is authenticated creating the token
     const tokenPayload = {
       //token data created
@@ -93,13 +80,7 @@ export async function POST(request: NextRequest) {
     }).catch((err) => {
       console.log("Email send failed!!", err);
     });
-    console.log("✅ Email sent!");
-
-    // return NextResponse.json({
-    //   message: "User registered successfully",
-    //   success: true,
-    //   newUser //dont return this whole
-    // })
+    console.log(" Email sent!");
 
     return NextResponse.json({
       message: "Verification email sent. Please check your inbox.",
