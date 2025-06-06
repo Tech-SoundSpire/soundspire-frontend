@@ -48,24 +48,24 @@ export async function POST(request: NextRequest) {
     console.log("Creating the tokens");
   
     //If password is authenticated creating the token
-    const tokenPayload = {
-      //token data created
-      id: user.user_id,
-      email: user.email,
-    };
+    // const tokenPayload = {
+    //   //token data created
+    //   id: user.user_id,
+    //   email: user.email,
+    // };
     //creating the signed token
-    const token = await jwt.sign(tokenPayload, process.env.JWT_SECRET!, {
-      expiresIn: "1d",
-    });
+    // const token = await jwt.sign(tokenPayload, process.env.JWT_SECRET!, {
+    //   expiresIn: "1d",
+    // });
 
     //creating response and  cookies
     const response = NextResponse.json({
       message: "Logged In Success",
       success: true,
     });
-    response.cookies.set("token", token, {
-      httpOnly: true,
-    });
+    // response.cookies.set("token", token, {
+    //   httpOnly: true,
+    // });
     return response; //seding response and user is loggedin
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
