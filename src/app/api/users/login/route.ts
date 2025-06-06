@@ -2,7 +2,7 @@ import { connectionTestingAndHelper } from "@/utils/temp";
 import { User } from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
-import jwt from "jsonwebtoken";
+import toast from "react-hot-toast";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
 
     //Checking if the user exists
     if (!user) {
+      toast.error("User not exists Please Sign in!")
       return NextResponse.json(
         { error: "User does not exists" },
         { status: 400 }
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (!validPassword) {
+      toast.error("Incorrect password!");
       return NextResponse.json(
         { error: "Check your password or password is wrong!" },
         { status: 400 }
@@ -45,27 +47,12 @@ export async function POST(request: NextRequest) {
     }
     console.log("password validated");
 
-    console.log("Creating the tokens");
-  
-    //If password is authenticated creating the token
-    // const tokenPayload = {
-    //   //token data created
-    //   id: user.user_id,
-    //   email: user.email,
-    // };
-    //creating the signed token
-    // const token = await jwt.sign(tokenPayload, process.env.JWT_SECRET!, {
-    //   expiresIn: "1d",
-    // });
-
-    //creating response and  cookies
+    //creating response
     const response = NextResponse.json({
       message: "Logged In Success",
       success: true,
     });
-    // response.cookies.set("token", token, {
-    //   httpOnly: true,
-    // });
+    
     return response; //seding response and user is loggedin
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

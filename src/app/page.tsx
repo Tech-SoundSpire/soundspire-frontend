@@ -80,12 +80,23 @@ export default function SignupPage() {
     try {
       setLoading(true);
       const response = await axios.post("/api/users/signup", user);
-      console.log("Signup successful", response.data);
-      toast.success("Signup successful!");
-      router.push("/login");
+      // console.log("Signup successful", response.data);
+      toast.success("Verification email sent! Check your inbox.");
+
+      setUser({
+        username: "",
+        email: "",
+        password_hash: "",
+        full_name: "",
+        gender: "",
+        mobile_number: "",
+        date_of_birth: "",
+        city: "",
+      });
+
     } catch (error: any) {
       console.log("Signup failed!");
-      toast.error(error.message);
+      toast.error(error?.response?.data?.error || "Signup failed. Try again!");
     } finally {
       setLoading(false);
     }

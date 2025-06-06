@@ -9,6 +9,7 @@ export default function VerifyEmailPage() {
   const [token, setToken] = useState("");
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState(false);
+  const [loading, setLoadding] = useState(false);
   const router = useRouter();
 
   // Extract and set the token from the URL
@@ -21,10 +22,12 @@ export default function VerifyEmailPage() {
   // Automatically verify once token is available
   useEffect(() => {
     const verifyUserEmail = async () => {
+      setLoadding(true);
       try {
         await axios.post("/api/users/verifyemail", { token });
         setVerified(true);
         setError(false);
+        setLoadding(false);
         
         setTimeout(() => {
           toast.success("Email verified successfully!");
@@ -32,6 +35,7 @@ export default function VerifyEmailPage() {
         },2000);
 
       } catch (err: any) {
+        setLoadding(false);
         setError(true);
         const message = err?.response?.data?.message || "Verification failed!";
         toast.error(message);
@@ -45,12 +49,15 @@ export default function VerifyEmailPage() {
   }, [token]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
+    <div className="flex flex-col items-center justify-center min-h-screen py-2 text-white">
       <h1 className="text-4xl font-semibold mb-4">Verify Email</h1>
 
-      <h2 className="p-2 mb-2 bg-orange-500 text-white rounded">
-        {token ? `Verifying token: ${token}` : "No token found in URL"}
-      </h2>
+       {loading && (
+        <div className="mt-4 flex items-center space-x-2">
+          <div className="w-6 h-6 border-4 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-orange-300">Verifying your email...</span>
+        </div>
+      )}
 
       {verified && (
         <div className="text-green-500 mt-4">
