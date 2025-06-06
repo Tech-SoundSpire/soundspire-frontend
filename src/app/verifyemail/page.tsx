@@ -25,7 +25,11 @@ export default function VerifyEmailPage() {
         await axios.post("/api/users/verifyemail", { token });
         setVerified(true);
         setError(false);
-        toast.success("Email verified successfully!");
+        
+        setTimeout(() => {
+          toast.success("Email verified successfully!");
+          router.push("/explore");
+        },2000);
 
       } catch (err: any) {
         setError(true);

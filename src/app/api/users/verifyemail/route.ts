@@ -63,10 +63,10 @@ import jwt from 'jsonwebtoken';
 
 // }
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const token = request.nextUrl.searchParams.get('token');
-    if (!token) return NextResponse.json({ error: 'Missing token' }, { status: 400 });
+    const { token } = await request.json();
+    if (!token || typeof token != "string") return NextResponse.json({ error: 'Missing token or Invalid token' }, { status: 400 });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
 
