@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
+
     const cookies = request.headers.get('cookie');
     const userCookie = cookies?.split(';')
       .find(c => c.trim().startsWith('user='))

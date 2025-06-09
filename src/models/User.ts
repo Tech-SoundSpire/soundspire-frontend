@@ -1,25 +1,38 @@
-
 import { Model, DataTypes, Sequelize, Optional } from "sequelize";
 import { sequelize } from "../lib/dbConfig";
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { UserAttributes } from "@/types/user";
 
+type UserCreationAttributes = Optional<
+  UserAttributes,
+  | "user_id"
+  | "created_at"
+  | "updated_at"
+  | "isVerified"
+  | "is_artist"
+  | "spotify_linked"
+  | "isAdmin"
+  | "password_hash"
+  | "gender"
+  | "date_of_birth"
+  | "city"
+  | "mobile_number"
+>;
 
-// Some fields are optional when creating a new user:
-type UserCreationAttributes = Optional<UserAttributes, 'user_id' | 'created_at' | 'updated_at' | 'isVerified' | 'is_artist' | 'spotify_linked' | 'isAdmin'>;
-
-export class UserInstance extends Model<UserAttributes, UserCreationAttributes>
-  implements UserAttributes {
+export class UserInstance
+  extends Model<UserAttributes, UserCreationAttributes>
+  implements UserAttributes
+{
   user_id!: string;
   username!: string;
   email!: string;
-  password_hash!: string;
-  full_name!: string;
-  gender!: 'male' | 'female';
+  password_hash?: string;
+  full_name?: string;
+  gender?: "male" | "female";
   date_of_birth?: Date;
   city?: string;
   country?: string;
-  mobile_number!: string;
+  mobile_number?: string;
   profile_picture_url?: string;
   bio?: string;
   isVerified!: boolean;
@@ -37,21 +50,19 @@ export class UserInstance extends Model<UserAttributes, UserCreationAttributes>
   verifyTokenExpiry?: Date;
 }
 
-
 export const User = sequelize.define<UserInstance>(
   "User",
   {
     user_id: {
       type: DataTypes.UUID,
       primaryKey: true,
-      defaultValue: uuidv4,
+      defaultValue: () => uuidv4(),
     },
     username: {
       type: DataTypes.STRING(50),
       allowNull: false,
       unique: true,
       validate: {
-        notNull: { msg: "Provide user name" },
         notEmpty: { msg: "User name cannot be empty" },
       },
     },
@@ -60,61 +71,45 @@ export const User = sequelize.define<UserInstance>(
       allowNull: false,
       unique: true,
       validate: {
-        notNull: { msg: "Email is required" },
         isEmail: { msg: "Enter a valid email" },
+        notEmpty: { msg: "Email is required" },
       },
     },
-    password_hash: { //Change this name
+    password_hash: {
       type: DataTypes.STRING(255),
-      allowNull: false,
-      validate: {
-        notNull: { msg: "Provide a valid password" },
-      },
+      allowNull: true, // optional here; validate before creation
     },
     full_name: {
       type: DataTypes.STRING(100),
-      allowNull: false,
-      validate: {
-        notNull: { msg: "Provide name" },
-        notEmpty: { msg: "Name cannot be empty" },
-      },
+      allowNull: true,
     },
     gender: {
       type: DataTypes.ENUM("male", "female"),
-      allowNull: false,
-      validate: {
-        notNull: { msg: "Enter your gender" },
-      },
+      allowNull: true,
     },
     date_of_birth: {
       type: DataTypes.DATEONLY,
-      // allowNull: false,
+      allowNull: true,
     },
     city: {
       type: DataTypes.STRING(100),
-      // allowNull: false,
+      allowNull: true,
     },
     country: {
       type: DataTypes.STRING(100),
-     // allowNull: true,
+      allowNull: true,
     },
     mobile_number: {
       type: DataTypes.STRING(20),
-      allowNull: false,
-      validate: {
-        is: {
-          args: /^[0-9]{10}$/,
-          msg: "Provide a valid 10-digit mobile number",
-        },
-      },
+      allowNull: true,
     },
     profile_picture_url: {
       type: DataTypes.TEXT,
-     // allowNull: true,
+      allowNull: true,
     },
     bio: {
       type: DataTypes.TEXT,
-    //  allowNull: true,
+      allowNull: true,
     },
     isVerified: {
       type: DataTypes.BOOLEAN,
@@ -172,18 +167,11 @@ export const User = sequelize.define<UserInstance>(
   },
   {
     tableName: "users",
-    timestamps: false,
+    timestamps: false, // or true if you want Sequelize to manage timestamps automatically
     paranoid: true,
-    indexes: [ //for immediate searching
-      {
-        name: "idx_users_email",
-        fields: ["email"],
-      },
-      {
-        name: "idx_users_username",
-        fields: ["username"],
-      },
+    indexes: [
+      { name: "idx_users_email", fields: ["email"] },
+      { name: "idx_users_username", fields: ["username"] },
     ],
   }
 );
-
