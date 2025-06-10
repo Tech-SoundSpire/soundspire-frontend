@@ -103,6 +103,7 @@ export default function LoginPage() {
             width={200}
             height={200}
             className="mb-4"
+            
           />
         </div>
 
