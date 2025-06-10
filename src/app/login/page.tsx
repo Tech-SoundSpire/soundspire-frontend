@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import axios from "axios";
@@ -24,7 +24,8 @@ const fields = [
 
 export default function LoginPage() {
   const router = useRouter();
-
+  const searchParams = useSearchParams();
+  
   const [user, setUser] = useState({
     email: "",
     password_hash: "",
@@ -32,7 +33,7 @@ export default function LoginPage() {
 
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+  // const [googleLoading, setGoogleLoading] = useState(false);
 
   const onLogin = async () => {
     try {
@@ -52,21 +53,39 @@ export default function LoginPage() {
     }
   };
 
-  const onGoogleLogin = async () => {
-    try {
-      setGoogleLoading(true);
-      // Replace with actual OAuth logic
-      const { data } = await axios.get("/api/auth/google");
-      toast.success("Redirecting to Google...");
-      window.location.href = data.url;
-    } catch (error: any) {
-      toast.error("Google login failed. Try again later.");
-      console.error("Google login error:", error);
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
+  // const onGoogleLogin = async () => {
+  //   try {
+  //     setGoogleLoading(true);
+  //     // Replace with actual OAuth logic
+  //     const { data } = await axios.get("/api/auth/google");
+  //     toast.success("Redirecting to Google...");
+  //     window.location.href = data.url;
+  //   } catch (error: any) {
+  //     toast.error("Google login failed. Try again later.");
+  //     console.error("Google login error:", error);
+  //   } finally {
+  //     setGoogleLoading(false);
+  //   }
+  // };
 
+  useEffect(() => {
+    const info = searchParams.get("info");
+    if(info === "account_exists"){
+      toast("This email is already registered. Please login!", {
+        icon: "🔒",
+        style: {
+          borderRadius: "8px",
+          background: "#333",
+          color: "#fff",
+        },
+      });
+       // Remove the query param after showing message
+    const params = new URLSearchParams(window.location.search);
+    params.delete("info");
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    router.replace(newUrl);
+    }
+  });
   useEffect(() => {
     const allFilled = Object.values(user).every((val) => val.trim().length > 0);
     setButtonDisabled(!allFilled);
@@ -139,9 +158,14 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Login"}
           </button>
 
-          <div className="text-center text-sm text-gray-400">or</div>
+          <Link
+            href="/forgot-password"
+            className="text-center block text-sm text-blue-600 hover:underline"
+          >
+            Forgot Password?
+          </Link>
 
-          <button
+          {/* <button
             onClick={onGoogleLogin}
             disabled={googleLoading}
             className="w-full py-3 flex justify-center items-center bg-red-600 hover:bg-red-700 rounded text-white font-semibold opacity-85 transition"
@@ -153,7 +177,7 @@ export default function LoginPage() {
                 <FaGoogle className="mr-2" /> Login with Google
               </>
             )}
-          </button>
+          </button> */}
 
           <p className="text-center text-sm mt-6 text-gray-400">
             Don&apos;t have an account yet?{" "}

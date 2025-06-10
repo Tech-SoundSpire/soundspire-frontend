@@ -106,9 +106,10 @@ export default function SignupPage() {
     try {
       console.log("Google login clicked");
       // Simulate login logic
-      setTimeout(() => {
-        router.push("/explore");
-      }, 1000);
+      // setTimeout(() => {
+      //   router.push("/explore");
+      // }, 1000);
+      window.location.href = "/api/auth/google";
     } catch (error) {
       console.error("Google login failed:", error);
       toast.error("Google login failed");
