@@ -69,7 +69,7 @@ export default function ProfilePage() {
     spotifyLinked: false,
     subscriptions: Array(6).fill({
       name: 'Ed Sheeran',
-      image: '/images/ed-sheeran.jpg'
+      image: '/images/placeholder.jpg'
     })
   });
 
