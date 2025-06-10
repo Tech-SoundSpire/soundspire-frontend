@@ -195,7 +195,7 @@ export default function SignupPage() {
 
           <button
             onClick={handleGoogleLogin}
-            // disabled={isGoogleLoading}
+            disabled={isGoogleLoading}
             className="w-full py-3 flex justify-center items-center bg-red-600 hover:bg-red-700 rounded text-white font-semibold opacity-85 transition"
           >
             <FaGoogle className="mr-2" />

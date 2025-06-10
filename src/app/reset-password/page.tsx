@@ -46,8 +46,38 @@ export default function ResetPassword() {
       setLoading(false);
     }
   };
-  return (<div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
+  return (
+  <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900">
+
+    
+    <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
+        {/* Logo at Top */}
+        <div>
+          <img
+            src="/images/logo-Photoroom.png"
+            alt="SoundSpire logo"
+            width={200}
+            height={200}
+            className="mb-4"
+          />
+        </div>
+
+        {/* Welcome Text at Bottom */}
+        <div className="mb-12">
+          <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">
+            Welcome Back_
+          </h1>
+          <div className="text-5xl bg-gradient-to-t from-gray-400 to-gray-50 font-light bg-clip-text text-transparent space-y-2 italic">
+            <h2>Your Vibe,</h2>
+            <h2>Your Beats,</h2>
+            <h2>Your World Awaits.</h2>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side */}
+    <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white text-black">
+      <div className="bg-slate-100 p-6 rounded shadow-md w-full max-w-md">
         <h2 className="text-xl font-semibold mb-4 text-center">Reset Password</h2>
         <span className="text-sm font-light mb-8">Password <span className="text-red-600">*</span></span> 
         <input
@@ -74,5 +104,9 @@ export default function ResetPassword() {
           {loading ? "Updating..." : "Reset Password"}
         </button>
       </div>
-    </div>);
+    </div>
+    </div>
+    
+    
+    );
 }

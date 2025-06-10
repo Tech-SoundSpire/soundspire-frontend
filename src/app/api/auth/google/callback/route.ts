@@ -78,7 +78,9 @@ export async function GET(request: Request) {
       },
     });
 
-    if (!userInDb) {
+    if (userInDb){
+      return NextResponse.redirect(`${FRONTEND_URL}/login?info=account_exists`);
+    } else{
       const baseUsername = userData.email
         .split("@")[0]
         .replace(/[^a-zA-Z0-9]/g, "_");

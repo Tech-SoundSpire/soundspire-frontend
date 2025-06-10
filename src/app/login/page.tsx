@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import axios from "axios";
@@ -24,7 +24,8 @@ const fields = [
 
 export default function LoginPage() {
   const router = useRouter();
-
+  const searchParams = useSearchParams();
+  
   const [user, setUser] = useState({
     email: "",
     password_hash: "",
@@ -32,7 +33,7 @@ export default function LoginPage() {
 
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+  // const [googleLoading, setGoogleLoading] = useState(false);
 
   const onLogin = async () => {
     try {
@@ -67,6 +68,24 @@ export default function LoginPage() {
   //   }
   // };
 
+  useEffect(() => {
+    const info = searchParams.get("info");
+    if(info === "account_exists"){
+      toast("This email is already registered. Please login!", {
+        icon: "🔒",
+        style: {
+          borderRadius: "8px",
+          background: "#333",
+          color: "#fff",
+        },
+      });
+       // Remove the query param after showing message
+    const params = new URLSearchParams(window.location.search);
+    params.delete("info");
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    router.replace(newUrl);
+    }
+  });
   useEffect(() => {
     const allFilled = Object.values(user).every((val) => val.trim().length > 0);
     setButtonDisabled(!allFilled);
