@@ -27,7 +27,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  useRedirectIfAuthenticated();//Session checker hook
+   useRedirectIfAuthenticated();//Session checker hook
   
   const [user, setUser] = useState({
     email: "",

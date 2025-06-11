@@ -16,6 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,12 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkSession();
   }, []);
 
-   useEffect(() => {
-    if (!isLoading && !user && pathname !== '/') {
-      router.push('/');
-    }
-  }, [user, isLoading, pathname]);
-
+ 
   return (
     <AuthContext.Provider value={{ user, isLoading}}>
       {children}
