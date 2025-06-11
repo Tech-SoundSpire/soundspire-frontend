@@ -28,30 +28,47 @@ export default function ReviewDetailPage() {
   // For demo, fallback to a static userId if not provided
   const userId = '00000000-0000-0000-0000-000000000001';
 
-  useEffect(() => {
-    fetch('/api/reviews')
-      .then(res => res.json())
-      .then((data: Review[]) => {
-        const found = data.find((r: Review) => r.review_id === params.id);
-        setReview(found || null);
-      });
-    // Fetch like count for the review
-    fetch(`/api/reviews/${params.id}/like/count`).then(res => res.json()).then(data => setLikeCount(data.count || 0));
-    // Fetch if user liked
-    fetch(`/api/reviews/${params.id}/like/status?user_id=${userId}`).then(res => res.json()).then(data => setLiked(data.liked || false));
-  }, [params.id]);
+useEffect(() => {
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  if (!id) return;
 
-  const handleLikeReview = async () => {
-    const res = await fetch(`/api/reviews/${params.id}/like`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId }),
+  // Fetch all reviews to find current one
+  fetch('/api/reviews')
+    .then(res => res.json())
+    .then((data) => {
+      const reviews = Array.isArray(data) ? data : data.reviews || [];
+      const found = reviews.find((r: Review) => r.review_id === id); // use id here
+      setReview(found || null);
     });
-    const data = await res.json();
-    setLiked(data.liked);
-    // Refetch the total like count from the backend
-    fetch(`/api/reviews/${params.id}/like/count`).then(res => res.json()).then(data => setLikeCount(data.count || 0));
-  };
+
+  fetch(`/api/reviews/${id}/like/count`)
+    .then(res => res.json())
+    .then(data => setLikeCount(data.count || 0));
+
+  fetch(`/api/reviews/${id}/like/status?user_id=${userId}`)
+    .then(res => res.json())
+    .then(data => setLiked(data.liked || false));
+
+}, [params.id]);
+
+const handleLikeReview = async () => {
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const res = await fetch(`/api/reviews/${id}/like`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: userId }),
+  });
+
+  const data = await res.json();
+
+  // Update like count only if liked
+  if (data.liked) {
+    setLiked(true);
+    setLikeCount(data.count || likeCount + 1); // prefer backend count
+  }
+};
+
+
 
   if (!review) return <div className="text-white">Loading...</div>;
   return (

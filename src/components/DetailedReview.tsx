@@ -35,6 +35,7 @@ export default function DetailedReview({ review, isPreview = false, userId, like
           <div className="text-xs text-gray-400 mt-4">{review.created_at ? new Date(review.created_at).toLocaleDateString() : ''}</div>
         </div>
       </div>
+
       {/* Like button and counter below review, above comments */}
       <div className="flex items-center my-6">
         <button onClick={onLike} className={`text-red-400 font-bold mr-2 text-2xl ${liked ? 'opacity-100' : 'opacity-50'}`}>♥</button>

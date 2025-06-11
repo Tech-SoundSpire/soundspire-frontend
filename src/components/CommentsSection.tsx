@@ -62,17 +62,31 @@ export default function CommentsSection({ reviewId, userId }: { reviewId: string
     ));
   };
 
+  
+
   const handleLikeComment = async (commentId: string) => {
-    const res = await fetch(`/api/comments/${commentId}/like`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId }),
-    });
-    const data = await res.json();
-    setComments(comments => comments.map(c =>
-      c.comment_id === commentId ? { ...c, likes: data.likeCount } : c
-    ));
-  };
+  const res = await fetch(`/api/comments/${commentId}/like`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: userId }),
+  });
+  const data = await res.json();
+
+  if (data.liked) {
+    setComments(prevComments =>
+      prevComments.map(comment =>
+        comment.comment_id === commentId
+          ? { ...comment, likes: data.count } // update `likes` prop here!
+          : comment
+      )
+    );
+  }
+};
+
+
+
+
+
 
   return (
     <div className="mt-8 bg-[#231b32] rounded-lg p-6">

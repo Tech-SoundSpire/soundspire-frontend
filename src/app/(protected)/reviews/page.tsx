@@ -30,10 +30,18 @@ export default function ReviewsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('/api/reviews')
-      .then(res => res.json())
-      .then(data => setReviews(data));
-  }, []);
+  fetch('/api/reviews')
+    .then(res => res.json())
+    .then(data => {
+      const safeReviews = Array.isArray(data) ? data : (data.reviews || []);
+      setReviews(safeReviews);
+    })
+    .catch(err => {
+      console.error('Error fetching reviews:', err);
+      setReviews([]); // fallback to empty array to avoid crash
+    });
+}, []);
+
 
   return (
     <div className="min-h-screen bg-[#1a1625] ml-16 px-8 py-6">
