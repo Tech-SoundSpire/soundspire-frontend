@@ -16,8 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  // login: (provider: 'google' | 'spotify') => Promise<void>;
-  // logout: () => Promise<void>;
+
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,59 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkSession();
   }, []);
 
-  // Protect routes
-  // useEffect(() => {
-  //   if (!isLoading) {
-  //     if (!user && pathname !== '/') {
-  //       router.push('/');
-  //     }
-  //   }
-  // }, [user, isLoading, pathname, router]);
-   useEffect(() => {
-    if (!isLoading && !user && pathname !== '/') {
-      router.push('/');
-    }
-  }, [user, isLoading, pathname]);
-
-
-  // const login = async (provider: 'google' | 'spotify') => {
-  //   try {
-  //     setIsLoading(true);
-      
-  //     if (provider === 'google') {
-  //       // Redirect to Google OAuth endpoint
-  //       window.location.href = '/api/auth/google';
-  //     } else if (provider === 'spotify') {
-  //       // TODO: Implement Spotify OAuth
-  //       console.log('Spotify login not implemented yet');
-  //     }
-  //   } catch (error) {
-  //     console.error('Login failed:', error);
-  //     throw error;
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  // const logout = async () => {
-  //   try {
-  //     setIsLoading(true);
-  //     await fetch('/api/auth/logout', { method: 'POST' });
-  //     setUser(null);
-  //     router.push('/');
-  //   } catch (error) {
-  //     console.error('Logout failed:', error);
-  //     throw error;
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  // return (
-  //   <AuthContext.Provider value={{ user, isLoading, login, logout }}>
-  //     {children}
-  //   </AuthContext.Provider>
-  // );
+ 
   return (
     <AuthContext.Provider value={{ user, isLoading}}>
       {children}
