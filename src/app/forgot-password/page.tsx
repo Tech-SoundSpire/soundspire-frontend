@@ -10,8 +10,9 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async () => {
     try {
-      await axios.post("/api/users/forgot-password", { email });
-      toast.success("Reset link sent! Check your inbox.");
+      const res = await axios.post("/api/users/forgot-password", { email });
+      toast.success(res.data.message ||"Reset link sent! Check your inbox.");
+      setEmail("");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Something went wrong.");
     }

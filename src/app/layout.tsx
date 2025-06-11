@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-// import { AuthProvider } from '@/context/AuthContext';
+import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
@@ -22,10 +22,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className={`${inter.variable} antialiased min-h-screen bg-black`}>
-        {/* <AuthProvider> */}
-        <Toaster position="top-center" reverseOrder={false} />
-        {children}
-        {/* </AuthProvider> */}
+        <AuthProvider>
+        <Toaster position="top-center" reverseOrder={false}/>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
