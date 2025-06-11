@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { countriesWithCities } from '@/lib/locationData';
+import { getS3Url, DEFAULT_PROFILE_IMAGE } from '@/utils/s3Utils';
 
 // Define User interface for the auth user
 interface User {
@@ -31,13 +32,13 @@ interface ProfileData {
   spotifyLinked: boolean;
   subscriptions: Array<{
     name: string;
-    image: string;
+    profileImage: string;
   }>;
 }
 
 // Helper to get an initial avatar from email if displayName is missing
 const getInitialAvatar = (email: string) => {
-  return email ? email[0].toUpperCase() : 'U';
+  return getS3Url(DEFAULT_PROFILE_IMAGE);
 };
 
 // Simulated database of existing usernames
@@ -58,19 +59,19 @@ export default function ProfilePage() {
   
   // Initialize profile state with default values
   const [profile, setProfile] = useState<ProfileData>({
-    fullName: '',
-    userName: '',
+    fullName: user?.displayName || user?.name || '',
+    userName: user?.email ? user.email.split('@')[0].toLowerCase() : '',
     gender: 'Prefer not to say',
-    email: '',
+    email: user?.email || '',
     phoneNumber: '',
     dob: '2000-01-01',
     city: 'New York',
     country: 'United States',
-    profileImage: null,
+    profileImage: getS3Url(DEFAULT_PROFILE_IMAGE),
     spotifyLinked: false,
     subscriptions: Array(6).fill({
       name: 'Ed Sheeran',
-      image: '/images/placeholder.jpg'
+      profileImage: getS3Url(DEFAULT_PROFILE_IMAGE)
     })
   });
 
@@ -343,7 +344,7 @@ export default function ProfilePage() {
                 >
                   {profile.profileImage ? (
                     <Image
-                      src={isEditing ? (editableProfile.profileImage || '') : (profile.profileImage || '')}
+                      src={isEditing ? (editableProfile.profileImage || getS3Url(DEFAULT_PROFILE_IMAGE)) : (profile.profileImage || getS3Url(DEFAULT_PROFILE_IMAGE))}
                       alt="Profile picture"
                       width={112}
                       height={112}
@@ -351,15 +352,17 @@ export default function ProfilePage() {
                     />
                   ) : user?.photoURL || user?.image ? (
                     <Image
-                      src={user.photoURL || user.image || ''}
+                      src={user.photoURL || user.image || getS3Url(DEFAULT_PROFILE_IMAGE)}
                       alt="Google profile picture"
                       width={112}
                       height={112}
                       className="object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-[#ff5733] flex items-center justify-center text-white text-4xl font-bold">
-                      {getInitialAvatar(profile.email)}
+                    <div className="w-28 h-28 rounded-full bg-[#2a2438] flex items-center justify-center">
+                      <span className="text-4xl text-white">
+                        {profile.fullName.charAt(0).toUpperCase()}
+                      </span>
                     </div>
                   )}
                   {isEditing && (
@@ -543,7 +546,7 @@ export default function ProfilePage() {
                 <div key={index} className="flex flex-col items-center">
                   <div className="w-24 h-24 rounded-full overflow-hidden mb-2">
                     <Image
-                      src={subscription.image}
+                      src={subscription.profileImage}
                       alt={subscription.name}
                       width={96}
                       height={96}

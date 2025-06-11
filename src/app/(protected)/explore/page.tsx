@@ -7,26 +7,25 @@ import GenreCard from '@/components/GenreCard';
 import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { getS3Url, DEFAULT_PROFILE_IMAGE } from '@/utils/s3Utils';
+import Image from 'next/image';
 
 const carouselItems = [
   {
-    title: "INDIE FOLK MUSIC COLLECTION",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna",
-    price: "49.99$$",
-    image: "/images/placeholder.jpg"
+    title: 'Discover New Music',
+    description: 'Explore the latest tracks and artists',
+    image: getS3Url(DEFAULT_PROFILE_IMAGE)
   },
   {
-    title: "ELECTRONIC BEATS VOL. 2",
-    description: "Experience the cutting edge of electronic music with our latest collection",
-    price: "39.99$$",
-    image: "/images/placeholder.jpg"
+    title: 'Connect with Artists',
+    description: 'Follow your favorite musicians',
+    image: getS3Url(DEFAULT_PROFILE_IMAGE)
   },
   {
-    title: "JAZZ CLASSICS REMASTERED",
-    description: "Timeless jazz recordings remastered for the modern audiophile",
-    price: "59.99$$",
-    image: "/images/placeholder.jpg"
-  },
+    title: 'Share Your Taste',
+    description: 'Create and share your playlists',
+    image: getS3Url(DEFAULT_PROFILE_IMAGE)
+  }
 ];
 
 export default function ExplorePage() {
@@ -88,12 +87,13 @@ export default function ExplorePage() {
               <div className="flex-1">
                 <h2 className="text-4xl font-bold text-white mb-4">{carouselItems[currentSlide].title}</h2>
                 <p className="text-gray-300 mb-4 max-w-md">{carouselItems[currentSlide].description}</p>
-                <div className="text-2xl font-bold text-white">{carouselItems[currentSlide].price}</div>
               </div>
               <div className="flex-1 flex justify-center">
-                <img
+                <Image
                   src={carouselItems[currentSlide].image}
                   alt="Featured Album"
+                  width={256}
+                  height={256}
                   className="w-64 h-64 object-cover transform rotate-[-5deg]"
                 />
               </div>
@@ -144,9 +144,11 @@ export default function ExplorePage() {
           <div className="flex gap-6 overflow-x-auto pb-4">
             {Array(8).fill(null).map((_, index) => (
               <div key={index} className="flex-shrink-0">
-                <img
-                  src="/images/placeholder.jpg"
+                <Image
+                  src={getS3Url(DEFAULT_PROFILE_IMAGE)}
                   alt={`Artist ${index + 1}`}
+                  width={96}
+                  height={96}
                   className="w-24 h-24 rounded-full object-cover"
                 />
               </div>
@@ -163,9 +165,11 @@ export default function ExplorePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array(3).fill(null).map((_, index) => (
               <div key={index} className="bg-[#2d2838] rounded-lg overflow-hidden">
-                <img
-                  src="/images/placeholder.jpg"
+                <Image
+                  src={getS3Url(DEFAULT_PROFILE_IMAGE)}
                   alt={`Review ${index + 1}`}
+                  width={384}
+                  height={192}
                   className="w-full h-48 object-cover"
                 />
                 <div className="p-4">
@@ -191,9 +195,11 @@ export default function ExplorePage() {
             {Array(8).fill(null).map((_, index) => (
               <div key={index} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#2d2838]">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <img
-                  src="/images/placeholder.jpg"
+                <Image
+                  src={getS3Url(DEFAULT_PROFILE_IMAGE)}
                   alt={`Genre ${index + 1}`}
+                  width={384}
+                  height={288}
                   className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
                 />
                 <div className="absolute bottom-4 left-4">
