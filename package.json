@@ -2,6 +2,9 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "overrides": {
+    "brace-expansion": "^4.0.1"
+  },
   "scripts": {
     "dev": "node server.js",
     "build": "next build",
@@ -10,6 +13,7 @@
     "test": "echo \"No tests yet... but we're ready!\""
   },
   "dependencies": {
+    "brace-expansion": "^4.0.1",
     "next": "15.3.0",
     "react": "^18",
     "react-dom": "^18",
@@ -21,7 +25,7 @@
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
-    "eslint-config-next": "14.2.28",
+    "eslint-config-next": "^15.3.3",
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
