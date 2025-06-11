@@ -6,6 +6,7 @@ import { FaGoogle } from "react-icons/fa";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
 
 const fields = [
   {
@@ -60,6 +61,8 @@ const fields = [
 
 export default function SignupPage() {
   const router = useRouter();
+  
+  useRedirectIfAuthenticated();
 
   const [user, setUser] = useState({
     full_name: "",

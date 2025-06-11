@@ -6,6 +6,7 @@ import { FaGoogle } from "react-icons/fa";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
 
 const fields = [
   {
@@ -25,6 +26,8 @@ const fields = [
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useRedirectIfAuthenticated();//Session checker hook
   
   const [user, setUser] = useState({
     email: "",
@@ -68,6 +71,7 @@ export default function LoginPage() {
   //   }
   // };
 
+  
   useEffect(() => {
     const info = searchParams.get("info");
     if(info === "account_exists"){

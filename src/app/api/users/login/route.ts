@@ -3,6 +3,7 @@ import { User } from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import toast from "react-hot-toast";
+import  jwt from "jsonwebtoken";
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,10 +48,29 @@ export async function POST(request: NextRequest) {
     }
     console.log("password validated");
 
+    const token = jwt.sign(
+      { id: user.user_id, email: user.email },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" }
+    );
+
     //creating response
     const response = NextResponse.json({
       message: "Logged In Success",
-      success: true,
+     user: {
+        id: user.user_id,
+        name: user.full_name,
+        email: user.email,
+        // provider: "local",
+      },
+    });
+
+     response.cookies.set({
+      name: "token",
+      value: token,
+      httpOnly: true,
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60,
     });
     
     return response; //seding response and user is loggedin

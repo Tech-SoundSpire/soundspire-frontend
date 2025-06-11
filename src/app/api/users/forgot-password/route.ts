@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { User } from "@/models/User";
 import  jwt  from "jsonwebtoken";
 import { sendEmail } from "@/utils/mailer";
-import toast from "react-hot-toast";
 
 export async function POST(req: Request) {
   try{
@@ -10,7 +9,6 @@ export async function POST(req: Request) {
     const user = await User.findOne({where:{email}});
 
     if(!user){
-      toast.error("user Not Found");
       return NextResponse.json({message:"User not found"},{status:400});
     }
 
@@ -28,7 +26,6 @@ export async function POST(req: Request) {
       link: resetLink,
     });
 
-    toast.success("Reset password link has been sent to your email.")
     return NextResponse.json({
       message: "Reset password link has been sent to your email.",
     });
