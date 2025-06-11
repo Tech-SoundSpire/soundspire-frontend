@@ -14,6 +14,7 @@ interface User {
   displayName?: string | null;
   email: string | null;
   photoURL?: string | null;
+  image?: string | null;
 }
 
 // Types for our profile data
@@ -90,7 +91,7 @@ export default function ProfilePage() {
                   ? user.email.split('@')[0].toLowerCase() 
                   : '',
         email: user.email || '',
-        profileImage: user.photoURL,
+        profileImage: user.photoURL || user.image || '',
       }));
     }
   }, [user]);
@@ -211,7 +212,7 @@ export default function ProfilePage() {
           ...parsedProfile,
           // Keep certain fields from auth if they're more up-to-date
           email: user.email || parsedProfile.email,
-          profileImage: user.photoURL || parsedProfile.profileImage
+          profileImage: user.photoURL || user.image || parsedProfile.profileImage
         }));
       }
     }
@@ -342,15 +343,15 @@ export default function ProfilePage() {
                 >
                   {profile.profileImage ? (
                     <Image
-                      src={isEditing ? editableProfile.profileImage : profile.profileImage}
+                      src={isEditing ? (editableProfile.profileImage || '') : (profile.profileImage || '')}
                       alt="Profile picture"
                       width={112}
                       height={112}
                       className="object-cover"
                     />
-                  ) : user?.photoURL ? (
+                  ) : user?.photoURL || user?.image ? (
                     <Image
-                      src={user.photoURL}
+                      src={user.photoURL || user.image || ''}
                       alt="Google profile picture"
                       width={112}
                       height={112}

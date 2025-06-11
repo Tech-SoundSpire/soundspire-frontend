@@ -24,6 +24,10 @@ images: {
   ],
 },
 
+eslint: {
+  ignoreDuringBuilds: false,
+},
+
 };
 
 module.exports = nextConfig;

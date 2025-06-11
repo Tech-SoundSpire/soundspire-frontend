@@ -8,6 +8,8 @@ interface User {
   name: string;
   email: string;
   image?: string;
+  photoURL?: string;
+  displayName?: string | null;
   provider: 'google' | 'spotify';
   accessToken?: string;
   refreshToken?: string;
