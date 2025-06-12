@@ -5,7 +5,6 @@ const { Comment, Like, User } = models;
 export async function POST(request:NextRequest) {
     try{
         const { user_id, content, post_id, parent_comment_id } = await request.json();
-        console.log(parent_comment_id);
 
         if (!user_id || !content || !post_id ){
         return NextResponse.json({ error: 'Missing Required Parameters.' }, { status: 400 });
