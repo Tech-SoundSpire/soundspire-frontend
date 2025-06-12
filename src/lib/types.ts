@@ -28,5 +28,6 @@ export interface PostProps {
     content_text : string;
     media_type : string;
     media_urls : Array<string>;
+    likes : Array<Like>;
     comments : Array<CommentProps>;
 }

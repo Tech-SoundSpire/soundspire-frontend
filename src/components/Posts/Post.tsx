@@ -15,11 +15,38 @@ export default function Post(props:{
     const effectiveUserId = user_id;
     //const effectiveUserId='55555555-5555-5555-5555-555555555555';
 
+    const filtered = post.likes.filter((like)=>like.user_id==effectiveUserId);
+
     const [showComments,setShowComments]=useState<boolean>(false);
-    const [liked,setLiked]=useState<boolean>(false);
+    const [liked,setLiked]=useState<boolean>(filtered.length==1);
     const [commentText, setCommentText] = useState('');
     const [comments,setComments]=useState(post.comments)
+
+    async function onLike(){
+        await fetch('/api/like/',{
+            method : 'POST',
+            headers : { 'Content-Type' : 'application/json' },
+            body : JSON.stringify({
+                user_id : effectiveUserId,
+                post_id : post.post_id
+            })
+        })
+        setLiked(true);
+    }
+
+    async function onDislike(){
+        await fetch('/api/like/',{
+            method : 'DELETE',
+            headers : { 'Content-Type' : 'application/json' },
+            body : JSON.stringify({
+                user_id : effectiveUserId,
+                post_id : post.post_id
+            })
+        })
+        setLiked(false);
+    }
     
+
     async function onComment(){
         if (!commentText.trim()) return;
         
@@ -69,8 +96,8 @@ export default function Post(props:{
             <div className='post-interactions flex pl-4 py-5 text-lg'>
                 <div className='flex items-center mr-4'>
                     { !liked ? 
-                        <FaRegHeart className='mr-3 cursor-pointer' onClick={()=> setLiked(!liked)}/> :
-                        <FaHeart className='mr-3 cursor-pointer fill-rose-400' onClick={()=> setLiked(!liked)}/>
+                        <FaRegHeart className='mr-3 cursor-pointer' onClick={()=> onLike()}/> :
+                        <FaHeart className='mr-3 cursor-pointer fill-rose-400' onClick={()=> onDislike()}/>
                     }
                     <p>Like</p>
                 </div>
