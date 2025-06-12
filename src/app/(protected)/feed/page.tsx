@@ -9,35 +9,35 @@ export default function Page(){
     const [posts,setPosts]=useState<PostProps[]>([])
 
     useEffect(() => {
-  fetch('/api/posts')
-    .then(res => res.json())
-    .then(data => {
-      const updatedPosts = data.map((post: PostProps) => {
-        const commentsMap: { [key: string]: CommentProps } = {};
-        const topLevelComments: CommentProps[] = [];
+        fetch('/api/posts')
+            .then(res => res.json())
+            .then(data => {
+            const updatedPosts = data.map((post: PostProps) => {
+                const commentsMap: { [key: string]: CommentProps } = {};
+                const topLevelComments: CommentProps[] = [];
 
-        post.comments.forEach((comment: CommentProps) => {
-          commentsMap[comment.comment_id] = { ...comment, replies: [] };
-        });
+                post.comments.forEach((comment: CommentProps) => {
+                commentsMap[comment.comment_id] = { ...comment, replies: [] };
+                });
 
-        post.comments.forEach((comment: CommentProps) => {
-          if (comment.parent_comment_id) {
-            const parent = commentsMap[comment.parent_comment_id];
-            parent?.replies?.push(commentsMap[comment.comment_id]);
-          } else {
-            topLevelComments.push(commentsMap[comment.comment_id]);
-          }
-        });
+                post.comments.forEach((comment: CommentProps) => {
+                if (comment.parent_comment_id) {
+                    const parent = commentsMap[comment.parent_comment_id];
+                    parent?.replies?.push(commentsMap[comment.comment_id]);
+                } else {
+                    topLevelComments.push(commentsMap[comment.comment_id]);
+                }
+                });
 
-        return {
-          ...post,
-          comments: topLevelComments
-        };
-      });
+                return {
+                ...post,
+                comments: topLevelComments
+                };
+            });
 
-      setPosts(updatedPosts);
-    });
-}, []);
+            setPosts(updatedPosts);
+            });
+        }, []);
 
     const userId = '33333333-3333-3333-3333-333333333333';
     
