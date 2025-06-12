@@ -2,17 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import models from '@/models';
 const { Like } = models;
 
+type LikeWhereClause = {
+  user_id: string;
+  post_id?: string;
+  comment_id?: string;
+};
+
 export async function POST(request : NextRequest){
     try{
-        const { user_id,post_id} = await request.json();
+        const { user_id,post_id,comment_id} = await request.json();
         
-        if (!user_id || !post_id ){
-            return NextResponse.json({ error: 'Missing Required Parameters.' }, { status: 400 });
+         if (!user_id || (!post_id && !comment_id)) {
+            return NextResponse.json({ error: 'Missing required parameters.' }, { status: 400 });
         }
 
         const like = await Like.create({
             user_id,
-            post_id
+            ...(post_id && { post_id }),
+            ...(comment_id && { comment_id }),
         })
 
         return NextResponse.json(like);
@@ -25,20 +32,23 @@ export async function POST(request : NextRequest){
 
 export async function DELETE(request:NextRequest){
     try{
-        const { user_id,post_id} = await request.json();
+        const { user_id,post_id,comment_id} = await request.json();
         
-        if (!user_id || !post_id ){
-            return NextResponse.json({ error: 'Missing Required Parameters.' }, { status: 400 });
+        if (!user_id || (!post_id && !comment_id)) {
+            return NextResponse.json({ error: 'Missing required parameters.' }, { status: 400 });
         }
 
-        await Like.destroy({
-            where: {
-                user_id,
-                post_id
-            }
-        });
+        const whereClause : LikeWhereClause = { user_id };
 
-        return NextResponse.json({message: 'DELTED succesfully'});
+        if (post_id) {
+            whereClause.post_id = post_id;
+        } else {
+            whereClause.comment_id = comment_id;
+        }
+
+        await Like.destroy({ where: whereClause });
+
+        return NextResponse.json({message: 'DELETED succesfully'});
     } catch (error : unknown){
         console.error('Error disliking:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';

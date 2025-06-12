@@ -13,11 +13,40 @@ export default function Comment({
   user_id: string;
   post_id: string;
 }) {
-  const [liked, setLiked] = useState<boolean>(false);
-  const [likeCount, setLikeCount] = useState<number>(comment.likes?.length || 0);
+
+  const filtered = comment.likes.filter((like)=>like.user_id==user_id);
+
+  const [liked, setLiked] = useState<boolean>(filtered.length===1);
+  const [likeCount, setLikeCount] = useState<number>(comment.likes.length || 0);
   const [replyText, setReplyText] = useState('');
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [replies, setReplies] = useState(comment.replies || []);
+
+      async function onLike(){
+        await fetch('/api/like/',{
+            method : 'POST',
+            headers : { 'Content-Type' : 'application/json' },
+            body : JSON.stringify({
+                user_id : user_id,
+                comment_id : comment.comment_id
+            })
+        })
+        setLiked(true);
+        setLikeCount(likeCount + 1);
+      }
+
+      async function onDislike(){
+        await fetch('/api/like/',{
+            method : 'DELETE',
+            headers : { 'Content-Type' : 'application/json' },
+            body : JSON.stringify({
+                user_id : user_id,
+                comment_id : comment.comment_id
+            })
+        })
+        setLiked(false);
+        setLikeCount(likeCount - 1);
+      }
 
   async function handleReply(){
     if (!replyText.trim()) return;
@@ -56,18 +85,12 @@ export default function Comment({
               {!liked ? (
                 <FaRegHeart
                   className="mr-3 cursor-pointer"
-                  onClick={() => {
-                    setLiked(true);
-                    setLikeCount(likeCount + 1);
-                  }}
+                  onClick={() => onLike()}
                 />
               ) : (
                 <FaHeart
                   className="mr-3 cursor-pointer fill-rose-400"
-                  onClick={() => {
-                    setLiked(false);
-                    setLikeCount(likeCount - 1);
-                  }}
+                  onClick={() => onDislike()}
                 />
               )}
               <p className="comment-like-count">{likeCount!=0 ? likeCount : null}</p>
