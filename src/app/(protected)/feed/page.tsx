@@ -1,7 +1,47 @@
+"use client";
+import { useState,useEffect } from 'react';
 import { FaSearch } from 'react-icons/fa';
-import Post from '@/components/Post';
+import Post from '@/components/Posts/Post';
+import { PostProps,CommentProps } from '@/lib/types';
+import Image from 'next/image';
 
 export default function Page(){
+    const [posts,setPosts]=useState<PostProps[]>([])
+
+    useEffect(() => {
+  fetch('/api/posts')
+    .then(res => res.json())
+    .then(data => {
+      const updatedPosts = data.map((post: PostProps) => {
+        const commentsMap: { [key: string]: CommentProps } = {};
+        const topLevelComments: CommentProps[] = [];
+
+        post.comments.forEach((comment: CommentProps) => {
+          commentsMap[comment.comment_id] = { ...comment, replies: [] };
+        });
+
+        post.comments.forEach((comment: CommentProps) => {
+          if (comment.parent_comment_id) {
+            const parent = commentsMap[comment.parent_comment_id];
+            parent?.replies?.push(commentsMap[comment.comment_id]);
+          } else {
+            topLevelComments.push(commentsMap[comment.comment_id]);
+          }
+        });
+
+        return {
+          ...post,
+          comments: topLevelComments
+        };
+      });
+
+      setPosts(updatedPosts);
+    });
+}, []);
+
+    const userId = '33333333-3333-3333-3333-333333333333';
+    
+    //console.log(posts)
 
     return(
         <>   
@@ -21,11 +61,10 @@ export default function Page(){
                                 </div>
                         </div>   
                     </div>                
-                <div className='flex flex-col items-center justify-center'> 
-                   <Post/>
-                   <Post/>
-                   <Post/>
-                   <Post/>
+                <div className='flex flex-col items-center justify-center'>
+                    {
+                        posts.map((post:PostProps,index:number)=> (<Post key={index} post={post} user_id={userId}/>)) 
+                    }
                 </div>
                 </main>
                  <div className='fixed right-0 bg-slate-950 p-2 w-[23%] h-full'>
@@ -34,42 +73,52 @@ export default function Page(){
                     </div>
                     
                     <div className='flex items-center p-2 text-white'>
-                            <img
+                            <Image
                                 src="/images/placeholder.jpg"
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
+                                width={100}
+                                height={100}
                             />
                             <h1 className='font-bold'>ArtistName</h1>
                     </div>
                     <div className='flex items-center p-2 text-white'>
-                            <img
+                            <Image
                                 src="/images/placeholder.jpg"
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
+                                width={100}
+                                height={100}
                             />
                             <h1 className='font-bold'>ArtistName</h1>
                     </div>
                     <div className='flex items-center p-2 text-white'>
-                            <img
+                            <Image
                                 src="/images/placeholder.jpg"
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
+                                width={100}
+                                height={100}
                             />
                             <h1 className='font-bold'>ArtistName</h1>
                     </div>
                     <div className='flex items-center p-2 text-white'>
-                            <img
+                            <Image
                                 src="/images/placeholder.jpg"
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
+                                width={100}
+                            height={100}
                             />
                             <h1 className='font-bold'>ArtistName</h1>
                     </div>
                     <div className='flex items-center p-2 text-white'>
-                            <img
+                            <Image
                                 src="/images/placeholder.jpg"
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
+                                width={100}
+                                height={100}
                             />
                             <h1 className='font-bold'>ArtistName</h1>
                     </div>
