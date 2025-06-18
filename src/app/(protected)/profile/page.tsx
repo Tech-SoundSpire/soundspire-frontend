@@ -62,21 +62,48 @@ export default function ProfilePage() {
   const [isValidatingUsername, setIsValidatingUsername] = useState(false);
   
   // Initialize profile state with default values
-  const [profile, setProfile] = useState<ProfileData>({
-    fullName: user?.displayName || user?.name || '',
-    userName: user?.email ? user.email.split('@')[0].toLowerCase() : '',
-    gender: 'Prefer not to say',
-    email: user?.email || '',
-    phoneNumber: '',
-    dob: '2000-01-01',
-    city: 'New York',
-    country: 'United States',
-    profileImage: getDefaultProfileImageUrl(),
-    spotifyLinked: false,
-    subscriptions: Array(6).fill({
-      name: 'Ed Sheeran',
-      profileImage: getDefaultProfileImageUrl()
-    })
+  const [profile, setProfile] = useState<ProfileData>(() => {
+    // Try to get profile from localStorage first to prevent flash
+    if (typeof window !== 'undefined') {
+      const savedProfile = localStorage.getItem('userProfile');
+      if (savedProfile) {
+        const parsedProfile = JSON.parse(savedProfile);
+        return {
+          fullName: parsedProfile.fullName || user?.displayName || user?.name || '',
+          userName: user?.email ? user.email.split('@')[0].toLowerCase() : '',
+          gender: parsedProfile.gender || 'Prefer not to say',
+          email: user?.email || '',
+          phoneNumber: parsedProfile.phoneNumber || '',
+          dob: parsedProfile.dob || '2000-01-01',
+          city: parsedProfile.city || 'New York',
+          country: parsedProfile.country || 'United States',
+          profileImage: parsedProfile.profileImage || getDefaultProfileImageUrl(),
+          spotifyLinked: parsedProfile.spotifyLinked || false,
+          subscriptions: parsedProfile.subscriptions || Array(6).fill({
+            name: 'Ed Sheeran',
+            profileImage: getDefaultProfileImageUrl()
+          })
+        };
+      }
+    }
+    
+    // Fallback to default values
+    return {
+      fullName: user?.displayName || user?.name || '',
+      userName: user?.email ? user.email.split('@')[0].toLowerCase() : '',
+      gender: 'Prefer not to say',
+      email: user?.email || '',
+      phoneNumber: '',
+      dob: '2000-01-01',
+      city: 'New York',
+      country: 'United States',
+      profileImage: getDefaultProfileImageUrl(),
+      spotifyLinked: false,
+      subscriptions: Array(6).fill({
+        name: 'Ed Sheeran',
+        profileImage: getDefaultProfileImageUrl()
+      })
+    };
   });
 
   useEffect(() => {
@@ -96,7 +123,10 @@ export default function ProfilePage() {
                   ? user.email.split('@')[0].toLowerCase() 
                   : '',
         email: user.email || '',
-        profileImage: user.photoURL || user.image || '',
+        // Only use Google photo if no custom profile image exists
+        profileImage: prev.profileImage && prev.profileImage !== getDefaultProfileImageUrl() 
+          ? prev.profileImage 
+          : (user.photoURL || user.image || getDefaultProfileImageUrl()),
       }));
     }
   }, [user]);
@@ -209,7 +239,7 @@ export default function ProfilePage() {
             profilePictureUrl: editableProfile.profileImage ? 
               (editableProfile.profileImage.startsWith('/api/images/') ? 
                 // Convert API URL back to S3 path
-                `s3://soundspirewebsiteassets/images/${editableProfile.profileImage.replace('/api/images/', '')}` :
+                `s3://soundspirewebsiteassets/images/${editableProfile.profileImage.replace('/api/images/', '').split('?')[0]}` :
                 editableProfile.profileImage.startsWith('s3://') ? 
                   editableProfile.profileImage : 
                   null
@@ -224,11 +254,22 @@ export default function ProfilePage() {
         throw new Error('Failed to update profile in database');
       }
 
+      // Add cache busting to profile image if it exists
+      const updatedProfile = {
+        ...editableProfile,
+        profileImage: editableProfile.profileImage ? 
+          (editableProfile.profileImage.includes('?v=') ? 
+            editableProfile.profileImage : 
+            editableProfile.profileImage + '?v=' + Date.now()
+          ) : 
+          editableProfile.profileImage
+      };
+
       // Save to localStorage to persist data between page reloads
-      localStorage.setItem('userProfile', JSON.stringify(editableProfile));
+      localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
       
       // Update profile state
-      setProfile(editableProfile);
+      setProfile(updatedProfile);
       setIsEditing(false);
     } catch (error) {
       console.error('Failed to save profile:', error);
@@ -242,18 +283,47 @@ export default function ProfilePage() {
     const loadProfile = async () => {
       if (!user) return;
       
+      // First, try to load from localStorage for immediate display
+      const savedProfile = localStorage.getItem('userProfile');
+      if (savedProfile) {
+        const parsedProfile = JSON.parse(savedProfile);
+        
+        // Only use localStorage if it matches the current user's email
+        if (user.email && parsedProfile.email === user.email) {
+          const localStorageProfile = {
+            fullName: parsedProfile.fullName || user.name || '',
+            userName: user.email ? user.email.split('@')[0].toLowerCase() : '',
+            gender: parsedProfile.gender || 'Prefer not to say',
+            email: user.email || '',
+            phoneNumber: parsedProfile.phoneNumber || '',
+            dob: parsedProfile.dob || '2000-01-01',
+            city: parsedProfile.city || 'New York',
+            country: parsedProfile.country || 'United States',
+            profileImage: parsedProfile.profileImage || getDefaultProfileImageUrl(),
+            spotifyLinked: parsedProfile.spotifyLinked || false,
+            subscriptions: parsedProfile.subscriptions || Array(6).fill({
+              name: 'Ed Sheeran',
+              profileImage: getDefaultProfileImageUrl()
+            })
+          };
+          
+          // Set profile immediately from localStorage to prevent flash
+          setProfile(localStorageProfile);
+        }
+      }
+      
+      // Then try to load from database to get the latest data
       try {
-        // First try to load from database
         const response = await fetch(`/api/users/profile?googleId=${user.id}`);
         if (response.ok) {
           const dbProfile = await response.json();
           if (dbProfile) {
             // Convert S3 path to API URL for display
             const profileImageUrl = dbProfile.profile_picture_url ? 
-              getImageUrl(dbProfile.profile_picture_url) : 
+              getImageUrl(dbProfile.profile_picture_url) + '?v=' + Date.now() : 
               getDefaultProfileImageUrl();
             
-            const updatedProfile = {
+            const dbProfileData = {
               fullName: dbProfile.full_name || user.name || '',
               userName: user.email ? user.email.split('@')[0].toLowerCase() : '',
               gender: 'Prefer not to say',
@@ -270,28 +340,27 @@ export default function ProfilePage() {
               })
             };
             
-            setProfile(updatedProfile);
-            return;
+            // Only update if the database has different data than localStorage
+            setProfile(prev => {
+              const savedProfile = localStorage.getItem('userProfile');
+              if (savedProfile) {
+                const parsedProfile = JSON.parse(savedProfile);
+                // If localStorage has the same image (without cache busting), keep localStorage version
+                if (parsedProfile.profileImage && 
+                    parsedProfile.profileImage.split('?')[0] === profileImageUrl.split('?')[0]) {
+                  return prev; // Keep current state
+                }
+              }
+              return dbProfileData;
+            });
+            
+            // Update localStorage with database data
+            localStorage.setItem('userProfile', JSON.stringify(dbProfileData));
           }
         }
       } catch (error) {
         console.error('Failed to load profile from database:', error);
-      }
-      
-      // Fallback to localStorage
-      const savedProfile = localStorage.getItem('userProfile');
-      if (savedProfile) {
-        const parsedProfile = JSON.parse(savedProfile);
-        
-        // Only update if we have a user and the saved profile matches the user's email
-        if (user && user.email && parsedProfile.email === user.email) {
-          setProfile(prev => ({
-            ...parsedProfile,
-            // Keep certain fields from auth if they're more up-to-date
-            email: user.email || parsedProfile.email,
-            profileImage: user.photoURL || user.image || parsedProfile.profileImage
-          }));
-        }
+        // If database load fails, we still have localStorage data
       }
     };
     
@@ -389,18 +458,21 @@ export default function ProfilePage() {
         throw new Error('Failed to update profile in database');
       }
 
-      // Update local state with the correct URL
-      const imageUrl = getImageUrl(s3Path);
-      console.log('Image URL:', imageUrl); // Debug log
-      setEditableProfile(prev => ({
-        ...prev,
+      // Update local state with the correct URL and cache busting
+      const imageUrl = getImageUrl(s3Path) + '?v=' + Date.now();
+      console.log('Image URL with cache busting:', imageUrl); // Debug log
+      
+      // Update both editable and current profile state
+      const updatedProfile = {
+        ...editableProfile,
         profileImage: imageUrl,
-      }));
-
-      setProfile(prev => ({
-        ...prev,
-        profileImage: imageUrl,
-      }));
+      };
+      
+      setEditableProfile(updatedProfile);
+      setProfile(updatedProfile);
+      
+      // Immediately save to localStorage to prevent flash on reload
+      localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
 
     } catch (error) {
       console.error('Error uploading image:', error);

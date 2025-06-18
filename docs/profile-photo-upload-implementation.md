@@ -156,6 +156,49 @@ const profilePictureUrl = editableProfile.profileImage ?
 - Fallback to default image
 - Responsive design
 
+## Cache Busting and LocalStorage Hydration
+
+### Why?
+When a user updates their profile photo, we want the new image to appear instantly and persist across reloads, without showing the old image for a split second. This is achieved by:
+- **Cache busting**: Forcing the browser to fetch the latest image from S3 by appending a unique query string (e.g., `?v=timestamp`) to the image URL after each upload or update.
+- **LocalStorage hydration**: Storing the latest profile data (including the cache-busted image URL) in localStorage and using it as the initial state on page load, so the user always sees the most recent image instantly.
+
+### How It Works
+
+1. **After Upload/Save**
+   - When a user uploads a new profile photo, the app generates a new image URL with a cache-busting query string (e.g., `/api/images/users/filename.jpg?v=1680000000000`).
+   - The new image URL and profile data are immediately saved to both React state and localStorage.
+
+2. **On Page Load**
+   - The profile page first checks localStorage for profile data and uses it for the initial render, ensuring the latest image is shown instantly.
+   - In the background, the app fetches the latest profile data from the backend/database. If the backend has a newer image, the state is updated; otherwise, the localStorage image remains.
+
+3. **Cache Busting**
+   - Every time a new image is uploaded or the profile is saved, a new cache-busting query string is appended to the image URL.
+   - This ensures the browser always fetches the latest image from S3, bypassing any cached versions.
+   - When saving to the database, the cache-busting string is stripped off to keep the S3 path clean.
+
+### Code Example
+```typescript
+// After successful upload or save
+const imageUrl = getImageUrl(s3Path) + '?v=' + Date.now();
+setProfile({ ...profile, profileImage: imageUrl });
+localStorage.setItem('userProfile', JSON.stringify({ ...profile, profileImage: imageUrl }));
+
+// On page load
+const savedProfile = localStorage.getItem('userProfile');
+if (savedProfile) {
+  setProfile(JSON.parse(savedProfile)); // Instant display
+}
+// Then fetch from backend and update if needed
+```
+
+### Benefits
+- **No image flash**: The user always sees the most recent image, even after a reload.
+- **Instant feedback**: Profile changes are reflected immediately in the UI.
+- **Fresh images**: Cache busting ensures the browser never shows a stale image.
+- **Resilient UX**: If the backend is slow or unavailable, the user still sees their latest profile image from localStorage.
+
 ## Database Schema
 
 ### Users Table
