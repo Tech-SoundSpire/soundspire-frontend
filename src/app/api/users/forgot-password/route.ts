@@ -31,9 +31,12 @@ export async function POST(req: Request) {
     });
 
 
-  }catch(error: any){
-    console.log("Forgot password Error:", error.message);
-    return NextResponse.json({message: error.message},{status:500});
+  }catch(error: unknown){
+    if(error instanceof Error){
+
+      console.log("Forgot password Error:", error.message);
+      return NextResponse.json({message: error.message},{status:500});
+    }
 
   }
 }

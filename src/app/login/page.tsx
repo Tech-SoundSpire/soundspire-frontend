@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
-// import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
+import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
 
 const fields = [
   {
@@ -27,7 +27,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  //  useRedirectIfAuthenticated();//Session checker hook
+   useRedirectIfAuthenticated();//Session checker hook
   
   const [user, setUser] = useState({
     email: "",
@@ -44,7 +44,8 @@ export default function LoginPage() {
       // const { data } = await axios.post("/api/users/login", user);
     await axios.post("/api/users/login", user);
       toast.success("Login successful!");
-      router.push("/explore");
+      // router.push("/explore");
+      window.location.href = "/explore";
     } catch (error) {
       if(axios.isAxiosError(error)){
         const message =
@@ -60,22 +61,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-
-  // const onGoogleLogin = async () => {
-  //   try {
-  //     setGoogleLoading(true);
-  //     // Replace with actual OAuth logic
-  //     const { data } = await axios.get("/api/auth/google");
-  //     toast.success("Redirecting to Google...");
-  //     window.location.href = data.url;
-  //   } catch (error: any) {
-  //     toast.error("Google login failed. Try again later.");
-  //     console.error("Google login error:", error);
-  //   } finally {
-  //     setGoogleLoading(false);
-  //   }
-  // };
-
   
   useEffect(() => {
     const info = searchParams.get("info");
@@ -94,7 +79,7 @@ export default function LoginPage() {
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     router.replace(newUrl);
     }
-  });
+  },[searchParams,router]);
   useEffect(() => {
     const allFilled = Object.values(user).every((val) => val.trim().length > 0);
     setButtonDisabled(!allFilled);
@@ -175,20 +160,6 @@ export default function LoginPage() {
           >
             Forgot Password?
           </Link>
-
-          {/* <button
-            onClick={onGoogleLogin}
-            disabled={googleLoading}
-            className="w-full py-3 flex justify-center items-center bg-red-600 hover:bg-red-700 rounded text-white font-semibold opacity-85 transition"
-          >
-            {googleLoading ? (
-              "Redirecting to Google..."
-            ) : (
-              <>
-                <FaGoogle className="mr-2" /> Login with Google
-              </>
-            )}
-          </button> */}
 
           <p className="text-center text-sm mt-6 text-gray-400">
             Don&apos;t have an account yet?{" "}

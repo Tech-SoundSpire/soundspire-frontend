@@ -8,8 +8,8 @@
 import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/router'
-// import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 const carouselItems = [
   {
@@ -34,7 +34,7 @@ const carouselItems = [
 
 export default function ExplorePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  // const { logout } = useAuth();
+  const { setUser } = useAuth();
   const router = useRouter();
 
   // Auto-rotate carousel
@@ -56,7 +56,10 @@ export default function ExplorePage() {
 
   const handleLogout = async () => {
     try {
-      await axios.get("../api/users/logout");
+      await axios.get("../api/users/logout", {
+        withCredentials: true
+      });
+      setUser(null);
       router.push("/login");
       
     } catch (error) {

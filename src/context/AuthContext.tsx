@@ -16,6 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>; 
 
 }
 
@@ -31,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Checking for the active session of the user
     const checkSession = async () => {
       try {
-        const response = await fetch('/api/auth/session');
+        const response = await fetch('/api/auth/session',{credentials: "include"});
         const data = await response.json();
         
         if (data?.user) {
@@ -49,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
  
   return (
-    <AuthContext.Provider value={{ user, isLoading}}>
+    <AuthContext.Provider value={{ user, isLoading,setUser}}>
       {children}
     </AuthContext.Provider>
   );

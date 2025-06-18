@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { sequelize } from "@/lib/dbConfig";
 import { User } from "@/models/User";
 export const dynamic = "force-dynamic";
 
@@ -78,6 +77,29 @@ export async function GET(request: Request) {
       },
     });
 
+    // if(!userInDb){
+    //   const baseUsername = userData.email
+    //     .split("@")[0]
+    //     .replace(/[^a-zA-Z0-9]/g, "_");
+    //   const newUser = User.build({
+    //     email: userData.email,
+    //     full_name: userData.name,
+    //     profile_picture_url: userData.picture,
+    //     username: baseUsername,
+    //   });
+    //    try {
+    //     await newUser.save({ context: { isGoogleSignup: true } });
+    //   } catch{
+    //     // Fallback: append random suffix to username and retry
+    //     newUser.username =
+    //       baseUsername + "_" + Math.floor(Math.random() * 10000);
+    //     await newUser.save({ context: { isGoogleSignup: true } });
+    //   }
+    //   userInDb = newUser;
+    // }else{
+    //   return NextResponse.redirect(`${FRONTEND_URL}/login?info=account_exists`);
+    // }
+
     if (userInDb){
       return NextResponse.redirect(`${FRONTEND_URL}/login?info=account_exists`);
     } else{
@@ -92,7 +114,7 @@ export async function GET(request: Request) {
       });
       try {
         await newUser.save({ context: { isGoogleSignup: true } });
-      } catch (e) {
+      } catch{
         // Fallback: append random suffix to username and retry
         newUser.username =
           baseUsername + "_" + Math.floor(Math.random() * 10000);
@@ -113,6 +135,7 @@ export async function GET(request: Request) {
     };
 
     // Create response with user data
+    console.log("Google Signing IN");
     const response = NextResponse.redirect(`${FRONTEND_URL}/explore`);
 
     // Set user data in an httpOnly cookie
