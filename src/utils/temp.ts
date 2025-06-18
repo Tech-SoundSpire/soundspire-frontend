@@ -1,4 +1,3 @@
-import React from 'react';
 import { initSchemas } from '@/lib/initSchemas';
 import { establishConnection } from '@/lib/dbConfig';
 export async function connectionTestingAndHelper(){

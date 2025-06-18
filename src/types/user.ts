@@ -20,9 +20,4 @@ export interface UserAttributes {
   updated_at?: Date;
   last_login?: Date;
   deleted_at?: Date;
-  isAdmin: boolean;
-  forgotPasswordToken?: string;
-  forgotPasswordTokenExpiry?: Date;
-  verifyToken?: string;
-  verifyTokenExpiry?: Date;
 }

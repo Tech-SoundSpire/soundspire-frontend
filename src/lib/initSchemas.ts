@@ -1,6 +1,9 @@
 // This is used to sync the latest tables with the databases
 import { sequelize } from "./dbConfig";
-import "../models/User"; //Importing all the models
+
+//Importing all the models
+import "../models/User"; 
+import "../models/UserVerification"
 
 export async function initSchemas() {
   try {

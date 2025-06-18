@@ -1,6 +1,5 @@
 //Connecting database
 import { Sequelize } from "sequelize";
-import { initSchemas } from "./initSchemas";
 import pg from 'pg';
 
 
