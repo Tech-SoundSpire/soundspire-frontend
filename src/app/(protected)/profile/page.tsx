@@ -7,15 +7,19 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { countriesWithCities } from '@/lib/locationData';
-import { getS3Url, DEFAULT_PROFILE_IMAGE } from '@/utils/s3Utils';
+import { getImageUrl, getDefaultProfileImageUrl } from '@/utils/userProfileImageUtils';
 
 // Define User interface for the auth user
 interface User {
-  name?: string | null;
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+  photoURL?: string;
   displayName?: string | null;
-  email: string | null;
-  photoURL?: string | null;
-  image?: string | null;
+  provider: 'google' | 'spotify';
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 // Types for our profile data
@@ -38,7 +42,7 @@ interface ProfileData {
 
 // Helper to get an initial avatar from email if displayName is missing
 const getInitialAvatar = (email: string) => {
-  return getS3Url(DEFAULT_PROFILE_IMAGE);
+  return getDefaultProfileImageUrl();
 };
 
 // Simulated database of existing usernames
@@ -67,11 +71,11 @@ export default function ProfilePage() {
     dob: '2000-01-01',
     city: 'New York',
     country: 'United States',
-    profileImage: getS3Url(DEFAULT_PROFILE_IMAGE),
+    profileImage: getDefaultProfileImageUrl(),
     spotifyLinked: false,
     subscriptions: Array(6).fill({
       name: 'Ed Sheeran',
-      profileImage: getS3Url(DEFAULT_PROFILE_IMAGE)
+      profileImage: getDefaultProfileImageUrl()
     })
   });
 
@@ -187,6 +191,39 @@ export default function ProfilePage() {
         }
       }
       
+      // Ensure user is available
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
+      // Update profile in database
+      const dbResponse = await fetch('/api/users/update-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          googleId: user!.id,
+          profileData: {
+            fullName: editableProfile.fullName,
+            profilePictureUrl: editableProfile.profileImage ? 
+              (editableProfile.profileImage.startsWith('/api/images/') ? 
+                // Convert API URL back to S3 path
+                `s3://soundspirewebsiteassets/images/${editableProfile.profileImage.replace('/api/images/', '')}` :
+                editableProfile.profileImage.startsWith('s3://') ? 
+                  editableProfile.profileImage : 
+                  null
+              ) : null,
+            city: editableProfile.city,
+            country: editableProfile.country,
+          },
+        }),
+      });
+
+      if (!dbResponse.ok) {
+        throw new Error('Failed to update profile in database');
+      }
+
       // Save to localStorage to persist data between page reloads
       localStorage.setItem('userProfile', JSON.stringify(editableProfile));
       
@@ -202,21 +239,63 @@ export default function ProfilePage() {
 
   // Load profile from localStorage on initial page load
   useEffect(() => {
-    const savedProfile = localStorage.getItem('userProfile');
-    
-    if (savedProfile) {
-      const parsedProfile = JSON.parse(savedProfile);
+    const loadProfile = async () => {
+      if (!user) return;
       
-      // Only update if we have a user and the saved profile matches the user's email
-      if (user && user.email && parsedProfile.email === user.email) {
-        setProfile(prev => ({
-          ...parsedProfile,
-          // Keep certain fields from auth if they're more up-to-date
-          email: user.email || parsedProfile.email,
-          profileImage: user.photoURL || user.image || parsedProfile.profileImage
-        }));
+      try {
+        // First try to load from database
+        const response = await fetch(`/api/users/profile?googleId=${user.id}`);
+        if (response.ok) {
+          const dbProfile = await response.json();
+          if (dbProfile) {
+            // Convert S3 path to API URL for display
+            const profileImageUrl = dbProfile.profile_picture_url ? 
+              getImageUrl(dbProfile.profile_picture_url) : 
+              getDefaultProfileImageUrl();
+            
+            const updatedProfile = {
+              fullName: dbProfile.full_name || user.name || '',
+              userName: user.email ? user.email.split('@')[0].toLowerCase() : '',
+              gender: 'Prefer not to say',
+              email: user.email || '',
+              phoneNumber: '',
+              dob: '2000-01-01',
+              city: dbProfile.city || 'New York',
+              country: dbProfile.country || 'United States',
+              profileImage: profileImageUrl,
+              spotifyLinked: false,
+              subscriptions: Array(6).fill({
+                name: 'Ed Sheeran',
+                profileImage: getDefaultProfileImageUrl()
+              })
+            };
+            
+            setProfile(updatedProfile);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load profile from database:', error);
       }
-    }
+      
+      // Fallback to localStorage
+      const savedProfile = localStorage.getItem('userProfile');
+      if (savedProfile) {
+        const parsedProfile = JSON.parse(savedProfile);
+        
+        // Only update if we have a user and the saved profile matches the user's email
+        if (user && user.email && parsedProfile.email === user.email) {
+          setProfile(prev => ({
+            ...parsedProfile,
+            // Keep certain fields from auth if they're more up-to-date
+            email: user.email || parsedProfile.email,
+            profileImage: user.photoURL || user.image || parsedProfile.profileImage
+          }));
+        }
+      }
+    };
+    
+    loadProfile();
   }, [user]);
   
   const handleCancelEdit = () => {
@@ -245,17 +324,89 @@ export default function ProfilePage() {
     }
   };
   
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditableProfile(prev => ({
-          ...prev,
-          profileImage: reader.result as string
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (!file || !user) return;
+
+    try {
+      setIsLoading(true);
+
+      // Generate a unique filename
+      const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${profile.fullName.toLowerCase().replace(/\s+/g, '-')}-${user.id}.${fileExtension}`;
+
+      // Get presigned URL for upload
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName,
+          fileType: file.type,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get upload URL');
+      }
+
+      const { uploadUrl, key } = await response.json();
+
+      // Upload file to S3
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      // Update profile in database
+      const s3Path = `s3://soundspirewebsiteassets/images/users/${fileName}`;
+      console.log('S3 Path:', s3Path); // Debug log
+      const dbResponse = await fetch('/api/users/update-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          googleId: user.id,
+          profileData: {
+            fullName: profile.fullName,
+            profilePictureUrl: s3Path,
+            city: profile.city,
+            country: profile.country,
+          },
+        }),
+      });
+
+      if (!dbResponse.ok) {
+        throw new Error('Failed to update profile in database');
+      }
+
+      // Update local state with the correct URL
+      const imageUrl = getImageUrl(s3Path);
+      console.log('Image URL:', imageUrl); // Debug log
+      setEditableProfile(prev => ({
+        ...prev,
+        profileImage: imageUrl,
+      }));
+
+      setProfile(prev => ({
+        ...prev,
+        profileImage: imageUrl,
+      }));
+
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -344,7 +495,7 @@ export default function ProfilePage() {
                 >
                   {profile.profileImage ? (
                     <Image
-                      src={isEditing ? (editableProfile.profileImage || getS3Url(DEFAULT_PROFILE_IMAGE)) : (profile.profileImage || getS3Url(DEFAULT_PROFILE_IMAGE))}
+                      src={isEditing ? (editableProfile.profileImage || getDefaultProfileImageUrl()) : (profile.profileImage || getDefaultProfileImageUrl())}
                       alt="Profile picture"
                       width={112}
                       height={112}
@@ -352,7 +503,7 @@ export default function ProfilePage() {
                     />
                   ) : user?.photoURL || user?.image ? (
                     <Image
-                      src={user.photoURL || user.image || getS3Url(DEFAULT_PROFILE_IMAGE)}
+                      src={user.photoURL || user.image || getDefaultProfileImageUrl()}
                       alt="Google profile picture"
                       width={112}
                       height={112}

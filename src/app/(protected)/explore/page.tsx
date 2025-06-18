@@ -7,24 +7,42 @@ import GenreCard from '@/components/GenreCard';
 import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { getS3Url, DEFAULT_PROFILE_IMAGE } from '@/utils/s3Utils';
 import Image from 'next/image';
 
+import { getImageUrl, getDefaultProfileImageUrl } from '@/utils/userProfileImageUtils';
 const carouselItems = [
   {
     title: 'Discover New Music',
     description: 'Explore the latest tracks and artists',
-    image: getS3Url(DEFAULT_PROFILE_IMAGE)
+    image: getDefaultProfileImageUrl()
   },
   {
     title: 'Connect with Artists',
     description: 'Follow your favorite musicians',
-    image: getS3Url(DEFAULT_PROFILE_IMAGE)
+    image: getDefaultProfileImageUrl()
   },
   {
     title: 'Share Your Taste',
     description: 'Create and share your playlists',
-    image: getS3Url(DEFAULT_PROFILE_IMAGE)
+    image: getDefaultProfileImageUrl()
+  }
+];
+
+const mockArtists = [
+  {
+    id: 1,
+    name: 'Ed Sheeran',
+    image: getDefaultProfileImageUrl()
+  },
+  {
+    id: 2,
+    name: 'Taylor Swift',
+    image: getDefaultProfileImageUrl()
+  },
+  {
+    id: 3,
+    name: 'Drake',
+    image: getDefaultProfileImageUrl()
   }
 ];
 
@@ -142,11 +160,11 @@ export default function ExplorePage() {
             </div>
           </div>
           <div className="flex gap-6 overflow-x-auto pb-4">
-            {Array(8).fill(null).map((_, index) => (
-              <div key={index} className="flex-shrink-0">
+            {mockArtists.map((artist) => (
+              <div key={artist.id} className="flex-shrink-0">
                 <Image
-                  src={getS3Url(DEFAULT_PROFILE_IMAGE)}
-                  alt={`Artist ${index + 1}`}
+                  src={artist.image}
+                  alt={artist.name}
                   width={96}
                   height={96}
                   className="w-24 h-24 rounded-full object-cover"
@@ -166,7 +184,7 @@ export default function ExplorePage() {
             {Array(3).fill(null).map((_, index) => (
               <div key={index} className="bg-[#2d2838] rounded-lg overflow-hidden">
                 <Image
-                  src={getS3Url(DEFAULT_PROFILE_IMAGE)}
+                  src={getDefaultProfileImageUrl()}
                   alt={`Review ${index + 1}`}
                   width={384}
                   height={192}
@@ -185,25 +203,24 @@ export default function ExplorePage() {
           </div>
         </section>
 
-        {/* Discover by Genre */}
-        <section>
+        {/* Genres */}
+        <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white">DISCOVER BY GENRE</h2>
-            <a href="#" className="text-gray-400 hover:text-white">See More</a>
+            <h2 className="text-2xl font-bold text-white">GENRES</h2>
+            <a href="#" className="text-gray-400 hover:text-white">See All</a>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Array(8).fill(null).map((_, index) => (
-              <div key={index} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#2d2838]">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array(4).fill(null).map((_, index) => (
+              <div key={index} className="bg-[#2d2838] rounded-lg overflow-hidden">
                 <Image
-                  src={getS3Url(DEFAULT_PROFILE_IMAGE)}
+                  src={getDefaultProfileImageUrl()}
                   alt={`Genre ${index + 1}`}
-                  width={384}
-                  height={288}
-                  className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
+                  width={192}
+                  height={192}
+                  className="w-full h-48 object-cover"
                 />
-                <div className="absolute bottom-4 left-4">
-                  <h3 className="text-white text-xl font-bold">Trending</h3>
+                <div className="p-4">
+                  <h3 className="text-white font-bold">Pop</h3>
                 </div>
               </div>
             ))}
