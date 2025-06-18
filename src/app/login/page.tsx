@@ -2,11 +2,11 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FaGoogle } from "react-icons/fa";
+// import { FaGoogle } from "react-icons/fa";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
-import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
+// import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
 
 const fields = [
   {
@@ -27,7 +27,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-   useRedirectIfAuthenticated();//Session checker hook
+  //  useRedirectIfAuthenticated();//Session checker hook
   
   const [user, setUser] = useState({
     email: "",
@@ -41,16 +41,21 @@ export default function LoginPage() {
   const onLogin = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.post("/api/users/login", user);
+      // const { data } = await axios.post("/api/users/login", user);
+    await axios.post("/api/users/login", user);
       toast.success("Login successful!");
       router.push("/explore");
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong during login.";
-      toast.error(message);
-      console.error("Login failed:", error);
+    } catch (error) {
+      if(axios.isAxiosError(error)){
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong during login.";
+        toast.error(message);
+        console.error("Login failed:", error);
+      }else{
+        toast.error("unexpected error occured!");
+      }
     } finally {
       setLoading(false);
     }
@@ -101,6 +106,7 @@ export default function LoginPage() {
       <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
         {/* Logo at Top */}
         <div>
+           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/logo-Photoroom.png"
             alt="SoundSpire logo"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import axios from "axios";
@@ -60,7 +60,7 @@ const fields = [
 ];
 
 export default function SignupPage() {
-  const router = useRouter();
+  // const router = useRouter();
   
   useRedirectIfAuthenticated();
 
@@ -83,7 +83,7 @@ export default function SignupPage() {
     try {
       setLoading(true);
       const response = await axios.post("/api/users/signup", user);
-      // console.log("Signup successful", response.data);
+      console.log("Signup successful", response.data);
       toast.success("Verification email sent! Check your inbox.");
 
       setUser({
@@ -97,9 +97,16 @@ export default function SignupPage() {
         city: "",
       });
 
-    } catch (error: any) {
-      console.log("Signup failed!");
-      toast.error(error?.response?.data?.error || "Signup failed. Try again!");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+    toast.error(error.response?.data?.error || "Signup failed. Try again!");
+    const redirectPath = error.response?.data?.redirect;
+    if(redirectPath){
+      window.location.href =redirectPath;
+    }
+  } else {
+    toast.error("An unexpected error occurred.");
+  }
     } finally {
       setLoading(false);
     }
@@ -135,6 +142,7 @@ export default function SignupPage() {
     
     {/* Logo at Top */}
     <div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/images/logo-Photoroom.png"
         alt="SoundSpire logo"

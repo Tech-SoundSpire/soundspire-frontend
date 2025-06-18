@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import Link from "next/link";
+// import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function VerifyEmailPage() {
@@ -34,19 +34,23 @@ export default function VerifyEmailPage() {
           router.push("/explore");
         },2000);
 
-      } catch (err: any) {
+      } catch (err) {
         setLoadding(false);
         setError(true);
-        const message = err?.response?.data?.message || "Verification failed!";
-        toast.error(message);
-        console.error(err);
+        if(axios.isAxiosError(err)){
+          const message = err?.response?.data?.message || "Verification failed!";
+          toast.error(message);
+        }else{
+          toast.error("unexpected error occured!");
+          console.error(err);
+        }
       }
     };
 
     if (token) {
       verifyUserEmail();
     }
-  }, [token]);
+  }, [token,router]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 text-white">

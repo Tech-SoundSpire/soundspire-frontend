@@ -18,7 +18,7 @@ export default function ResetPassword() {
       toast.error("Invalid or missing token.");
       router.push("/login");
     }
-  }, [token]);
+  }, [token,router]);
 
   const handleReset = async () => {
     if (password.length < 6) {
@@ -40,8 +40,12 @@ export default function ResetPassword() {
       await axios.post("/api/users/reset-password", { token, password });
       toast.success("password Updates!");
       router.push("/login");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Error resetting password.");
+    } catch (err) {
+      if(axios.isAxiosError(err)){
+        toast.error(err?.response?.data?.message || "Error resetting password.");
+      }else{
+        toast.error("unexpected error occured!");
+      }
     } finally {
       setLoading(false);
     }
@@ -53,6 +57,7 @@ export default function ResetPassword() {
     <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
         {/* Logo at Top */}
         <div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/logo-Photoroom.png"
             alt="SoundSpire logo"
