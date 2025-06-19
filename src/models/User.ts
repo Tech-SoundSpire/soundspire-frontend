@@ -4,7 +4,7 @@ import type { Models } from './index';
 
 class User extends Model {
   static associate(models: Models) {
-    User.hasMany(models.Artist, { foreignKey: 'user_id', as: 'artists' });
+    User.hasOne(models.Artist, { foreignKey: 'user_id', as: 'artists' });
   }
 }
 
