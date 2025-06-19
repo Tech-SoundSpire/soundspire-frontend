@@ -33,9 +33,13 @@ Comment.init(
     },
     post_id: {
       type: DataTypes.UUID,
-      allowNull: false,
+      allowNull: true,
     },
     parent_comment_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
+    review_id: {
       type: DataTypes.UUID,
       allowNull: true,
     },

@@ -40,6 +40,10 @@ Like.init(
       type: DataTypes.UUID,
       allowNull: true,
     },
+    review_id : {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
@@ -71,11 +75,14 @@ Like.init(
       },
     ],
     validate: {
-      eitherPostOrComment() {
+      atleastOne() {
         const hasPost = !!this.post_id;
         const hasComment = !!this.comment_id;
-        if (hasPost === hasComment) {
-          throw new Error('Exactly one of post_id or comment_id must be set');
+        const hasReview = !!this.review_id;
+        const onlyOneTrue = [hasPost, hasComment, hasReview].filter(Boolean).length === 1;
+
+        if (!onlyOneTrue) {
+          throw new Error('Exactly one of post_id or comment_id or review_id must be set');
         }
       },
     },

@@ -23,15 +23,52 @@ export default function ReviewDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [review, setReview] = useState<Review | null>(null);
+  const [likeCount, setLikeCount] = useState(0);
+  const [liked, setLiked] = useState(false);
+  // For demo, fallback to a static userId if not provided
+  const userId = '00000000-0000-0000-0000-000000000001';
 
-  useEffect(() => {
-    fetch('/api/reviews')
-      .then(res => res.json())
-      .then((data: Review[]) => {
-        const found = data.find((r: Review) => r.review_id === params.id);
-        setReview(found || null);
-      });
-  }, [params.id]);
+useEffect(() => {
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  if (!id) return;
+
+  // Fetch all reviews to find current one
+  fetch('/api/reviews')
+    .then(res => res.json())
+    .then((data) => {
+      const reviews = Array.isArray(data) ? data : data.reviews || [];
+      const found = reviews.find((r: Review) => r.review_id === id); // use id here
+      setReview(found || null);
+    });
+
+  fetch(`/api/reviews/${id}/like/count`)
+    .then(res => res.json())
+    .then(data => setLikeCount(data.count || 0));
+
+  fetch(`/api/reviews/${id}/like/status?user_id=${userId}`)
+    .then(res => res.json())
+    .then(data => setLiked(data.liked || false));
+
+}, [params.id]);
+
+const handleLikeReview = async () => {
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const res = await fetch(`/api/reviews/${id}/like`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: userId }),
+  });
+
+  const data = await res.json();
+
+  // Update like count only if liked
+  if (data.liked) {
+    setLiked(true);
+    setLikeCount(data.count || likeCount + 1); // prefer backend count
+  }
+};
+
+
 
   if (!review) return <div className="text-white">Loading...</div>;
   return (
@@ -42,23 +79,7 @@ export default function ReviewDetailPage() {
       >
         ← Back to All Reviews
       </button>
-      <div className="w-full max-w-4xl mx-auto mb-12">
-        <div className="flex flex-col md:flex-row bg-[#231b32] rounded-lg shadow-lg overflow-hidden">
-          <div className="md:w-1/2 flex items-center justify-center bg-[#2d2838] p-8">
-            <img src={(review.image_urls && review.image_urls.length > 0) ? review.image_urls[0] : '/images/placeholder.jpg'} alt={review.title} className="rounded-lg w-full max-w-xs object-cover" />
-          </div>
-          <div className="md:w-1/2 p-8 flex flex-col justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">{review.title}</h1>
-              <span className="inline-block bg-yellow-200 text-yellow-900 text-xs px-3 py-1 rounded-full mb-2">{review.content_type}</span>
-              <div className="text-sm text-gray-400 mb-4">{review.artist_name || 'Unknown Artist'}</div>
-              <div className="text-gray-200 whitespace-pre-line mb-4">{review.text_content}</div>
-            </div>
-            <div className="text-xs text-gray-400 mt-4">{review.created_at ? new Date(review.created_at).toLocaleDateString() : ''}</div>
-          </div>
-        </div>
-      </div>
-      {/* Comments and likes can be added here if needed */}
+      <DetailedReview review={review} userId={userId} likeCount={likeCount} liked={liked} onLike={handleLikeReview} />
     </div>
   );
 } 
