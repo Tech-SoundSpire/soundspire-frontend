@@ -54,6 +54,10 @@ export async function POST(request: NextRequest) {
     }
     console.log("password validated");
 
+     await user.update({
+      last_login: new Date(),
+    });
+
     const token = jwt.sign(
       { id: user.user_id, email: user.email },
       process.env.JWT_SECRET!,

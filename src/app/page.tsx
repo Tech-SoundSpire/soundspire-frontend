@@ -79,11 +79,74 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  const validateForm = () => {
+  const errors: { [key: string]: string } = {};
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const mobileRegex = /^\d{10}$/;
+
+  if (user.full_name.trim().length < 3) {
+    errors.full_name = "Name must be at least 3 characters";
+  }
+
+  if (user.username.trim().length < 3) {
+    errors.username = "Username must be at least 3 characters";
+  }
+
+  if (!emailRegex.test(user.email)) {
+    errors.email = "Invalid email format";
+  }
+
+  if (user.password_hash.length < 6) {
+    errors.password_hash = "Password must be at least 6 characters";
+  }
+
+  if (!["male", "female"].includes(user.gender.toLowerCase())) {
+    errors.gender = "Gender must be Male, Female";
+  }
+
+  if (!mobileRegex.test(user.mobile_number)) {
+    errors.mobile_number = "Mobile number must be 10 digits";
+  }
+
+  if (!user.date_of_birth) {
+    errors.date_of_birth = "Date of Birth is required";
+  } else {
+    const birthDate = new Date(user.date_of_birth);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+
+    const isBirthdayPassedThisYear = monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0);
+    const actualAge = isBirthdayPassedThisYear ? age : age - 1;
+
+    if (actualAge < 13) {
+      errors.date_of_birth = "You must be at least 13 years old";
+    }
+  }
+
+
+  if (user.city.trim() === "") {
+    errors.city = "City is required";
+  }
+
+  setFormErrors(errors);
+  return Object.keys(errors).length === 0;
+};
+
+
+
   const onSignup = async () => {
+     if (!validateForm()) {
+    toast.error("Please fix the errors in the form.");
+    return;
+  }
     try {
       setLoading(true);
-      const response = await axios.post("/api/users/signup", user);
-      console.log("Signup successful", response.data);
+       await axios.post("/api/users/signup", user);
+      // console.log("Signup successful", response.data);
       toast.success("Verification email sent! Check your inbox.");
 
       setUser({
@@ -194,6 +257,9 @@ export default function SignupPage() {
                 }
                 className="w-full px-4 py-2 rounded-md border border-blue-400/75 placeholder-gray-400 focus:outline-none focus:ring-1  focus:ring-blue-400"
               />
+              {formErrors[field.name] && (
+      <p className="text-sm text-red-500 mt-1">{formErrors[field.name]}</p>
+    )}
             </div>
           ))}
 
