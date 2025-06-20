@@ -136,18 +136,6 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white">
-      {/* Left Side: Branding & Welcome */}
-      <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
-        {/* Logo at Top */}
-        <div>
-          <img
-            src="/images/logo-Photoroom.png"
-            alt="SoundSpire logo"
-            width={200}
-            height={200}
-            className="mb-4"
-          />
-        </div>
 
        {/* Left Side: Branding & Welcome */}
   <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
@@ -174,6 +162,8 @@ export default function SignupPage() {
         <h2>Your Beats,</h2>
         <h2>Your World Awaits.</h2>
       </div>
+    </div>
+  </div>
 
       {/* Right Side: Login Form */}
       <div className="bg-white text-black flex flex-col justify-center items-center w-full md:w-1/2 p-8">

@@ -2,7 +2,6 @@ import { connectionTestingAndHelper } from "@/utils/temp";
 import { User } from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
-import toast from "react-hot-toast";
 import  jwt from "jsonwebtoken";
 
 export async function POST(request: NextRequest) {
@@ -25,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     //Checking if the user exists
     if (!user) {
-      toast.error("User not exists Please Sign in!");
+
       return NextResponse.json(
         { message: "User does not exists" },
         { status: 400 }
