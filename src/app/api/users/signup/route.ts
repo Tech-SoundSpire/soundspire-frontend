@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import { sendEmail } from "@/utils/mailer";
 import jwt from "jsonwebtoken";
+// import { UserVerification } from "@/models/UserVerification";
+// import { Op } from "sequelize";
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,18 +53,6 @@ export async function POST(request: NextRequest) {
     //Creating new User
     console.log("🧑‍💻 Creating new user...");
 
-    // const newUser = await User.create({
-    //   username,
-    //   email,
-    //   password_hash: hashedPassword,
-    //   full_name,
-    //   gender,
-    //   mobile_number,
-    //   date_of_birth,
-    //   city,
-    // });
-
-    // console.log("✅ New user created:", newUser.toJSON());
 
     //If password is authenticated creating the token
     const tokenPayload = {
@@ -96,12 +86,6 @@ export async function POST(request: NextRequest) {
       console.log("Email send failed!!", err);
     });
     console.log("✅ Email sent!");
-
-    // return NextResponse.json({
-    //   message: "User registered successfully",
-    //   success: true,
-    //   newUser //dont return this whole
-    // })
 
     return NextResponse.json({
       message: "Verification email sent. Please check your inbox.",
