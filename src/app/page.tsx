@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import axios from "axios";
@@ -60,7 +60,7 @@ const fields = [
 ];
 
 export default function SignupPage() {
-  const router = useRouter();
+  // const router = useRouter();
   
   useRedirectIfAuthenticated();
 
@@ -83,7 +83,7 @@ export default function SignupPage() {
     try {
       setLoading(true);
       const response = await axios.post("/api/users/signup", user);
-      // console.log("Signup successful", response.data);
+      console.log("Signup successful", response.data);
       toast.success("Verification email sent! Check your inbox.");
 
       setUser({
@@ -96,9 +96,17 @@ export default function SignupPage() {
         date_of_birth: "",
         city: "",
       });
-    } catch (error: any) {
-      console.log("Signup failed!");
-      toast.error(error?.response?.data?.error || "Signup failed. Try again!");
+
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+    toast.error(error.response?.data?.error || "Signup failed. Try again!");
+    const redirectPath = error.response?.data?.redirect;
+    if(redirectPath){
+      window.location.href =redirectPath;
+    }
+  } else {
+    toast.error("An unexpected error occurred.");
+  }
     } finally {
       setLoading(false);
     }
@@ -141,17 +149,30 @@ export default function SignupPage() {
           />
         </div>
 
-        {/* Welcome Text at Bottom */}
-        <div className="mb-12">
-          <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">
-            Welcome Back_
-          </h1>
-          <div className="text-5xl bg-gradient-to-t from-gray-400 to-gray-50 font-light bg-clip-text text-transparent space-y-2 italic">
-            <h2>Your Vibe,</h2>
-            <h2>Your Beats,</h2>
-            <h2>Your World Awaits.</h2>
-          </div>
-        </div>
+       {/* Left Side: Branding & Welcome */}
+  <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
+    
+    {/* Logo at Top */}
+    <div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/images/logo-Photoroom.png"
+        alt="SoundSpire logo"
+        width={200}
+        height={200}
+        className="mb-4"
+      />
+    </div>
+
+    {/* Welcome Text at Bottom */}
+    <div className="mb-12">
+      <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">
+        Welcome Back_
+      </h1>
+      <div className="text-5xl bg-gradient-to-t from-gray-400 to-gray-50 font-light bg-clip-text text-transparent space-y-2 italic">
+        <h2>Your Vibe,</h2>
+        <h2>Your Beats,</h2>
+        <h2>Your World Awaits.</h2>
       </div>
 
       {/* Right Side: Login Form */}

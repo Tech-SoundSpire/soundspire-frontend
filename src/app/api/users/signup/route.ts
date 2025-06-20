@@ -34,7 +34,9 @@ export async function POST(request: NextRequest) {
     //Checking if user already exists
     if (existingUser) {
       return NextResponse.json(
-        { error: "User already exists!" },
+        { error: "User already exists!",
+          redirect: "/login",
+         },
         { status: 400 }
       );
     }
@@ -86,9 +88,11 @@ export async function POST(request: NextRequest) {
       message: "Verification email sent. Please check your inbox.",
       success: true,
     });
-  } catch (error: any) {
-    console.error("Signup error:", error);
+  } catch (error: unknown) {
+    if(error instanceof Error){
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    // console.error("Signup error:", error);
 
-    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -11,7 +11,6 @@ type UserCreationAttributes = Optional<
   | "isVerified"
   | "is_artist"
   | "spotify_linked"
-  | "isAdmin"
   | "password_hash"
   | "gender"
   | "date_of_birth"
@@ -43,11 +42,6 @@ export class UserInstance
   updated_at?: Date;
   last_login?: Date;
   deleted_at?: Date;
-  isAdmin!: boolean;
-  forgotPasswordToken?: string;
-  forgotPasswordTokenExpiry?: Date;
-  verifyToken?: string;
-  verifyTokenExpiry?: Date;
 }
 
 export const User = sequelize.define<UserInstance>(
@@ -143,27 +137,7 @@ export const User = sequelize.define<UserInstance>(
     deleted_at: {
       type: DataTypes.DATE,
       allowNull: true,
-    },
-    isAdmin: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    forgotPasswordToken: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    forgotPasswordTokenExpiry: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    verifyToken: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    verifyTokenExpiry: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
+    }
   },
   {
     tableName: "users",

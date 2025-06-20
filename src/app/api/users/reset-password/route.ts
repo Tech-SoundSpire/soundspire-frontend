@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { User } from "@/models/User";
-import toast from "react-hot-toast";
 
 export async function POST(req: Request){
   const {token, password} = await req.json();
@@ -20,7 +19,8 @@ export async function POST(req: Request){
 
     return NextResponse.json({ message: "Password updated successfully." });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if(error instanceof Error)
     return NextResponse.json({message: "Invalid or expired token."},{status:400});
     
   }

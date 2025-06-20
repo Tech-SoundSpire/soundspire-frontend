@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FaGoogle } from "react-icons/fa";
+// import { FaGoogle } from "react-icons/fa";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
@@ -41,36 +41,26 @@ export default function LoginPage() {
   const onLogin = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.post("/api/users/login", user);
+      // const { data } = await axios.post("/api/users/login", user);
+    await axios.post("/api/users/login", user);
       toast.success("Login successful!");
-      router.push("/explore");
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong during login.";
-      toast.error(message);
-      console.error("Login failed:", error);
+      // router.push("/explore");
+      window.location.href = "/explore";
+    } catch (error) {
+      if(axios.isAxiosError(error)){
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong during login.";
+        toast.error(message);
+        console.error("Login failed:", error);
+      }else{
+        toast.error("unexpected error occured!");
+      }
     } finally {
       setLoading(false);
     }
   };
-
-  // const onGoogleLogin = async () => {
-  //   try {
-  //     setGoogleLoading(true);
-  //     // Replace with actual OAuth logic
-  //     const { data } = await axios.get("/api/auth/google");
-  //     toast.success("Redirecting to Google...");
-  //     window.location.href = data.url;
-  //   } catch (error: any) {
-  //     toast.error("Google login failed. Try again later.");
-  //     console.error("Google login error:", error);
-  //   } finally {
-  //     setGoogleLoading(false);
-  //   }
-  // };
-
   
   useEffect(() => {
     const info = searchParams.get("info");
@@ -89,7 +79,7 @@ export default function LoginPage() {
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     router.replace(newUrl);
     }
-  });
+  },[searchParams,router]);
   useEffect(() => {
     const allFilled = Object.values(user).every((val) => val.trim().length > 0);
     setButtonDisabled(!allFilled);
@@ -101,6 +91,7 @@ export default function LoginPage() {
       <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
         {/* Logo at Top */}
         <div>
+           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/logo-Photoroom.png"
             alt="SoundSpire logo"
@@ -169,20 +160,6 @@ export default function LoginPage() {
           >
             Forgot Password?
           </Link>
-
-          {/* <button
-            onClick={onGoogleLogin}
-            disabled={googleLoading}
-            className="w-full py-3 flex justify-center items-center bg-red-600 hover:bg-red-700 rounded text-white font-semibold opacity-85 transition"
-          >
-            {googleLoading ? (
-              "Redirecting to Google..."
-            ) : (
-              <>
-                <FaGoogle className="mr-2" /> Login with Google
-              </>
-            )}
-          </button> */}
 
           <p className="text-center text-sm mt-6 text-gray-400">
             Don&apos;t have an account yet?{" "}

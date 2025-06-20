@@ -27,11 +27,17 @@ export async function POST(request: NextRequest) {
     if (!user) {
       toast.error("User not exists Please Sign in!");
       return NextResponse.json(
-        { error: "User does not exists" },
+        { message: "User does not exists" },
         { status: 400 }
       );
     }
     console.log("User Exists");
+
+    if(!user.password_hash){
+      return NextResponse.json({
+        message:"Please reset your Password!!"
+      },{status: 400});
+    }
 
     //Checking the password
     const validPassword = await bcryptjs.compare(
@@ -40,9 +46,9 @@ export async function POST(request: NextRequest) {
     );
 
     if (!validPassword) {
-      toast.error("Incorrect password!");
+      console.log("Incorrect password!");
       return NextResponse.json(
-        { error: "Check your password or password is wrong!" },
+        { message: "Check your password or password is wrong!" },
         { status: 400 }
       );
     }
@@ -74,7 +80,9 @@ export async function POST(request: NextRequest) {
     });
 
     return response; //seding response and user is loggedin
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if(error instanceof Error){
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+// import { useRouter, usePathname } from 'next/navigation';
 
 interface User {
   id: string;
@@ -16,6 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>; 
 
 }
 
@@ -24,14 +25,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
-  const pathname = usePathname();
+  // const router = useRouter();
+  // const pathname = usePathname();
 
   useEffect(() => {
     // Checking for the active session of the user
     const checkSession = async () => {
       try {
-        const response = await fetch('/api/auth/session');
+        const response = await fetch('/api/auth/session',{credentials: "include"});
         const data = await response.json();
         
         if (data?.user) {
@@ -49,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
  
   return (
-    <AuthContext.Provider value={{ user, isLoading}}>
+    <AuthContext.Provider value={{ user, isLoading,setUser}}>
       {children}
     </AuthContext.Provider>
   );

@@ -3,6 +3,16 @@ import { User } from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
+interface SignupTokenPayload {
+  email: string;
+  username: string;
+  password_hash: string;
+  full_name: string;
+  gender: "male" | "female" | null | undefined;
+  mobile_number: string;
+  date_of_birth: Date;
+  city: string;
+}
 export async function POST(request: NextRequest) {
   try {
     const { token } = await request.json();
@@ -12,7 +22,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET!
+    ) as SignupTokenPayload;
+
+    // const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
 
     await connectionTestingAndHelper();
 
@@ -64,7 +79,7 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch (error: any) {
+  } catch (error) {
     console.error("Verification error:", error);
     return NextResponse.json(
       { error: "Invalid or expired token" },
