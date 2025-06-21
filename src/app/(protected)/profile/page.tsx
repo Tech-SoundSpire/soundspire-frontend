@@ -46,7 +46,7 @@
 
 
 
-// export default function ProfilePage() {
+export default function ProfilePage() {
 //   const { user, logout } = useAuth();
 //   const router = useRouter();
 //   const [isLoading, setIsLoading] = useState(false);
@@ -577,4 +577,5 @@
 //       </main>
 //     </div>
 //   );
-// }
+return <div>Profile Page</div>;
+}
