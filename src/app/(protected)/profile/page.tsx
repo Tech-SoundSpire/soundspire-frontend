@@ -46,14 +46,14 @@
 
 
 
-export default function ProfilePage() {
-  const { user, logout } = useAuth();
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [usernameError, setUsernameError] = useState<string | null>(null);
-  const [isValidatingUsername, setIsValidatingUsername] = useState(false);
+// export default function ProfilePage() {
+//   const { user, logout } = useAuth();
+//   const router = useRouter();
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [isEditing, setIsEditing] = useState(false);
+//   const fileInputRef = useRef<HTMLInputElement>(null);
+//   const [usernameError, setUsernameError] = useState<string | null>(null);
+//   const [isValidatingUsername, setIsValidatingUsername] = useState(false);
   
 //   // Initialize profile state with default values
 //   const [profile, setProfile] = useState<ProfileData>({
