@@ -1,8 +1,4 @@
-// /* eslint-disable @typescript-eslint/ban-ts-comment */
 // 'use client';
-// /* eslint-disable */
-// /* @ts-nocheck */
-
 
 // import { useAuth } from '@/context/AuthContext';
 
@@ -51,8 +47,7 @@
 
 
 // export default function ProfilePage() {
-//   // @ts-expect-error
-//   const { user, logout } = useAuth() ;
+//   const { user, logout } = useAuth();
 //   const router = useRouter();
 //   const [isLoading, setIsLoading] = useState(false);
 //   const [isEditing, setIsEditing] = useState(false);
