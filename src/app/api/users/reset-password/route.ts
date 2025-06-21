@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { User } from "@/models/User";
+import { UserVerification } from "@/models/UserVerification";
 
 export async function POST(req: Request){
   const {token, password} = await req.json();
@@ -12,6 +13,14 @@ export async function POST(req: Request){
     if(!user){
       return NextResponse.json({message: "Invalid User"}, {status:404});
     }
+    
+    await UserVerification.create({
+            user_id: user.user_id,
+            verification_type: "Reset Password",
+            is_used: true,
+            verification_token: token,
+            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 
+          });
     
     const hash = await bcrypt.hash(password,10);
     user.password_hash = hash;

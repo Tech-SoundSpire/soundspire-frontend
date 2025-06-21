@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import  jwt from "jsonwebtoken";
 
+
 export async function POST(request: NextRequest) {
   try {
     await connectionTestingAndHelper();
@@ -24,10 +25,9 @@ export async function POST(request: NextRequest) {
 
     //Checking if the user exists
     if (!user) {
-
       return NextResponse.json(
         { message: "User does not exists" },
-        { status: 400 }
+        { status: 401 }
       );
     }
     console.log("User Exists");
@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
         message:"Please reset your Password!!"
       },{status: 400});
     }
+
 
     //Checking the password
     const validPassword = await bcryptjs.compare(
@@ -48,10 +49,14 @@ export async function POST(request: NextRequest) {
       console.log("Incorrect password!");
       return NextResponse.json(
         { message: "Check your password or password is wrong!" },
-        { status: 400 }
+        { status: 401 }
       );
     }
     console.log("password validated");
+
+     await user.update({
+      last_login: new Date(),
+    });
 
     const token = jwt.sign(
       { id: user.user_id, email: user.email },

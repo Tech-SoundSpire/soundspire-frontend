@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     }).catch((err) => {
       console.log("Email send failed!!", err);
     });
-    console.log(" Email sent!");
+    console.log("✅ Email sent!");
 
     return NextResponse.json({
       message: "Verification email sent. Please check your inbox.",

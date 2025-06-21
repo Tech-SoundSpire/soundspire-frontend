@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET( request: NextRequest) {
   try {
     // await connectionTestingAndHelper();
-    const response = NextResponse.redirect(new URL("/login", request.url));
+    const response = NextResponse.redirect(new URL("/", request.url));
 
     //removing the token data and cookies
     response.cookies.set("token", "", {

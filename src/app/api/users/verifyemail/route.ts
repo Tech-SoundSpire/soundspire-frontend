@@ -2,6 +2,7 @@ import { connectionTestingAndHelper } from "@/utils/temp";
 import { User } from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { UserVerification } from "@/models/UserVerification";
 
 interface SignupTokenPayload {
   email: string;
@@ -58,12 +59,22 @@ export async function POST(request: NextRequest) {
 
     console.log("Email verified and Account created");
 
+    
     // setting cookies with the session token
     const authToken = jwt.sign(
       { id: newUser.user_id, email: newUser.email },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );
+    
+    console.log("Creating another table:");
+    await UserVerification.create({
+        user_id: newUser.user_id,
+        verification_type: "Email Verification",
+        is_used: true,
+        verification_token: authToken,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 
+      });
 
     const response = NextResponse.json({
       message: "Email verified and account created",

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { User } from "@/models/User";
+import { UserVerification } from "@/models/UserVerification";
+import bcrypt from "bcryptjs";
 export const dynamic = "force-dynamic";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -77,29 +79,7 @@ export async function GET(request: Request) {
       },
     });
 
-    // if(!userInDb){
-    //   const baseUsername = userData.email
-    //     .split("@")[0]
-    //     .replace(/[^a-zA-Z0-9]/g, "_");
-    //   const newUser = User.build({
-    //     email: userData.email,
-    //     full_name: userData.name,
-    //     profile_picture_url: userData.picture,
-    //     username: baseUsername,
-    //   });
-    //    try {
-    //     await newUser.save({ context: { isGoogleSignup: true } });
-    //   } catch{
-    //     // Fallback: append random suffix to username and retry
-    //     newUser.username =
-    //       baseUsername + "_" + Math.floor(Math.random() * 10000);
-    //     await newUser.save({ context: { isGoogleSignup: true } });
-    //   }
-    //   userInDb = newUser;
-    // }else{
-    //   return NextResponse.redirect(`${FRONTEND_URL}/login?info=account_exists`);
-    // }
-
+    const hashedDefaultPassword = await bcrypt.hash(userData.email,10);
     if (userInDb){
       return NextResponse.redirect(`${FRONTEND_URL}/login?info=account_exists`);
     } else{
@@ -111,6 +91,8 @@ export async function GET(request: Request) {
         full_name: userData.name,
         profile_picture_url: userData.picture,
         username: baseUsername,
+        isVerified: true,
+        password_hash: hashedDefaultPassword,
       });
       try {
         await newUser.save({ context: { isGoogleSignup: true } });
@@ -121,6 +103,13 @@ export async function GET(request: Request) {
         await newUser.save({ context: { isGoogleSignup: true } });
       }
       userInDb = newUser;
+       await UserVerification.create({
+        user_id: userInDb.user_id,
+        verification_type: "oauth_google",
+        is_used: true,
+        verification_token: "google-oauth",
+        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+      });
     }
 
     // Create the user object

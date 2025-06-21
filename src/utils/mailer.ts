@@ -13,11 +13,11 @@ interface EmailOptions {
 export const sendEmail = async ({ email, emailType, link }: EmailOptions) => {
   try {
     const transport = nodemailer.createTransport({
-      host: "sandbox.smtp.mailtrap.io",
-      port: 2525,
-      auth: {
-        user: "4aab97f46f4b51",
-        pass: "c69507c77f6d7f",
+     host: process.env.MAILTRAP_HOST,
+  port: parseInt(process.env.MAILTRAP_PORT || "2525"),
+  auth: {
+    user: process.env.MAILTRAP_USER,
+    pass: process.env.MAILTRAP_PASSWORD,
       },
     });
 
