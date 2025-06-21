@@ -3,10 +3,10 @@ name: build
 
 on:
   #This will be triggered after the validation workflow will be completed.
-  workflow_run: 
-    workflows: [test]
-    types: 
-      - completed
+  push:
+    branches: [main, dev, "**"]
+  pull_request:
+    branches: [main, dev, "**"]
 
 jobs:
   #For checking build is successfull
