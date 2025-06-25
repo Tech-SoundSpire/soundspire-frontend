@@ -4,7 +4,6 @@ import { useAuth } from '@/context/AuthContext';
 import { FaGoogle } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import Image from 'next/image';
 
 export default function LoginPage() {
   const { login, isLoading, user } = useAuth();
@@ -37,7 +36,6 @@ export default function LoginPage() {
         {/* Logo and Title */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-2">
-            {/* <img src="images/logo-Photoroom.png" alt="SoundSpire Logo" className="inline-block"/>  */}
             <img 
             src="images/logo-Photoroom.png"
             alt='SoundSpire Logo'

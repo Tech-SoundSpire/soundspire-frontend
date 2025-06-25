@@ -163,8 +163,8 @@ export default function ExplorePage() {
             <a href="#" className="text-gray-400 hover:text-white">See All</a>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1,2,3].map((id, index) => (
-              <div key={id} className="bg-[#2d2838] rounded-lg overflow-hidden">
+            {Array(3).fill(null).map((_, index) => (
+              <div key={index} className="bg-[#2d2838] rounded-lg overflow-hidden">
                 <img
                   src="/images/placeholder.jpg"
                   alt={`Review ${index + 1}`}
