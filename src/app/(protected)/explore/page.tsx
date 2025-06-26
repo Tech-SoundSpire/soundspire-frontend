@@ -1,6 +1,9 @@
 'use client';
 
-import Image from 'next/image';
+import Carousel from '@/components/Carousel';
+import ArtistCard from '@/components/ArtistCard';
+import ReviewCard from '@/components/ReviewCard';
+import GenreCard from '@/components/GenreCard';
 import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
@@ -30,10 +33,12 @@ export default function ExplorePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { logout } = useAuth();
 
+  // Auto-rotate carousel
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % carouselItems.length);
-    }, 3000);
+    }, 3000); // Change slide every 5 seconds
+
     return () => clearInterval(timer);
   }, []);
 
@@ -56,6 +61,7 @@ export default function ExplorePage() {
   return (
     <div className="min-h-screen bg-[#1a1625]">
       <main className="ml-16 px-8 py-6">
+        {/* Search Bar and Logout */}
         <div className="flex justify-between items-center mb-8">
           <div className="relative w-full max-w-2xl items-center mx-auto">
             <div className="relative">
@@ -75,6 +81,7 @@ export default function ExplorePage() {
           </button>
         </div>
 
+        {/* Featured Carousel */}
         <section className="mb-12">
           <div className="relative rounded-lg overflow-hidden">
             <div className="aspect-[2/1] bg-gradient-to-r from-purple-900 to-purple-600 p-8 flex items-center">
@@ -84,15 +91,15 @@ export default function ExplorePage() {
                 <div className="text-2xl font-bold text-white">{carouselItems[currentSlide].price}</div>
               </div>
               <div className="flex-1 flex justify-center">
-                <Image
+                <img
                   src={carouselItems[currentSlide].image}
                   alt="Featured Album"
-                  width={256}
-                  height={256}
-                  className="object-cover transform rotate-[-5deg]"
+                  className="w-64 h-64 object-cover transform rotate-[-5deg]"
                 />
               </div>
             </div>
+
+            {/* Navigation Buttons */}
             <button
               onClick={prevSlide}
               className="absolute left-4 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
@@ -105,6 +112,8 @@ export default function ExplorePage() {
             >
               <FaChevronRight className="w-6 h-6" />
             </button>
+
+            {/* Dots */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
               {carouselItems.map((_, index) => (
                 <button
@@ -119,6 +128,7 @@ export default function ExplorePage() {
           </div>
         </section>
 
+        {/* Suggested Artists */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-white">SUGGESTED ARTISTS</h2>
@@ -134,18 +144,17 @@ export default function ExplorePage() {
           <div className="flex gap-6 overflow-x-auto pb-4">
             {Array(8).fill(null).map((_, index) => (
               <div key={index} className="flex-shrink-0">
-                <Image
+                <img
                   src="/images/placeholder.jpg"
                   alt={`Artist ${index + 1}`}
-                  width={96}
-                  height={96}
-                  className="rounded-full object-cover"
+                  className="w-24 h-24 rounded-full object-cover"
                 />
               </div>
             ))}
           </div>
         </section>
 
+        {/* Reviews */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-white">REVIEWS</h2>
@@ -154,11 +163,9 @@ export default function ExplorePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array(3).fill(null).map((_, index) => (
               <div key={index} className="bg-[#2d2838] rounded-lg overflow-hidden">
-                <Image
+                <img
                   src="/images/placeholder.jpg"
                   alt={`Review ${index + 1}`}
-                  width={384}
-                  height={192}
                   className="w-full h-48 object-cover"
                 />
                 <div className="p-4">
@@ -174,20 +181,19 @@ export default function ExplorePage() {
           </div>
         </section>
 
+        {/* Discover by Genre */}
         <section>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-white">DISCOVER BY GENRE</h2>
             <a href="#" className="text-gray-400 hover:text-white">See More</a>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {Array(8).fill(null).map((_, index) => (
               <div key={index} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#2d2838]">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <Image
+                <img
                   src="/images/placeholder.jpg"
                   alt={`Genre ${index + 1}`}
-                  width={384}
-                  height={288}
                   className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
                 />
                 <div className="absolute bottom-4 left-4">
@@ -200,4 +206,4 @@ export default function ExplorePage() {
       </main>
     </div>
   );
-}
+} 

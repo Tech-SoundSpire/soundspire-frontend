@@ -1,5 +1,3 @@
-import Image from 'next/image';
-
 interface ReviewCardProps {
   albumName: string;
   artistName: string;
@@ -18,12 +16,10 @@ const ReviewCard = ({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
       <div className="relative aspect-square">
-        <Image
+        <img
           src={coverImage}
           alt={`${albumName} by ${artistName}`}
-          width={384}
-          height={384}
-          className="object-cover"
+          className="w-full h-full object-cover"
         />
         <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded-full text-sm">
           {rating}/5
@@ -40,4 +36,4 @@ const ReviewCard = ({
   );
 };
 
-export default ReviewCard;
+export default ReviewCard; 
