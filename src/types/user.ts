@@ -12,7 +12,7 @@ export interface UserAttributes {
   mobile_number?: string | null;
   profile_picture_url?: string;
   bio?: string;
-  isVerified: boolean;
+  is_verified: boolean;
   is_artist: boolean;
   google_id?: string;
   spotify_linked: boolean;
