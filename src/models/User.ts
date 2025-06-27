@@ -8,7 +8,7 @@ type UserCreationAttributes = Optional<
   | "user_id"
   | "created_at"
   | "updated_at"
-  | "isVerified"
+  | "is_verified"
   | "is_artist"
   | "spotify_linked"
   | "password_hash"
@@ -34,7 +34,7 @@ export class UserInstance
   mobile_number?: string;
   profile_picture_url?: string;
   bio?: string;
-  isVerified!: boolean;
+  is_verified!: boolean;
   is_artist!: boolean;
   google_id?: string;
   spotify_linked!: boolean;
@@ -105,7 +105,7 @@ export const User = sequelize.define<UserInstance>(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    isVerified: {
+    is_verified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },

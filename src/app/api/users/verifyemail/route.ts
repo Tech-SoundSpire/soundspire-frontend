@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       mobile_number: decoded.mobile_number,
       date_of_birth: decoded.date_of_birth,
       city: decoded.city,
-      isVerified: true,
+      is_verified: true,
     });
 
     console.log("Email verified and Account created");

@@ -7,10 +7,13 @@ interface User {
   id: string;
   name: string;
   email: string;
-  // image?: string;
   provider: 'local';
-  // accessToken?: string;
-  // refreshToken?: string;
+
+   displayName?: string;           
+  photoURL?: string;              
+  is_verified?: boolean;            
+  spotifyLinked?: boolean;   
+  
 }
 
 interface AuthContextType {
@@ -36,7 +39,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data = await response.json();
         
         if (data?.user) {
-          setUser(data.user);
+           const userData: User = {
+            id: data.user.id,
+            name: data.user.name,
+            email: data.user.email,
+            provider: data.user.provider || 'local',
+
+            // Optional fields mapped safely
+            displayName: data.user.displayName,
+            photoURL: data.user.photoURL,
+            is_verified: data.user.is_verified,
+            spotifyLinked: data.user.spotifyLinked,
+          };
+
+          setUser(userData);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
