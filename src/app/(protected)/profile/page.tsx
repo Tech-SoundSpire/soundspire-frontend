@@ -50,7 +50,7 @@ const existingUsernames = ['john_doe', 'jane_smith', 'edsheeran', 'test_user'];
 
 export default function ProfilePage() {
   // const { user, logout } = useAuth();
-  const {user,setUser} = useAuth();
+  const { user, setUser } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -80,7 +80,8 @@ export default function ProfilePage() {
     if (user) {
       console.log("Auth user data:", user);
       
-      const fullName = user.name || user.displayName || '';
+      // const fullName = user.name || user.displayName || '';
+      const fullName = user.name || '';
       
       setProfile(prev => ({
         ...prev,
@@ -121,16 +122,8 @@ export default function ProfilePage() {
     return countryData ? countryData.cities : [];
   })();
   
-  // const handleLogout = async () => {
-  //   try {
-  //     await logout();
-  //     router.push('/');
-  //   } catch (error) {
-  //     console.error('Logout failed:', error);
-  //   }
-  // };
   const handleLogout = async () => {
-    try {
+   try {
       await axios.get("../api/users/logout", {
         withCredentials: true
       });
