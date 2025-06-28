@@ -13,24 +13,6 @@ export async function GET() {
   try{
     await connectionTestingAndHelper();
 
-
-    // const token = (await cookies()).get("token")?.value;
-    // if(!token) return NextResponse.json({user:null});
-
-    // const decode = jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
-    // const user = await User.findOne({where: {user_id: decode.id}});
-
-    // if(!user) return NextResponse.json({user:null});
-
-    // return NextResponse.json({
-    //   user: {
-    //     id: user.user_id,
-    //     name: user.full_name,
-    //     email: user.email,
-    //     provider: "local",
-    //   },
-    // });
-
     const cookieStore = cookies();//getting the cookies
     const token = (await cookieStore).get("token")?.value;//getting the token cookies
     const userCookie = (await cookieStore).get("user")?.value;//getting teh user cookies

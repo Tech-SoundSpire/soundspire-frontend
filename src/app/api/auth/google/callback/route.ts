@@ -91,7 +91,7 @@ export async function GET(request: Request) {
         full_name: userData.name,
         profile_picture_url: userData.picture,
         username: baseUsername,
-        isVerified: true,
+        is_verified: true,
         password_hash: hashedDefaultPassword,
       });
       try {

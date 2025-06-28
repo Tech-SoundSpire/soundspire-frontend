@@ -1,5 +1,4 @@
 'use client';
-
 import { createContext, useContext, useState, useEffect } from 'react';
 // import { useRouter, usePathname } from 'next/navigation';
 
@@ -7,10 +6,9 @@ interface User {
   id: string;
   name: string;
   email: string;
-  // image?: string;
+  photoURL?: string | null ;
   provider: 'local';
-  // accessToken?: string;
-  // refreshToken?: string;
+ 
 }
 
 interface AuthContextType {
