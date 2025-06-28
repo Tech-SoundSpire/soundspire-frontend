@@ -39,8 +39,10 @@ export default function LoginPage() {
           <h1 className="text-4xl font-bold text-white mb-2">
             {/* <img src="images/logo-Photoroom.png" alt="SoundSpire Logo" className="inline-block"/>  */}
             <Image 
-            src="images/logo-Photoroom.png"
+            src="/images/logo-Photoroom.png"
             alt='SoundSpire Logo'
+            width={200}  
+            height={100}
             className="inline-block"
             />
           </h1>
