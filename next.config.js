@@ -13,9 +13,17 @@ const nextConfig = {
       }
     ];
   },
-  images: {
-    domains: ['lh3.googleusercontent.com'], // Allows Google-hosted images
-  },
+
+images: {
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 'lh3.googleusercontent.com',
+      pathname: '**',
+    },
+  ],
+},
+
 };
 
 module.exports = nextConfig;

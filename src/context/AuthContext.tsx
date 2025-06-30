@@ -1,25 +1,21 @@
 'use client';
-
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+// import { useRouter, usePathname } from 'next/navigation';
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  image?: string;
-  photoURL?: string;
-  displayName?: string | null;
-  provider: 'google' | 'spotify';
-  accessToken?: string;
-  refreshToken?: string;
+  photoURL?: string | null ;
+  provider: 'local';
+ 
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (provider: 'google' | 'spotify') => Promise<void>;
-  logout: () => Promise<void>;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>; 
+
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,19 +23,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
-  const pathname = usePathname();
+  // const router = useRouter();
+  // const pathname = usePathname();
 
   useEffect(() => {
-    // Check if user is logged in
-    const checkAuth = async () => {
+    // Checking for the active session of the user
+    const checkSession = async () => {
       try {
-        const response = await fetch('/api/auth/session', {
-          credentials: 'include',
-        });
+        const response = await fetch('/api/auth/session',{credentials: "include"});
         const data = await response.json();
         
-        if (data.user) {
+        if (data?.user) {
           setUser(data.user);
         } else {
           setUser(null);
@@ -52,51 +46,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    checkAuth();
+    checkSession();
   }, []);
 
-  // Protect routes
-  useEffect(() => {
-    if (!isLoading && !user && pathname !== '/') {
-      router.push('/');
-    }
-  }, [user, isLoading, pathname, router]);
-
-  const login = async (provider: 'google' | 'spotify') => {
-    try {
-      setIsLoading(true);
-      
-      if (provider === 'google') {
-        // Redirect to Google OAuth endpoint
-        window.location.href = '/api/auth/google';
-      } else if (provider === 'spotify') {
-        // TODO: Implement Spotify OAuth
-        console.log('Spotify login not implemented yet');
-      }
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      setIsLoading(true);
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-      setUser(null);
-      router.push('/');
-    } catch (error) {
-      console.error('Logout failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+ 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading,setUser}}>
       {children}
     </AuthContext.Provider>
   );
@@ -104,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

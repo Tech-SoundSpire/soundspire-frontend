@@ -1,31 +1,19 @@
-import { NextResponse } from 'next/server';
-     import { User, CommunitySubscription, Community, Artist } from '@/models';
+// Testing connection with databse
+import { establishConnection } from "@/lib/dbConfig";
+import { initSchemas } from "@/lib/initSchemas";
+import { NextResponse } from "next/server";
+export async function GET() {
+  try {
+    await establishConnection();
+    await initSchemas();
+    return NextResponse.json({ success: true, message: "DB connected!" });
 
-     export async function GET() {
-       try {
-         console.log('User model:', User);
-         console.log('CommunitySubscription model:', CommunitySubscription);
-         console.log('Community model:', Community);
-         console.log('Artist model:', Artist);
+  } catch (error) {
 
-         const users = await User.findAll({
-           attributes: ['username', 'email'],
-           include: [
-             {
-               model: CommunitySubscription,
-               include: [
-                 {
-                   model: Community,
-                   include: [{ model: Artist, attributes: ['artist_name', 'profile_picture_url'] }],
-                 },
-               ],
-             },
-           ],
-         });
-         return NextResponse.json(users);
-       } catch (error: unknown) {
-         console.error('Test route error:', error);
-         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-         return NextResponse.json({ error: errorMessage }, { status: 500 });
-       }
-     }
+    return NextResponse.json(
+      { success: false, message: "DB connection failed!" },
+      { status: 500 }
+    );
+   
+  }
+}

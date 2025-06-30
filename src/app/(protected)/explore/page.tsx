@@ -1,11 +1,14 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import Carousel from '@/components/Carousel';
-import ArtistCard from '@/components/ArtistCard';
-import ReviewCard from '@/components/ReviewCard';
-import GenreCard from '@/components/GenreCard';
+// import Carousel from '@/components/Carousel';
+// import ArtistCard from '@/components/ArtistCard';
+// import ReviewCard from '@/components/ReviewCard';
+// import GenreCard from '@/components/GenreCard';
 import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 const carouselItems = [
@@ -31,7 +34,8 @@ const carouselItems = [
 
 export default function ExplorePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const { logout } = useAuth();
+  const { setUser } = useAuth();
+  const router = useRouter();
 
   // Auto-rotate carousel
   useEffect(() => {
@@ -52,7 +56,12 @@ export default function ExplorePage() {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await axios.get("../api/users/logout", {
+        withCredentials: true
+      });
+      setUser(null);
+      router.push("/login");
+      
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -73,12 +82,12 @@ export default function ExplorePage() {
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
           </div>
-          <button
+         <button
             onClick={handleLogout}
             className="px-4 py-2 ml-4 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors duration-200"
           >
             Logout
-          </button>
+          </button> 
         </div>
 
         {/* Featured Carousel */}

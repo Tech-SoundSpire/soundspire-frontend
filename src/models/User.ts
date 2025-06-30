@@ -1,87 +1,88 @@
-import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '@/lib/sequelize';
+import { Model, DataTypes, Sequelize, Optional } from "sequelize";
+import { sequelize } from "../lib/dbConfig";
+import { v4 as uuidv4 } from "uuid";
+import { UserAttributes } from "@/types/user";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface UserAttributes {
-  user_id: string;
-  username: string;
-  email: string;
-  password_hash?: string | null;
-  full_name: string | null;
-  gender?: string | null;
-  date_of_birth?: Date | null;
-  city?: string | null;
-  country?: string | null;
-  mobile_number?: string | null;
-  profile_picture_url?: string | null;
-  bio?: string | null;
-  is_verified: boolean;
-  is_artist: boolean;
-  google_id?: string | null;
-  spotify_linked: boolean;
-  created_at: Date;
-  updated_at: Date;
-  last_login?: Date | null;
-  deleted_at?: Date | null;
+type UserCreationAttributes = Optional<
+  UserAttributes,
+  | "user_id"
+  | "created_at"
+  | "updated_at"
+  | "is_verified"
+  | "is_artist"
+  | "spotify_linked"
+  | "password_hash"
+  | "gender"
+  | "date_of_birth"
+  | "city"
+  | "mobile_number"
+>;
+
+export class UserInstance
+  extends Model<UserAttributes, UserCreationAttributes>
+  implements UserAttributes
+{
+  user_id!: string;
+  username!: string;
+  email!: string;
+  password_hash?: string;
+  full_name?: string;
+  gender?: "male" | "female";
+  date_of_birth?: Date;
+  city?: string;
+  country?: string;
+  mobile_number?: string;
+  profile_picture_url?: string;
+  bio?: string;
+  is_verified!: boolean;
+  is_artist!: boolean;
+  google_id?: string;
+  spotify_linked!: boolean;
+  created_at?: Date;
+  updated_at?: Date;
+  last_login?: Date;
+  deleted_at?: Date;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface UserCreationAttributes extends Optional<UserAttributes, 'user_id' | 'created_at' | 'updated_at' | 'is_verified' | 'is_artist' | 'spotify_linked'> {}
-
-class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
-  public user_id!: string;
-  public username!: string;
-  public email!: string;
-  public password_hash!: string | null;
-  public full_name!: string | null;
-  public gender!: string | null;
-  public date_of_birth!: Date | null;
-  public city!: string | null;
-  public country!: string | null;
-  public mobile_number!: string | null;
-  public profile_picture_url!: string | null;
-  public bio!: string | null;
-  public is_verified!: boolean;
-  public is_artist!: boolean;
-  public google_id!: string | null;
-  public spotify_linked!: boolean;
-  public created_at!: Date;
-  public updated_at!: Date;
-  public last_login!: Date | null;
-  public deleted_at!: Date | null;
-}
-
-User.init(
+export const User = sequelize.define<UserInstance>(
+  "User",
   {
     user_id: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
+      defaultValue: () => uuidv4(),
     },
     username: {
       type: DataTypes.STRING(50),
-      unique: true,
       allowNull: false,
+      unique: true,
+      validate: {
+        notEmpty: { msg: "User name cannot be empty" },
+      },
     },
     email: {
       type: DataTypes.STRING(255),
-      unique: true,
       allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: { msg: "Enter a valid email" },
+        notEmpty: { msg: "Email is required" },
+      },
     },
     password_hash: {
       type: DataTypes.STRING(255),
-      allowNull: true,
+      allowNull: true, // optional here; validate before creation
     },
     full_name: {
       type: DataTypes.STRING(100),
-      allowNull: false,
+      allowNull: true,
     },
     gender: {
-      type: DataTypes.STRING(20),
+      type: DataTypes.ENUM("male", "female"),
       allowNull: true,
     },
     date_of_birth: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: true,
     },
     city: {
@@ -123,11 +124,11 @@ User.init(
     },
     created_at: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
+      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
     },
     updated_at: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
+      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
     },
     last_login: {
       type: DataTypes.DATE,
@@ -136,23 +137,15 @@ User.init(
     deleted_at: {
       type: DataTypes.DATE,
       allowNull: true,
-    },
+    }
   },
   {
-    sequelize,
-    modelName: 'User',
-    tableName: 'users',
-    timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
+    tableName: "users",
+    timestamps: false, // or true if you want Sequelize to manage timestamps automatically
     paranoid: true,
-    deletedAt: 'deleted_at',
     indexes: [
-      { fields: ['email'] },
-      { fields: ['username'] },
-      { fields: ['google_id'] },
+      { name: "idx_users_email", fields: ["email"] },
+      { name: "idx_users_username", fields: ["username"] },
     ],
   }
 );
-
-export default User;
