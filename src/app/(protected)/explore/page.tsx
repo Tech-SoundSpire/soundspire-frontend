@@ -8,8 +8,8 @@
 import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const carouselItems = [
   {
@@ -182,7 +182,12 @@ export default function ExplorePage() {
                   <p className="text-gray-400 text-sm mb-4">Lorem ipsum dolor sit amet sed do eiusmod tempor Lorem ipsum dolor sit amet sed do eiusmod tempor</p>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Ashish Paul, 20th Dec</span>
-                    <button className="px-4 py-1 bg-[#ff4d4d] text-white rounded-full text-sm">Read More</button>
+                    <button
+                      className="px-4 py-1 bg-[#ff4d4d] text-white rounded-full text-sm"
+                      onClick={() => router.push(`/reviews/${index}`)}
+                    >
+                      Read More
+                    </button>
                   </div>
                 </div>
               </div>

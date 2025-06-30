@@ -21,6 +21,11 @@ images: {
       hostname: 'lh3.googleusercontent.com',
       pathname: '**',
     },
+    {
+      protocol: 'https',
+      hostname: '2.img-dpreview.com',
+      pathname: '/files/p/**',
+    },
   ],
 },
 
