@@ -1,76 +1,310 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/context/AuthContext';
-import { FaGoogle } from 'react-icons/fa';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import Image from 'next/image';
+// import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FaGoogle } from "react-icons/fa";
+import axios from "axios";
+import toast from "react-hot-toast";
+import Link from "next/link";
+import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
 
-export default function LoginPage() {
-  const { login, isLoading, user } = useAuth();
-  const router = useRouter();
+const fields = [
+  {
+    label: "Name*",
+    name: "full_name",
+    type: "text",
+    placeholder: "Enter your full name",
+  },
+  {
+    label: "Username*",
+    name: "username",
+    type: "text",
+    placeholder: "Choose a username",
+  },
+  {
+    label: "Email*",
+    name: "email",
+    type: "email",
+    placeholder: "Enter your email",
+  },
+  {
+    label: "Password*",
+    name: "password_hash",
+    type: "password",
+    placeholder: "Create a password",
+  },
+  {
+    label: "Gender*",
+    name: "gender",
+    type: "text",
+    placeholder: "Enter your gender",
+  },
+  {
+    label: "Mobile Number*",
+    name: "mobile_number",
+    type: "text",
+    placeholder: "Enter your mobile number",
+  },
+  {
+    label: "Date of Birth*",
+    name: "date_of_birth",
+    type: "date",
+    placeholder: "dd/mm/yyyy",
+  },
+  {
+    label: "City*",
+    name: "city",
+    type: "text",
+    placeholder: "Enter your city",
+  },
+];
 
-  useEffect(() => {
-    if (user) {
-      router.push('/explore');
+export default function SignupPage() {
+  // const router = useRouter();
+  
+  useRedirectIfAuthenticated();
+
+  const [user, setUser] = useState({
+    full_name: "",
+    username: "",
+    email: "",
+    password_hash: "",
+    gender: "",
+    mobile_number: "",
+    date_of_birth: "",
+    city: "",
+  });
+
+  const [buttonDisabled, setButtonDisabled] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  const validateForm = () => {
+  const errors: { [key: string]: string } = {};
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const mobileRegex = /^\d{10}$/;
+
+  if (user.full_name.trim().length < 3) {
+    errors.full_name = "Name must be at least 3 characters";
+  }
+
+  if (user.username.trim().length < 3) {
+    errors.username = "Username must be at least 3 characters";
+  }
+
+  if (!emailRegex.test(user.email)) {
+    errors.email = "Invalid email format";
+  }
+
+  if (user.password_hash.length < 6) {
+    errors.password_hash = "Password must be at least 6 characters";
+  }
+
+  if (!["male", "female"].includes(user.gender.toLowerCase())) {
+    errors.gender = "Gender must be Male, Female";
+  }
+
+  if (!mobileRegex.test(user.mobile_number)) {
+    errors.mobile_number = "Mobile number must be 10 digits";
+  }
+
+  if (!user.date_of_birth) {
+    errors.date_of_birth = "Date of Birth is required";
+  } else {
+    const birthDate = new Date(user.date_of_birth);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+
+    const isBirthdayPassedThisYear = monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0);
+    const actualAge = isBirthdayPassedThisYear ? age : age - 1;
+
+    if (actualAge < 13) {
+      errors.date_of_birth = "You must be at least 13 years old";
     }
-  }, [user, router]);
+  }
 
-  const handleGoogleLogin = async () => {
+
+  if (user.city.trim() === "") {
+    errors.city = "City is required";
+  }
+
+  setFormErrors(errors);
+  return Object.keys(errors).length === 0;
+};
+
+
+
+  const onSignup = async () => {
+     if (!validateForm()) {
+    toast.error("Please fix the errors in the form.");
+    return;
+  }
     try {
-      await login('google');
+      setLoading(true);
+       await axios.post("/api/users/signup", user);
+      // console.log("Signup successful", response.data);
+      toast.success("Verification email sent! Check your inbox.");
+
+      setUser({
+        username: "",
+        email: "",
+        password_hash: "",
+        full_name: "",
+        gender: "",
+        mobile_number: "",
+        date_of_birth: "",
+        city: "",
+      });
+
     } catch (error) {
-      console.error('Google login failed:', error);
+      if (axios.isAxiosError(error)) {
+    toast.error(error.response?.data?.error || "Signup failed. Try again!");
+    const redirectPath = error.response?.data?.redirect;
+    if(redirectPath){
+      window.location.href =redirectPath;
+    }
+  } else {
+    toast.error("An unexpected error occurred.");
+  }
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    try {
+      console.log("Google login clicked");
+      // Simulate login logic
+      // setTimeout(() => {
+      //   router.push("/explore");
+      // }, 1000);
+      window.location.href = "/api/auth/google";
+    } catch (error) {
+      console.error("Google login failed:", error);
+      toast.error("Google login failed");
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const allFilled = Object.values(user).every((val) => val.trim().length > 0);
+    setButtonDisabled(!allFilled);
+  }, [user]);
+
   return (
-    <div className="min-h-screen">
-      {/* For Artists Button */}
-      <div className="absolute top-4 right-4">
-        <button className="px-6 py-2 rounded-full bg-[#FF2800] hover:bg-[#00BFFF] text-white font-semibold transition-colors duration-200">
-          For Artists
-        </button>
+    <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white">
+
+       {/* Left Side: Branding & Welcome */}
+  <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
+  
+    
+    {/* Logo at Top */}
+    <div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/images/logo-Photoroom.png"
+        alt="SoundSpire logo"
+        width={200}
+        height={200}
+        className="mb-4"
+      />
+    </div>
+
+    {/* Welcome Text at Bottom */}
+    <div className="mb-12">
+      <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">
+        Welcome Back_
+      </h1>
+      <div className="text-5xl bg-gradient-to-t from-gray-400 to-gray-50 font-light bg-clip-text text-transparent space-y-2 italic">
+        <h2>Your Vibe,</h2>
+        <h2>Your Beats,</h2>
+        <h2>Your World Awaits.</h2>
       </div>
+    </div>
+  </div>
 
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        {/* Logo and Title */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-2">
-            {/* <img src="images/logo-Photoroom.png" alt="SoundSpire Logo" className="inline-block"/>  */}
-            <Image 
-            src="images/logo-Photoroom.png"
-            alt='SoundSpire Logo'
-            className="inline-block"
-            />
-          </h1>
-          <p className="text-white">
-            The SuperFandom platform
-          </p>
-        </div>
-
-        {/* Login Options */}
+      {/* Right Side: Login Form */}
+      <div className="bg-white text-black flex flex-col justify-center items-center w-full md:w-1/2 p-8">
         <div className="w-full max-w-md space-y-4">
+          <h1 className="text-2xl mb-4 self-start">
+            {loading ? "Processing..." : "Sign Up"}
+          </h1>
+
+          {fields.map((field) => (
+            <div key={field.name} className="flex flex-col">
+              <label htmlFor={field.name} className="mb-1 text-sm font-medium">
+                {field.label}
+              </label>
+              <input
+                id={field.name}
+                type={field.type}
+                value={user[field.name as keyof typeof user]}
+                placeholder={field.placeholder}
+                onChange={(e) =>
+                  setUser((prev) => ({
+                    ...prev,
+                    [field.name]:
+                      field.name === "gender"
+                        ? e.target.value.toLowerCase()
+                        : e.target.value,
+                  }))
+                }
+                className="w-full px-4 py-2 rounded-md border border-blue-400/75 placeholder-gray-400 focus:outline-none focus:ring-1  focus:ring-blue-400"
+              />
+              {formErrors[field.name] && (
+      <p className="text-sm text-red-500 mt-1">{formErrors[field.name]}</p>
+    )}
+            </div>
+          ))}
+
+          <button
+            onClick={onSignup}
+            disabled={buttonDisabled || loading}
+            className="w-full py-3 my-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold disabled:opacity-85 disabled:cursor-not-allowed transition"
+          >
+            {loading ? "Signing Up..." : "Sign Up"}
+          </button>
+
           <button
             onClick={handleGoogleLogin}
-            disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-full bg-white hover:bg-gray-50 text-black font-semibold border border-gray-300 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isGoogleLoading}
+            className="w-full py-3 flex justify-center items-center bg-red-600 hover:bg-red-700 rounded text-white font-semibold opacity-85 transition"
           >
-            <FaGoogle className="text-xl" />
-            {isLoading ? 'Loading...' : 'Continue with Google'}
+            <FaGoogle className="mr-2" />
+            {isGoogleLoading
+              ? "Signing in with Google..."
+              : "Continue with Google"}
           </button>
-        </div>
 
-        {/* Terms and Privacy */}
-        <div className="mt-8 text-center text-sm text-white">
-          By continuing, you agree to SoundSpire&apos;s{' '}
-          <a href="#" className="text-primary hover:underline">
-            Terms of Service
-          </a>{' '}
-          and{' '}
-          <a href="#" className="text-primary hover:underline">
-            Privacy Policy
-          </a>
+          {/* Login redirect */}
+          <h4 className="text-center text-sm mt-4">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="text-orange-400 hover:text-orange-300"
+            >
+              Login
+            </Link>
+          </h4>
+
+          {/* Terms and Privacy */}
+          <div className="mt-4 text-center text-xs text-gray-400">
+            By continuing, you agree to SoundSpire&apos;s{" "}
+            <a href="#" className="text-primary hover:underline">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="#" className="text-primary hover:underline">
+              Privacy Policy
+            </a>
+            .
+          </div>
         </div>
       </div>
     </div>

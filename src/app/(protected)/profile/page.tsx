@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
@@ -7,6 +8,7 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { countriesWithCities } from '@/lib/locationData';
+import axios from 'axios';
 
 // Define User interface for the auth user
 interface User {
@@ -47,7 +49,8 @@ const existingUsernames = ['john_doe', 'jane_smith', 'edsheeran', 'test_user'];
 
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  // const { user, logout } = useAuth();
+  const { user, setUser } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -77,7 +80,8 @@ export default function ProfilePage() {
     if (user) {
       console.log("Auth user data:", user);
       
-      const fullName = user.name || user.displayName || '';
+      // const fullName = user.name || user.displayName || '';
+      const fullName = user.name || '';
       
       setProfile(prev => ({
         ...prev,
@@ -90,7 +94,7 @@ export default function ProfilePage() {
                   ? user.email.split('@')[0].toLowerCase() 
                   : '',
         email: user.email || '',
-        profileImage: user.photoURL,
+        profileImage: user.photoURL ?? null,
       }));
     }
   }, [user]);
@@ -119,9 +123,13 @@ export default function ProfilePage() {
   })();
   
   const handleLogout = async () => {
-    try {
-      await logout();
-      router.push('/');
+   try {
+      await axios.get("../api/users/logout", {
+        withCredentials: true
+      });
+      setUser(null);
+      router.push("/login");
+      
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -342,7 +350,7 @@ export default function ProfilePage() {
                 >
                   {profile.profileImage ? (
                     <Image
-                      src={isEditing ? editableProfile.profileImage : profile.profileImage}
+                      src={isEditing ? editableProfile.profileImage! : profile.profileImage!}
                       alt="Profile picture"
                       width={112}
                       height={112}
