@@ -2,6 +2,7 @@ import { Model, DataTypes, Sequelize, Optional } from "sequelize";
 import { sequelize } from "../lib/dbConfig";
 import { v4 as uuidv4 } from "uuid";
 import { UserAttributes } from "@/types/user";
+// import CommunitySubscription from './CommunitySubscription';
 
 type UserCreationAttributes = Optional<
   UserAttributes,
@@ -71,7 +72,7 @@ export const User = sequelize.define<UserInstance>(
     },
     password_hash: {
       type: DataTypes.STRING(255),
-      allowNull: true, // optional here; validate before creation
+      allowNull: true,
     },
     full_name: {
       type: DataTypes.STRING(100),
@@ -137,11 +138,11 @@ export const User = sequelize.define<UserInstance>(
     deleted_at: {
       type: DataTypes.DATE,
       allowNull: true,
-    }
+    },
   },
   {
     tableName: "users",
-    timestamps: false, // or true if you want Sequelize to manage timestamps automatically
+    timestamps: false,
     paranoid: true,
     indexes: [
       { name: "idx_users_email", fields: ["email"] },
@@ -149,3 +150,8 @@ export const User = sequelize.define<UserInstance>(
     ],
   }
 );
+
+// ✅ Define association
+// User.hasMany(CommunitySubscription, { foreignKey: 'user_id' });
+
+export default User;

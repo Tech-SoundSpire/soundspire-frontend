@@ -2,7 +2,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { User } from "@/models/User";
+import { User } from '@/models/index';
 import { connectionTestingAndHelper } from "@/utils/temp";
 
 
@@ -36,10 +36,28 @@ export async function GET() {
       });
     }
 
- if (userCookie) {
-      const user = JSON.parse(userCookie);
-      return NextResponse.json({ user });
-    }
+if (userCookie) {
+  const parsed = JSON.parse(userCookie);
+
+  const userInDb = await User.findOne({ where: { email: parsed.email } });
+
+  if (!userInDb) {
+    return NextResponse.json({ user: null });
+  }
+
+  return NextResponse.json({
+    user: {
+      id: userInDb.user_id,
+      name: userInDb.full_name,
+      email: userInDb.email,
+      photoURL: userInDb.profile_picture_url,
+      provider: "google",
+      is_verified: userInDb.is_verified,
+      spotifyLinked: userInDb.spotify_linked,
+    },
+  });
+}
+
 
     return NextResponse.json({ user: null });
 
