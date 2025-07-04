@@ -3,18 +3,32 @@
 import { Sequelize } from 'sequelize';
 import pg from 'pg';
 
-// Validate that the DATABASE_URL is defined
-const databaseUrl = process.env.DATABASE_URL;
+// Get individual database config from environment variables
+const dbConfig = {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  port: parseInt(process.env.DB_PORT || '5432'),
+};
 
-if (!databaseUrl) {
-  throw new Error('❌ DATABASE_URL environment variable is not defined.');
+// Validate required environment variables
+if (!dbConfig.user || !dbConfig.password || !dbConfig.host || !dbConfig.database) {
+  throw new Error('❌ Database environment variables are not properly defined.');
 }
 
 // Initialize Sequelize with proper config
-const sequelize = new Sequelize(databaseUrl, {
-  dialect: 'postgres',
-  dialectModule: pg, // Explicitly specify the pg module to avoid dynamic imports
-  logging: console.log, // You can turn this off in production
-});
+const sequelize = new Sequelize(
+  dbConfig.database,
+  dbConfig.user,
+  dbConfig.password,
+  {
+    host: dbConfig.host,
+    port: dbConfig.port,
+    dialect: 'postgres',
+    dialectModule: pg,
+    logging: console.log, // Set to false in production
+  }
+);
 
 export default sequelize;

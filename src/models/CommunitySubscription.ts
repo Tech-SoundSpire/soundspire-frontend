@@ -1,7 +1,9 @@
 import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '@/lib/sequelize';
+import { sequelize } from "../lib/dbConfig";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+
+
+// Interface for attributes
 interface CommunitySubscriptionAttributes {
   subscription_id: string;
   user_id: string;
@@ -15,10 +17,16 @@ interface CommunitySubscriptionAttributes {
   updated_at: Date;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface CommunitySubscriptionCreationAttributes extends Optional<CommunitySubscriptionAttributes, 'subscription_id' | 'created_at' | 'updated_at' | 'is_active' | 'auto_renew'> {}
+// Optional fields for creation
+type CommunitySubscriptionCreationAttributes = Optional<
+  CommunitySubscriptionAttributes,
+  'subscription_id' | 'created_at' | 'updated_at' | 'is_active' | 'auto_renew'
+>;
 
-class CommunitySubscription extends Model<CommunitySubscriptionAttributes, CommunitySubscriptionCreationAttributes> implements CommunitySubscriptionAttributes {
+class CommunitySubscription
+  extends Model<CommunitySubscriptionAttributes, CommunitySubscriptionCreationAttributes>
+  implements CommunitySubscriptionAttributes
+{
   public subscription_id!: string;
   public user_id!: string;
   public community_id!: string;
@@ -99,5 +107,9 @@ CommunitySubscription.init(
     ],
   }
 );
+
+// ✅ Define associations directly
+// CommunitySubscription.belongsTo(User, { foreignKey: 'user_id' });
+// CommunitySubscription.belongsTo(Community, { foreignKey: 'community_id' });
 
 export default CommunitySubscription;
