@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { User } from "@/models/User";
 import { UserVerification } from "@/models/UserVerification";
 import bcrypt from "bcryptjs";
+
 export const dynamic = "force-dynamic";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const REDIRECT_URI =
-  process.env.NEXT_PUBLIC_BASE_URL + "/api/auth/google/callback";
+const REDIRECT_URI = process.env.NEXT_PUBLIC_BASE_URL + "/api/auth/google/callback";
 const FRONTEND_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 // Google OAuth endpoints
@@ -21,29 +21,25 @@ export async function GET(request: Request) {
     const state = searchParams.get("state");
     const error = searchParams.get("error");
 
-    // Check if there was an error in the OAuth process
     if (error) {
       return NextResponse.redirect(`${FRONTEND_URL}?error=${error}`);
     }
 
-    // Get the stored state from cookies
+    // Validate state
     const cookies = request.headers.get("cookie");
     const storedState = cookies
       ?.split(";")
       .find((c) => c.trim().startsWith("oauth_state="))
       ?.split("=")[1];
 
-    // Verify state to prevent CSRF attacks
     if (!state || state !== storedState) {
       return NextResponse.redirect(`${FRONTEND_URL}?error=invalid_state`);
     }
 
-    // Exchange code for tokens
+    // Exchange code for access token
     const tokenResponse = await fetch(GOOGLE_TOKEN_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         code: code!,
         client_id: GOOGLE_CLIENT_ID!,
@@ -56,10 +52,10 @@ export async function GET(request: Request) {
     const tokenData = await tokenResponse.json();
 
     if (!tokenResponse.ok) {
-      throw new Error("Failed to get access token");
+      throw new Error(tokenData.error || "Failed to get access token");
     }
 
-    // Get user info using access token
+    // Get user info from Google
     const userResponse = await fetch(GOOGLE_USERINFO_URL, {
       headers: {
         Authorization: `Bearer ${tokenData.access_token}`,
@@ -72,38 +68,40 @@ export async function GET(request: Request) {
       throw new Error("Failed to get user info");
     }
 
-    // Checking if the user exists in DB
-    let userInDb = await User.findOne({
-      where: {
-        email: userData.email,
-      },
-    });
+    // Attempt to find or create user in DB
+    const hashedPassword = await bcrypt.hash(userData.email, 10);
+    const baseUsername = userData.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "_");
 
-    const hashedDefaultPassword = await bcrypt.hash(userData.email,10);
-    if (userInDb){
-      return NextResponse.redirect(`${FRONTEND_URL}/login?info=account_exists`);
-    } else{
-      const baseUsername = userData.email
-        .split("@")[0]
-        .replace(/[^a-zA-Z0-9]/g, "_");
-      const newUser = User.build({
-        email: userData.email,
-        full_name: userData.name,
-        profile_picture_url: userData.picture,
-        username: baseUsername,
-        is_verified: true,
-        password_hash: hashedDefaultPassword,
-      });
+    let userInDb = await User.findOne({ where: { email: userData.email } });
+
+    if (!userInDb) {
       try {
-        await newUser.save({ context: { isGoogleSignup: true } });
-      } catch{
-        // Fallback: append random suffix to username and retry
-        newUser.username =
-          baseUsername + "_" + Math.floor(Math.random() * 10000);
-        await newUser.save({ context: { isGoogleSignup: true } });
+        userInDb = await User.create({
+          email: userData.email,
+          full_name: userData.name,
+          username: baseUsername,
+          password_hash: hashedPassword,
+          profile_picture_url: userData.picture,
+          is_verified: true,
+          google_id: userData.id,
+        });
+      } catch {
+        // Fallback if username already taken
+        userInDb = await User.create({
+          email: userData.email,
+          full_name: userData.name,
+          username: baseUsername + "_" + Math.floor(Math.random() * 10000),
+          password_hash: hashedPassword,
+          profile_picture_url: userData.picture,
+          is_verified: true,
+          google_id: userData.id,
+        });
       }
-      userInDb = newUser;
-       await UserVerification.create({
+       if (!userInDb) {
+    throw new Error("Failed to create user");
+      }
+
+      await UserVerification.create({
         user_id: userInDb.user_id,
         verification_type: "oauth_google",
         is_used: true,
@@ -112,22 +110,20 @@ export async function GET(request: Request) {
       });
     }
 
-    // Create the user object
+    // ✅ Safe usage with non-null assertion
     const user = {
-      id: userData.id,
-      name: userData.name,
-      email: userData.email,
-      image: userData.picture,
+      id: userInDb!.user_id,
+      name: userInDb!.full_name,
+      email: userInDb!.email,
+      image: userInDb!.profile_picture_url,
       provider: "google",
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token,
     };
 
-    // Create response with user data
-    console.log("Google Signing IN");
     const response = NextResponse.redirect(`${FRONTEND_URL}/explore`);
 
-    // Set user data in an httpOnly cookie
+    // Set secure cookie
     response.cookies.set("user", JSON.stringify(user), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
