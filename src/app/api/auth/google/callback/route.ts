@@ -97,6 +97,9 @@ export async function GET(request: Request) {
           google_id: userData.id,
         });
       }
+       if (!userInDb) {
+    throw new Error("Failed to create user");
+      }
 
       await UserVerification.create({
         user_id: userInDb.user_id,

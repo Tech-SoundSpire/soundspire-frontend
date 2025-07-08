@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { countriesWithCities } from '@/lib/locationData';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import CommunitySubscription from '@/models/CommunitySubscription';
+
 
 interface Subscription {
   name: string;
@@ -39,6 +39,7 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [isValidatingUsername, setIsValidatingUsername] = useState(false);
+
   const [profile, setProfile] = useState<ProfileData>({
     fullName: '',
     userName: '',
@@ -56,49 +57,41 @@ export default function ProfilePage() {
   const [editableProfile, setEditableProfile] = useState<ProfileData>({ ...profile });
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !user.email) {
       router.push('/login');
       return;
     }
 
-const fetchProfile = async () => {
-  try {
-    setIsLoading(true);
+    const fetchProfile = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch(`/api/profile?email=${encodeURIComponent(user.email || '')}`);
+        const data = await res.json();
 
-    // 👇 Fetch profile data from your API
-    const res = await fetch(`/api/profile?email=${encodeURIComponent(user.email)}`);
-    const data = await res.json();
+        if (data.error) throw new Error(data.error);
 
-    // ✅ Log values for debugging
-    console.log('Auth User:', user);
-    console.log('Fetched Profile Data:', data);
-
-    if (data.error) throw new Error(data.error);
-
-    setProfile({
-      fullName: data.full_name || user.name || user.email?.split('@')[0] || 'User',
-      userName: data.username || user.email?.split('@')[0].toLowerCase() || 'user',
-      email: data.email || user.email || '',
-      gender: data.gender || 'primary',
-      phoneNumber: data.mobile_number || '',
-      dob: data.date_of_birth
-        ? new Date(data.date_of_birth).toISOString().split('T')[0]
-        : '2000-01-01',
-      city: data.city || 'New York',
-      country: data.country || 'United States',
-      profileImage: data.profile_picture_url || user.photoURL || null,
-      spotifyLinked: data.spotify_linked || false,
-      subscriptions: data.subscriptions || [],
-    });
-
-  } catch (err) {
-    toast.error('Failed to load profile data');
-    console.error(err);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+        setProfile({
+          fullName: data.full_name || user.name || user.email?.split('@')[0] || 'User',
+          userName: data.username || user.email?.split('@')[0].toLowerCase() || 'user',
+          email: data.email || user.email || '',
+          gender: data.gender || 'primary',
+          phoneNumber: data.mobile_number || '',
+          dob: data.date_of_birth
+            ? new Date(data.date_of_birth).toISOString().split('T')[0]
+            : '2000-01-01',
+          city: data.city || 'New York',
+          country: data.country || 'United States',
+          profileImage: data.profile_picture_url || user.photoURL || null,
+          spotifyLinked: data.spotify_linked || false,
+          subscriptions: data.subscriptions || [],
+        });
+      } catch (err) {
+        toast.error('Failed to load profile data');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
     fetchProfile();
   }, [user, router]);
@@ -131,9 +124,7 @@ const fetchProfile = async () => {
   };
 
   const handleImageClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+    fileInputRef.current?.click();
   };
 
   const checkUsernameUniqueness = async (username: string): Promise<boolean> => {
@@ -172,22 +163,25 @@ const fetchProfile = async () => {
         }
       }
 
+      const emailToUse = editableProfile.email || profile.email || user?.email || '';
+      const fullNameToUse = editableProfile.fullName || user?.name || user?.email?.split('@')[0] || 'User';
+      const usernameToUse = editableProfile.userName || user?.email?.split('@')[0]?.toLowerCase() || 'user';
+
       const res = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-  email: editableProfile.email || profile.email || user.email || '',
-  full_name: editableProfile.fullName || user.name || user.email?.split('@')[0] || 'User',
-  username: editableProfile.userName || user.email?.split('@')[0].toLowerCase() || 'user',
-  gender: editableProfile.gender,
-  mobile_number: editableProfile.phoneNumber,
-  date_of_birth: editableProfile.dob,
-  city: editableProfile.city,
-  country: editableProfile.country,
-  profile_picture_url: editableProfile.profileImage,
-  spotify_linked: editableProfile.spotifyLinked,
-}),
-
+          email: emailToUse,
+          full_name: fullNameToUse,
+          username: usernameToUse,
+          gender: editableProfile.gender,
+          mobile_number: editableProfile.phoneNumber,
+          date_of_birth: editableProfile.dob,
+          city: editableProfile.city,
+          country: editableProfile.country,
+          profile_picture_url: editableProfile.profileImage,
+          spotify_linked: editableProfile.spotifyLinked,
+        }),
       });
 
       if (!res.ok) throw new Error('Profile update failed');
@@ -289,7 +283,7 @@ const fetchProfile = async () => {
                 />
               ) : (
                 <Image
-                  src={user.photoURL || user.image || DEFAULT_PROFILE_IMAGE}
+                  src={user.photoURL || DEFAULT_PROFILE_IMAGE}
                   alt="Profile picture"
                   width={112}
                   height={112}
