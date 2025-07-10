@@ -1,4 +1,4 @@
-import User from './User';
+import { User } from './User';
 import Community from './Community';
 import Artist from './Artist';
 import CommunitySubscription from './CommunitySubscription';

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import Comment from '@/models/Comment';
 
-export async function POST(request, { params }) {
-  const { id: parent_comment_id } = params;
+export async function POST(request: Request, context: any) {
+  const { id: parent_comment_id } = context.params;
   try {
     const { user_id, content } = await request.json();
     const reply = await Comment.create({

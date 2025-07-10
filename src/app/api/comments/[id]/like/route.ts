@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import Like from '@/models/Like';
 
-export async function POST(request, context) {
+export async function POST(request: Request, context: any) {
   const params = await context.params;
   const { id: comment_id } = params;
 
@@ -24,13 +24,17 @@ export async function POST(request, context) {
     const count = await Like.count({ where: { comment_id, review_id: null, post_id: null } });
 
     return NextResponse.json({ liked: true, count });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error liking comment:', error);
-    return NextResponse.json({ error: 'Failed to like comment', details: error?.message }, { status: 500 });
+    let message = 'Unknown error';
+    if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') {
+      message = (error as any).message;
+    }
+    return NextResponse.json({ error: 'Failed to like comment', details: message }, { status: 500 });
   }
 }
 
-export async function GET(request, context) {
+export async function GET(request: Request, context: any) {
   const params = await context.params;
   const { id: comment_id } = params;
   const { searchParams } = new URL(request.url);

@@ -3,7 +3,7 @@ import Comment from '@/models/Comment';
 import { Op } from 'sequelize';
 
 // GET: Fetch all top-level comments for a review, including replies
-export async function GET(request, context) {
+export async function GET(request: Request, context: any) {
   const params = await context.params;
   const { id: review_id } = params;
   try {
@@ -12,31 +12,39 @@ export async function GET(request, context) {
       where: { review_id, parent_comment_id: null },
       order: [['created_at', 'ASC']],
     });
+    // Convert to plain objects
+    const plainComments = comments.map(c => c.toJSON());
     // Fetch replies for each comment
-    const commentIds = comments.map(c => c.comment_id);
+    const commentIds = plainComments.map(c => c.comment_id);
     const replies = await Comment.findAll({
       where: { parent_comment_id: { [Op.in]: commentIds } },
       order: [['created_at', 'ASC']],
     });
     // Nest replies
-    const repliesByParent = {};
+    const repliesByParent: { [key: string]: any[] } = {};
     replies.forEach(reply => {
-      if (!repliesByParent[reply.parent_comment_id]) repliesByParent[reply.parent_comment_id] = [];
-      repliesByParent[reply.parent_comment_id].push(reply);
+      const replyObj = reply.toJSON();
+      const parentId = String(replyObj.parent_comment_id);
+      if (!repliesByParent[parentId]) repliesByParent[parentId] = [];
+      repliesByParent[parentId].push(replyObj);
     });
-    const result = comments.map(comment => ({
-      ...comment.toJSON(),
-      replies: repliesByParent[comment.comment_id] || [],
+    const result = plainComments.map(comment => ({
+      ...comment,
+      replies: repliesByParent[String(comment.comment_id)] || [],
     }));
     return NextResponse.json(result);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching comments:', error);
-    return NextResponse.json({ error: 'Failed to fetch comments', details: error?.message }, { status: 500 });
+    let message = 'Unknown error';
+    if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') {
+      message = (error as any).message;
+    }
+    return NextResponse.json({ error: 'Failed to fetch comments', details: message }, { status: 500 });
   }
 }
 
 // POST: Add a new top-level comment to a review
-export async function POST(request, context) {
+export async function POST(request: Request, context: any) {
   const params = await context.params;
   const { id: review_id } = params;
   try {
@@ -52,8 +60,12 @@ export async function POST(request, context) {
       updated_at: new Date(),
     });
     return NextResponse.json(comment);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error adding comment:', error);
-    return NextResponse.json({ error: 'Failed to add comment', details: error?.message }, { status: 500 });
+    let message = 'Unknown error';
+    if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') {
+      message = (error as any).message;
+    }
+    return NextResponse.json({ error: 'Failed to add comment', details: message }, { status: 500 });
   }
 } 
