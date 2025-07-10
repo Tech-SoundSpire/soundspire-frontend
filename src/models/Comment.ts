@@ -1,8 +1,21 @@
-import { Model, DataTypes } from 'sequelize';
+import { Model, DataTypes, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
 import sequelize from '../lib/sequelize';
 import type { Models } from './index';
 
-class Comment extends Model {
+class Comment extends Model<
+  InferAttributes<Comment>,
+  InferCreationAttributes<Comment>
+> {
+  declare comment_id: CreationOptional<string>;
+  declare post_id: string | null;
+  declare parent_comment_id: string | null;
+  declare review_id: string | null;
+  declare user_id: string;
+  declare content: string;
+  declare created_at: CreationOptional<Date>;
+  declare updated_at: CreationOptional<Date>;
+  declare deleted_at: Date | null;
+
   static associate(models: Models) {
     Comment.belongsTo(models.Post, {
       foreignKey: 'post_id',
@@ -20,7 +33,6 @@ class Comment extends Model {
     });
 
     Comment.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
-
   }
 }
 

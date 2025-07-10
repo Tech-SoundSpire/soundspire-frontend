@@ -34,7 +34,7 @@ Object.values(models).forEach((model) => {
 // Alternatively, run centralized association setup
 defineAssociations();
 
-// Optional: database init function
+
 export async function initializeDatabase() {
   try {
     await sequelize.authenticate();

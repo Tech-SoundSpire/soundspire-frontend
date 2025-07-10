@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { NextRequest, NextResponse } from 'next/server';
 import Comment from '@/models/Comment';
 import { Op } from 'sequelize';
 
-// GET: Fetch all top-level comments for a review, including replies
-export async function GET(request, context) {
+export async function GET(request:NextRequest, context:{ params: Promise<{ id: string }> }) {
   const params = await context.params;
   const { id: review_id } = params;
   try {
@@ -19,24 +19,23 @@ export async function GET(request, context) {
       order: [['created_at', 'ASC']],
     });
     // Nest replies
-    const repliesByParent = {};
+    const repliesByParent: { [parentId: string]: typeof replies } = {};
     replies.forEach(reply => {
-      if (!repliesByParent[reply.parent_comment_id]) repliesByParent[reply.parent_comment_id] = [];
-      repliesByParent[reply.parent_comment_id].push(reply);
+      if (reply.parent_comment_id && !repliesByParent[reply.parent_comment_id]) repliesByParent[reply.parent_comment_id] = [];
+      if(reply.parent_comment_id) repliesByParent[reply.parent_comment_id].push(reply);
     });
     const result = comments.map(comment => ({
       ...comment.toJSON(),
       replies: repliesByParent[comment.comment_id] || [],
     }));
     return NextResponse.json(result);
-  } catch (error) {
+  } catch (error:any) {
     console.error('Error fetching comments:', error);
     return NextResponse.json({ error: 'Failed to fetch comments', details: error?.message }, { status: 500 });
   }
 }
 
-// POST: Add a new top-level comment to a review
-export async function POST(request, context) {
+export async function POST(request:NextRequest, context:{ params: Promise<{ id: string }> }) {
   const params = await context.params;
   const { id: review_id } = params;
   try {
@@ -52,7 +51,7 @@ export async function POST(request, context) {
       updated_at: new Date(),
     });
     return NextResponse.json(comment);
-  } catch (error) {
+  } catch (error:any) {
     console.error('Error adding comment:', error);
     return NextResponse.json({ error: 'Failed to add comment', details: error?.message }, { status: 500 });
   }
