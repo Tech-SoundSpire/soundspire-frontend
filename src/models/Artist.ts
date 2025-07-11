@@ -1,5 +1,6 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '@/lib/sequelize';
+import type { Models } from './index';
 
 interface PayoutMethod {
   type: string; // e.g., 'paypal', 'bank_transfer'
@@ -23,7 +24,8 @@ interface ArtistAttributes {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface ArtistCreationAttributes extends Optional<ArtistAttributes, 'artist_id' | 'created_at' | 'updated_at' | 'featured'> {}
+interface ArtistCreationAttributes
+  extends Optional<ArtistAttributes, 'artist_id' | 'created_at' | 'updated_at' | 'featured'> {}
 
 class Artist extends Model<ArtistAttributes, ArtistCreationAttributes> implements ArtistAttributes {
   public artist_id!: string;
@@ -39,6 +41,12 @@ class Artist extends Model<ArtistAttributes, ArtistCreationAttributes> implement
   public payout_method!: PayoutMethod | null;
   public created_at!: Date;
   public updated_at!: Date;
+
+  // Association definition
+  static associate(models: Models) {
+    Artist.hasMany(models.Post, { foreignKey: 'artist_id', as: 'posts' });
+    Artist.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
+  }
 }
 
 Artist.init(
@@ -108,9 +116,7 @@ Artist.init(
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    indexes: [
-      { fields: ['artist_name'] },
-    ],
+    indexes: [{ fields: ['artist_name'] }],
   }
 );
 

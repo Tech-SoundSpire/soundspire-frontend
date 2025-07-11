@@ -1,8 +1,9 @@
+// models/User.ts
 import { Model, DataTypes, Sequelize, Optional } from "sequelize";
 import { sequelize } from "../lib/dbConfig";
 import { v4 as uuidv4 } from "uuid";
 import { UserAttributes } from "@/types/user";
-// import CommunitySubscription from './CommunitySubscription';
+import type { Models } from './index';
 
 type UserCreationAttributes = Optional<
   UserAttributes,
@@ -19,34 +20,40 @@ type UserCreationAttributes = Optional<
   | "mobile_number"
 >;
 
-export class UserInstance
+export class User
   extends Model<UserAttributes, UserCreationAttributes>
   implements UserAttributes
 {
-  user_id!: string;
-  username!: string;
-  email!: string;
-  password_hash?: string;
-  full_name?: string;
-  gender?: "male" | "female";
-  date_of_birth?: Date;
-  city?: string;
-  country?: string;
-  mobile_number?: string;
-  profile_picture_url?: string;
-  bio?: string;
-  is_verified!: boolean;
-  is_artist!: boolean;
-  google_id?: string;
-  spotify_linked!: boolean;
-  created_at?: Date;
-  updated_at?: Date;
-  last_login?: Date;
-  deleted_at?: Date;
+  public user_id!: string;
+  public username!: string;
+  public email!: string;
+  public password_hash?: string;
+  public full_name?: string;
+  public gender?: "male" | "female";
+  public date_of_birth?: Date;
+  public city?: string;
+  public country?: string;
+  public mobile_number?: string;
+  public profile_picture_url?: string;
+  public bio?: string;
+  public is_verified!: boolean;
+  public is_artist!: boolean;
+  public google_id?: string;
+  public spotify_linked!: boolean;
+  public created_at?: Date;
+  public updated_at?: Date;
+  public last_login?: Date;
+  public deleted_at?: Date;
+
+  static associate(models: Models) {
+    User.hasOne(models.Artist, {
+      foreignKey: "user_id",
+      as: "artist",
+    });
+  }
 }
 
-export const User = sequelize.define<UserInstance>(
-  "User",
+User.init(
   {
     user_id: {
       type: DataTypes.UUID,
@@ -141,6 +148,7 @@ export const User = sequelize.define<UserInstance>(
     },
   },
   {
+    sequelize,
     tableName: "users",
     timestamps: false,
     paranoid: true,
@@ -150,8 +158,3 @@ export const User = sequelize.define<UserInstance>(
     ],
   }
 );
-
-// ✅ Define association
-// User.hasMany(CommunitySubscription, { foreignKey: 'user_id' });
-
-export default User;

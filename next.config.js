@@ -14,15 +14,20 @@ const nextConfig = {
     ];
   },
 
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-        pathname: '**',
-      },
-    ],
-  },
+images: {
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 'lh3.googleusercontent.com',
+      pathname: '**',
+    },
+    {
+      protocol: 'https',
+      hostname: '2.img-dpreview.com',
+      pathname: '/files/p/**',
+    },
+  ],
+},
 
   webpack: (config) => {
     config.module.exprContextCritical = false;

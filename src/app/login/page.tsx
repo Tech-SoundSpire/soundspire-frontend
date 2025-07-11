@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState,Suspense } from "react";
 // import { FaGoogle } from "react-icons/fa";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -24,6 +24,14 @@ const fields = [
 ];
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginPageInner />
+    </Suspense>
+  );
+}
+
+function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
