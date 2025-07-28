@@ -47,7 +47,7 @@ export async function POST(request:NextRequest) {
             },]
         })
 
-        return NextResponse.json(detailedComment);
+        return NextResponse.json(detailedComment.get({ plain: true }));
     } catch (error : unknown){
         console.error('Error adding comment:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';

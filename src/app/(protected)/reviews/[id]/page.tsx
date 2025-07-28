@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import DetailedReview from '@/components/DetailedReview';
+import { useAuth } from '@/context/AuthContext';
 
 interface Review {
   review_id: string;
@@ -25,8 +26,9 @@ export default function ReviewDetailPage() {
   const [review, setReview] = useState<Review | null>(null);
   const [likeCount, setLikeCount] = useState(0);
   const [liked, setLiked] = useState(false);
-  // For demo, fallback to a static userId if not provided
-  const userId = '00000000-0000-0000-0000-000000000001';
+  const { user } = useAuth();
+  // Use actual authenticated user ID
+  const userId = user?.id || '00000000-0000-0000-0000-000000000001';
 
 useEffect(() => {
   const id = Array.isArray(params.id) ? params.id[0] : params.id;

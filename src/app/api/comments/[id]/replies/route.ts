@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Comment from '@/models/Comment';
+import { User } from '@/models/User';
 
 export async function POST(request:NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id: parent_comment_id } = await context.params;
@@ -12,7 +13,20 @@ export async function POST(request:NextRequest, context: { params: Promise<{ id:
       created_at: new Date(),
       updated_at: new Date(),
     });
-    return NextResponse.json(reply);
+    
+    // Fetch the reply with user information
+    const detailedReply = await reply.reload({
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['username', 'profile_picture_url', 'full_name'],
+          required: false,
+        }
+      ]
+    });
+    
+    return NextResponse.json(detailedReply.get({ plain: true }));
   } catch (error) {
     return NextResponse.json({ error: 'Failed to add reply', details: error }, { status: 500 });
   }

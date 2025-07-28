@@ -5,9 +5,11 @@ import Post from '@/components/Posts/Post';
 import { PostProps,CommentProps } from '@/lib/types';
 import Image from 'next/image';
 import { getImageUrl, DEFAULT_PROFILE_IMAGE } from '@/utils/userProfileImageUtils';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Page(){
     const [posts,setPosts]=useState<PostProps[]>([])
+    const { user } = useAuth();
 
     useEffect(() => {
         fetch('/api/posts')
@@ -40,7 +42,7 @@ export default function Page(){
             });
         }, []);
 
-    const userId = '33333333-3333-3333-3333-333333333333';
+    const userId = user?.id || '33333333-3333-3333-3333-333333333333';
     
     //console.log(posts)
 
@@ -108,8 +110,7 @@ export default function Page(){
                                 src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
-                                width={100}
-                            height={100}
+                                 width={100} height={100}
                             />
                             <h1 className='font-bold'>ArtistName</h1>
                     </div>

@@ -71,7 +71,7 @@ export default function Comment({
   return (
     <div className="post-comment flex flex-col py-2">
       <div className="flex items-center">
-        <Image
+        <img
           src={comment.user?.profile_picture_url ? comment.user.profile_picture_url : getImageUrl(DEFAULT_PROFILE_IMAGE)}
           alt="Avatar"
           className="w-12 h-12 rounded-full object-cover mr-5"
@@ -79,7 +79,7 @@ export default function Comment({
           height={100}
         />
         <div>
-          <h1 className="font-semibold">{comment.user.username}</h1>
+          <h1 className="font-semibold">{comment.user?.username || 'Unknown User'}</h1>
           <h1>{comment.content}</h1>
           <div className="flex mt-1">
             <div className="flex items-center mr-4">
