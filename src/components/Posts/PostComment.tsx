@@ -3,6 +3,7 @@ import { FaRegHeart, FaHeart } from 'react-icons/fa6';
 import { useState } from 'react';
 import Image from 'next/image';
 import { CommentProps } from '@/lib/types';
+import { getImageUrl, DEFAULT_PROFILE_IMAGE } from '@/utils/userProfileImageUtils';
 
 export default function Comment({
   comment,
@@ -71,7 +72,7 @@ export default function Comment({
     <div className="post-comment flex flex-col py-2">
       <div className="flex items-center">
         <Image
-          src={comment.user.profile_picture_url || '/images/placeholder.jpg'}
+          src={comment.user?.profile_picture_url ? comment.user.profile_picture_url : getImageUrl(DEFAULT_PROFILE_IMAGE)}
           alt="Avatar"
           className="w-12 h-12 rounded-full object-cover mr-5"
           width={100}

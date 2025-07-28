@@ -2,6 +2,7 @@
 import Carousel from '@/components/Carousel';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getImageUrl, DEFAULT_PROFILE_IMAGE } from '@/utils/userProfileImageUtils';
 
 interface Review {
   review_id: string;
@@ -20,9 +21,9 @@ interface Review {
 }
 
 const carouselImages = [
-  '/images/placeholder.jpg',
-  '/images/placeholder.jpg',
-  '/images/placeholder.jpg',
+  getImageUrl(DEFAULT_PROFILE_IMAGE),
+  getImageUrl(DEFAULT_PROFILE_IMAGE),
+  getImageUrl(DEFAULT_PROFILE_IMAGE),
 ];
 
 export default function ReviewsPage() {
@@ -52,7 +53,7 @@ export default function ReviewsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {reviews.map(review => (
           <div key={review.review_id} className="flex flex-col bg-[#231b32] rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
-            <img src={(review.image_urls && review.image_urls.length > 0) ? review.image_urls[0] : '/images/placeholder.jpg'} alt={review.title} className="w-full h-56 object-cover" />
+            <img src={(review.image_urls && review.image_urls.length > 0) ? review.image_urls[0] : getImageUrl(DEFAULT_PROFILE_IMAGE)} alt={review.title} className="w-full h-56 object-cover" />
             <span className="absolute top-4 left-4 bg-green-700 text-white text-xs px-3 py-1 rounded-full">{review.content_type}</span>
             <div className="p-4 flex-1 flex flex-col justify-between">
               <div>

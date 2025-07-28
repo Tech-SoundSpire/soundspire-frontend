@@ -26,6 +26,12 @@ images: {
       hostname: '2.img-dpreview.com',
       pathname: '/files/p/**',
     },
+    {
+      protocol: 'http',
+      hostname: 'localhost',
+      port: '3000',
+      pathname: '/api/images/**',
+    }
   ],
 },
 

@@ -4,6 +4,7 @@ import { FaSearch } from 'react-icons/fa';
 import Post from '@/components/Posts/Post';
 import { PostProps,CommentProps } from '@/lib/types';
 import Image from 'next/image';
+import { getImageUrl, DEFAULT_PROFILE_IMAGE } from '@/utils/userProfileImageUtils';
 
 export default function Page(){
     const [posts,setPosts]=useState<PostProps[]>([])
@@ -74,7 +75,7 @@ export default function Page(){
                     
                     <div className='flex items-center p-2 text-white'>
                             <Image
-                                src="/images/placeholder.jpg"
+                                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
                                 width={100}
@@ -84,7 +85,7 @@ export default function Page(){
                     </div>
                     <div className='flex items-center p-2 text-white'>
                             <Image
-                                src="/images/placeholder.jpg"
+                                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
                                 width={100}
@@ -94,7 +95,7 @@ export default function Page(){
                     </div>
                     <div className='flex items-center p-2 text-white'>
                             <Image
-                                src="/images/placeholder.jpg"
+                                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
                                 width={100}
@@ -104,7 +105,7 @@ export default function Page(){
                     </div>
                     <div className='flex items-center p-2 text-white'>
                             <Image
-                                src="/images/placeholder.jpg"
+                                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
                                 width={100}
@@ -114,7 +115,7 @@ export default function Page(){
                     </div>
                     <div className='flex items-center p-2 text-white'>
                             <Image
-                                src="/images/placeholder.jpg"
+                                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
                                 width={100}
