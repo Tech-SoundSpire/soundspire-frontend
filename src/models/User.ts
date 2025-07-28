@@ -29,7 +29,7 @@ export class User
   public email!: string;
   public password_hash?: string;
   public full_name?: string;
-  public gender?: "male" | "female";
+  public gender?: "Male" | "Female" | "Other";
   public date_of_birth?: Date;
   public city?: string;
   public country?: string;
@@ -86,7 +86,7 @@ User.init(
       allowNull: true,
     },
     gender: {
-      type: DataTypes.ENUM("male", "female"),
+      type: DataTypes.ENUM("Male", "Female"),
       allowNull: true,
     },
     date_of_birth: {
