@@ -22,6 +22,8 @@ export default function Post(props:{
     const [liked,setLiked]=useState<boolean>(filtered.length==1);
     const [commentText, setCommentText] = useState('');
     const [comments,setComments]=useState(post.comments)
+    console.log('Post data:', post);
+    console.log('Comments array:', comments);
 
     async function onLike(){
         await fetch('/api/like/',{
@@ -142,7 +144,10 @@ export default function Post(props:{
                     </div> 
                 </div>: null }           
                 { showComments ? 
-                    comments.map((comment:CommentProps,index:number) => <Comment key={index} comment={comment} user_id={effectiveUserId} post_id={post.post_id}/>)
+                    comments.map((comment:CommentProps,index:number) => {
+                        console.log('Post comments:', comment);
+                        return <Comment key={index} comment={comment} user_id={effectiveUserId} post_id={post.post_id}/>;
+                    })
                 : null }
             </div>            
         </div>

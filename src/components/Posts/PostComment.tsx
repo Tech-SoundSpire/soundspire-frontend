@@ -14,6 +14,9 @@ export default function Comment({
   user_id: string;
   post_id: string;
 }) {
+  console.log('Feed PostComment:', comment);
+  console.log('User object:', comment.user);
+  console.log('Profile picture URL:', comment.user?.profile_picture_url);
 
   const filtered = comment.likes.filter((like)=>like.user_id==user_id);
 
@@ -72,7 +75,7 @@ export default function Comment({
     <div className="post-comment flex flex-col py-2">
       <div className="flex items-center">
         <img
-          src={comment.user?.profile_picture_url ? comment.user.profile_picture_url : getImageUrl(DEFAULT_PROFILE_IMAGE)}
+          src={comment.user?.profile_picture_url ? getImageUrl(comment.user.profile_picture_url) : getImageUrl(DEFAULT_PROFILE_IMAGE)}
           alt="Avatar"
           className="w-12 h-12 rounded-full object-cover mr-5"
           width={100}
