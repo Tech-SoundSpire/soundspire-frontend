@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Comment from '@/models/Comment';
-import { User } from '@/models/User';
+import models from '@/models';
 
 export async function POST(request:NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id: parent_comment_id } = await context.params;
   try {
     const { user_id, content } = await request.json();
-    const reply = await Comment.create({
+    const reply = await models.Comment.create({
       parent_comment_id,
       user_id,
       content,
@@ -18,7 +17,7 @@ export async function POST(request:NextRequest, context: { params: Promise<{ id:
     const detailedReply = await reply.reload({
       include: [
         {
-          model: User,
+          model: models.User,
           as: 'user',
           attributes: ['username', 'profile_picture_url', 'full_name'],
           required: false,

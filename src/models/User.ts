@@ -50,6 +50,10 @@ export class User
       foreignKey: "user_id",
       as: "artist",
     });
+    User.hasMany(models.Comment, {
+      foreignKey: "user_id",
+      as: "comments",
+    });
   }
 }
 

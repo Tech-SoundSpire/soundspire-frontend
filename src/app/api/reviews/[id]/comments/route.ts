@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
-import Comment from '@/models/Comment';
-import { User } from '@/models/User';
+import models from '@/models';
 import { Op } from 'sequelize';
 
 export async function GET(request:NextRequest, context:{ params: Promise<{ id: string }> }) {
@@ -9,12 +8,12 @@ export async function GET(request:NextRequest, context:{ params: Promise<{ id: s
   const { id: review_id } = params;
   try {
     // Fetch top-level comments with user information
-    const comments = await Comment.findAll({
+    const comments = await models.Comment.findAll({
       where: { review_id, parent_comment_id: null },
       order: [['created_at', 'ASC']],
       include: [
         {
-          model: User,
+          model: models.User,
           as: 'user',
           attributes: ['username', 'profile_picture_url', 'full_name'],
           required: false,
@@ -24,12 +23,12 @@ export async function GET(request:NextRequest, context:{ params: Promise<{ id: s
     
     // Fetch replies for each comment with user information
     const commentIds = comments.map(c => c.comment_id);
-    const replies = await Comment.findAll({
+    const replies = await models.Comment.findAll({
       where: { parent_comment_id: { [Op.in]: commentIds } },
       order: [['created_at', 'ASC']],
       include: [
         {
-          model: User,
+          model: models.User,
           as: 'user',
           attributes: ['username', 'profile_picture_url', 'full_name'],
           required: false,
@@ -63,7 +62,7 @@ export async function POST(request:NextRequest, context:{ params: Promise<{ id: 
     if (!user_id || !content) {
       return NextResponse.json({ error: 'user_id and content are required' }, { status: 400 });
     }
-    const comment = await Comment.create({
+    const comment = await models.Comment.create({
       review_id,
       user_id,
       content,
@@ -75,7 +74,7 @@ export async function POST(request:NextRequest, context:{ params: Promise<{ id: 
     const detailedComment = await comment.reload({
       include: [
         {
-          model: User,
+          model: models.User,
           as: 'user',
           attributes: ['username', 'profile_picture_url', 'full_name'],
           required: false,
