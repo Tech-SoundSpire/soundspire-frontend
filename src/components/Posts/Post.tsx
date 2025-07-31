@@ -5,6 +5,7 @@ import Comment from '@/components/Posts/PostComment';
 import Image from 'next/image';
 import { CommentProps, PostProps } from '@/lib/types';
 import MediaCarousel from '@/components/Posts/PostCarousel';
+import { getImageUrl, DEFAULT_PROFILE_IMAGE } from '@/utils/userProfileImageUtils';
 
 export default function Post(props:{
     post : PostProps,
@@ -21,6 +22,8 @@ export default function Post(props:{
     const [liked,setLiked]=useState<boolean>(filtered.length==1);
     const [commentText, setCommentText] = useState('');
     const [comments,setComments]=useState(post.comments)
+    console.log('Post data:', post);
+    console.log('Comments array:', comments);
 
     async function onLike(){
         await fetch('/api/like/',{
@@ -70,7 +73,7 @@ export default function Post(props:{
         <div className='post rounded-xl bg-white w-[80%] mb-10'>
             <div className='post-header flex items-center p-5'>
                 <Image
-                    src={post.artist.profile_picture_url || "/images/placeholder.jpg"}
+                    src={post.artist.profile_picture_url ? post.artist.profile_picture_url : getImageUrl(DEFAULT_PROFILE_IMAGE)}
                     alt={`Avatar`}
                     className="w-12 h-12 rounded-full object-cover mr-3"
                     width={100}
@@ -119,7 +122,7 @@ export default function Post(props:{
                 {showComments ? 
                 <div className='post-comment flex items-center py-2'>
                     <Image
-                        src="/images/placeholder.jpg"
+                        src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                         alt={`Avatar`}
                         className="w-12 h-12 rounded-full object-cover mr-5"
                          width={100} height={100}
@@ -141,7 +144,10 @@ export default function Post(props:{
                     </div> 
                 </div>: null }           
                 { showComments ? 
-                    comments.map((comment:CommentProps,index:number) => <Comment key={index} comment={comment} user_id={effectiveUserId} post_id={post.post_id}/>)
+                    comments.map((comment:CommentProps,index:number) => {
+                        console.log('Post comments:', comment);
+                        return <Comment key={index} comment={comment} user_id={effectiveUserId} post_id={post.post_id}/>;
+                    })
                 : null }
             </div>            
         </div>

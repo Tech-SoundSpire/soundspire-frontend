@@ -102,7 +102,7 @@ export default function SignupPage() {
     errors.password_hash = "Password must be at least 6 characters";
   }
 
-  if (!["male", "female"].includes(user.gender.toLowerCase())) {
+  if (!["Male", "Female", "Other"].includes(user.gender.toLowerCase())) {
     errors.gender = "Gender must be Male, Female";
   }
 

@@ -9,7 +9,7 @@ interface SignupTokenPayload {
   username: string;
   password_hash: string;
   full_name: string;
-  gender: "male" | "female" | null | undefined;
+  gender: "Male" | "Female" | "Other" | null | undefined;
   mobile_number: string;
   date_of_birth: Date;
   city: string;
