@@ -1,4 +1,5 @@
 import CommentsSection from './CommentsSection';
+import { getImageUrl, DEFAULT_PROFILE_IMAGE } from '@/utils/userProfileImageUtils';
 
 interface Review {
   review_id: string;
@@ -17,13 +18,23 @@ interface Review {
 }
 
 export default function DetailedReview({ review, isPreview = false, userId, likeCount, liked, onLike }: { review: Review, isPreview?: boolean, userId?: string, likeCount: number, liked: boolean, onLike: () => void }) {
-  // For demo, fallback to a static userId if not provided
-  const effectiveUserId = userId || '00000000-0000-0000-0000-000000000001';
+  // Use the provided userId or show message if not authenticated
+  const effectiveUserId = userId;
+  
+  if (!effectiveUserId) {
+    return (
+      <div className="w-full max-w-4xl mx-auto mb-12">
+        <div className="bg-[#231b32] rounded-lg p-8 text-center">
+          <p className="text-white">Please log in to view comments and interact with this review.</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="w-full max-w-4xl mx-auto mb-12">
       <div className="flex flex-col md:flex-row bg-[#231b32] rounded-lg shadow-lg overflow-hidden">
         <div className="md:w-1/2 flex items-center justify-center bg-[#2d2838] p-8">
-          <img src={(review.image_urls && review.image_urls.length > 0) ? review.image_urls[0] : '/images/placeholder.jpg'} alt={review.title} className="rounded-lg w-full max-w-xs object-cover" />
+          <img src={(review.image_urls && review.image_urls.length > 0) ? review.image_urls[0] : getImageUrl(DEFAULT_PROFILE_IMAGE)} alt={review.title} className="rounded-lg w-full max-w-xs object-cover" />
         </div>
         <div className="md:w-1/2 p-8 flex flex-col justify-between">
           <div>

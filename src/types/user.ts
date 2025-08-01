@@ -5,7 +5,7 @@ export interface UserAttributes {
   email: string;
   password_hash?: string | null;
   full_name?: string | null;
-  gender?: 'male' | 'female'| null;
+  gender?: 'Male' | 'Female'| 'Other' | null;
   date_of_birth?: Date | null;
   city?: string | null;
   country?: string;

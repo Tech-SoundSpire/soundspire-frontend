@@ -6,7 +6,8 @@ import Like from './Like';
 import Community from './Community';
 import CommunitySubscription from './CommunitySubscription';
 import Artist from './Artist';
-import {User} from './User';
+import Review from './Review';
+import { User } from './User';
 
 import { defineAssociations } from './associations';
 
@@ -18,6 +19,7 @@ const models = {
   Community,
   CommunitySubscription,
   Artist,
+  Review,
   User,
 };
 
@@ -33,7 +35,6 @@ Object.values(models).forEach((model) => {
 
 // Alternatively, run centralized association setup
 defineAssociations();
-
 
 export async function initializeDatabase() {
   try {
@@ -55,4 +56,4 @@ export async function initializeDatabase() {
 
 export { sequelize };
 export default models;
-export { Post, Comment, Like, Community, CommunitySubscription, Artist, User };
+export { Post, Comment, Like, Community, CommunitySubscription, Artist, Review, User };

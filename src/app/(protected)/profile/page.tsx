@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { countriesWithCities } from '@/lib/locationData';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import { getImageUrl, getDefaultProfileImageUrl, DEFAULT_PROFILE_IMAGE } from '@/utils/userProfileImageUtils';
 
 interface Subscription {
   name: string;
@@ -29,8 +29,6 @@ interface ProfileData {
   subscriptions: Subscription[];
 }
 
-const DEFAULT_PROFILE_IMAGE = '/images/placeholder.jpg';
-
 export default function ProfilePage() {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -43,7 +41,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData>({
     fullName: '',
     userName: '',
-    gender: 'primary',
+    gender: 'Other',
     email: '',
     phoneNumber: '',
     dob: '2000-01-01',
@@ -74,7 +72,7 @@ export default function ProfilePage() {
           fullName: data.full_name || user.name || user.email?.split('@')[0] || 'User',
           userName: data.username || user.email?.split('@')[0].toLowerCase() || 'user',
           email: data.email || user.email || '',
-          gender: data.gender || 'primary',
+          gender: data.gender || 'Other',
           phoneNumber: data.mobile_number || '',
           dob: data.date_of_birth
             ? new Date(data.date_of_birth).toISOString().split('T')[0]
@@ -201,14 +199,38 @@ export default function ProfilePage() {
     setEditableProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditableProfile((prev) => ({ ...prev, profileImage: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    try {
+      // 1. Generate a unique filename
+      const extension = file.name.split('.').pop();
+      const fileName = `${profile.userName || 'user'}-${user?.id || 'unknown'}.${extension}`;
+
+      // 2. Request a presigned URL from the backend
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName, fileType: file.type }),
+      });
+      if (!res.ok) throw new Error('Failed to get upload URL');
+      const { uploadUrl } = await res.json();
+
+      // 3. Upload the file directly to S3
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+      if (!uploadRes.ok) throw new Error('Failed to upload image to S3');
+
+      // 4. Set the S3 path in the editableProfile state
+      const s3Path = `s3://soundspirewebsiteassets/images/users/${fileName}`;
+      setEditableProfile((prev) => ({ ...prev, profileImage: s3Path }));
+    } catch (error) {
+      toast.error('Image upload failed');
+      console.error(error);
     }
   };
 
@@ -273,23 +295,17 @@ export default function ProfilePage() {
               className={`w-28 h-28 rounded-full overflow-hidden mb-4 ${isEditing ? 'cursor-pointer relative' : ''}`}
               onClick={handleImageClick}
             >
-              {profile.profileImage ? (
-                <Image
-                  src={isEditing ? editableProfile.profileImage || profile.profileImage : profile.profileImage}
-                  alt="Profile picture"
-                  width={112}
-                  height={112}
-                  className="object-cover"
-                />
-              ) : (
-                <Image
-                  src={user.photoURL || DEFAULT_PROFILE_IMAGE}
-                  alt="Profile picture"
-                  width={112}
-                  height={112}
-                  className="object-cover"
-                />
-              )}
+              <Image
+                src={isEditing
+                  ? (editableProfile.profileImage
+                      ? getImageUrl(editableProfile.profileImage)
+                      : (profile.profileImage ? getImageUrl(profile.profileImage) : getDefaultProfileImageUrl()))
+                  : (profile.profileImage ? getImageUrl(profile.profileImage) : getDefaultProfileImageUrl())}
+                alt="Profile picture"
+                width={112}
+                height={112}
+                className="object-cover"
+              />
               {isEditing && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity duration-200">
                   <span>Change</span>
@@ -349,11 +365,11 @@ export default function ProfilePage() {
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
-                  <option value="primary">primary</option>
+                  {/* <option value="primary">primary</option> */}
                 </select>
               ) : (
                 <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800">
-                  {profile.gender || 'primary'}
+                  {profile.gender || 'Other'}
                 </div>
               )}
             </div>

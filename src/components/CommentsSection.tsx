@@ -7,13 +7,24 @@ interface Comment {
   created_at: string;
   replies: Comment[];
   likes: number;
+  user?: {
+    username: string;
+    profile_picture_url?: string;
+    full_name?: string;
+  };
 }
 
 async function fetchCommentLikeCount(comment_id: string): Promise<number> {
-  const res = await fetch(`/api/comments/${comment_id}/like/count`);
-  if (!res.ok) return 0;
-  const data = await res.json();
-  return data.count || 0;
+  if (!comment_id || comment_id === 'undefined') return 0;
+  try {
+    const res = await fetch(`/api/comments/${comment_id}/like/count`);
+    if (!res.ok) return 0;
+    const data = await res.json();
+    return data.count || 0;
+  } catch (error) {
+    console.error('Error fetching like count:', error);
+    return 0;
+  }
 }
 
 export default function CommentsSection({ reviewId, userId }: { reviewId: string, userId: string }) {
@@ -28,60 +39,84 @@ export default function CommentsSection({ reviewId, userId }: { reviewId: string
         // Fetch like counts for each comment
         const withLikes = await Promise.all(comments.map(async (c: Comment) => ({
           ...c,
-          likes: await fetchCommentLikeCount(c.comment_id),
+          likes: c.comment_id ? await fetchCommentLikeCount(c.comment_id) : 0,
         })));
         setComments(withLikes);
+      })
+      .catch(error => {
+        console.error('Error fetching comments:', error);
+        setComments([]);
       });
   }, [reviewId]);
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     setLoading(true);
-    const res = await fetch(`/api/reviews/${reviewId}/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId, content: newComment }),
-    });
-    const comment = await res.json();
-    const likes = await fetchCommentLikeCount(comment.comment_id);
-    setComments([{ ...comment, replies: [], likes }, ...comments]);
-    setNewComment('');
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/reviews/${reviewId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, content: newComment }),
+      });
+      if (!res.ok) throw new Error('Failed to add comment');
+      
+      const comment = await res.json();
+      const likes = comment.comment_id ? await fetchCommentLikeCount(comment.comment_id) : 0;
+      setComments([{ ...comment, replies: [], likes }, ...comments]);
+      setNewComment('');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddReply = async (parentId: string, replyText: string) => {
-    if (!replyText.trim()) return;
-    const res = await fetch(`/api/comments/${parentId}/replies`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId, content: replyText }),
-    });
-    const reply = await res.json();
-    setComments(comments => comments.map(c =>
-      c.comment_id === parentId ? { ...c, replies: [...(c.replies || []), { ...reply, replies: [], likes: 0 }] } : c
-    ));
+    if (!replyText.trim() || !parentId) return;
+    try {
+      const res = await fetch(`/api/comments/${parentId}/replies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, content: replyText }),
+      });
+      if (!res.ok) throw new Error('Failed to add reply');
+      
+      const reply = await res.json();
+      setComments(comments => comments.map(c =>
+        c.comment_id === parentId ? { ...c, replies: [...(c.replies || []), { ...reply, replies: [], likes: 0 }] } : c
+      ));
+    } catch (error) {
+      console.error('Error adding reply:', error);
+    }
   };
 
   
 
   const handleLikeComment = async (commentId: string) => {
-  const res = await fetch(`/api/comments/${commentId}/like`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: userId }),
-  });
-  const data = await res.json();
+    if (!commentId || commentId === 'undefined') return;
+    try {
+      const res = await fetch(`/api/comments/${commentId}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId }),
+      });
+      if (!res.ok) throw new Error('Failed to like comment');
+      
+      const data = await res.json();
 
-  if (data.liked) {
-    setComments(prevComments =>
-      prevComments.map(comment =>
-        comment.comment_id === commentId
-          ? { ...comment, likes: data.count } // update `likes` prop here!
-          : comment
-      )
-    );
-  }
-};
+      if (data.liked) {
+        setComments(prevComments =>
+          prevComments.map(comment =>
+            comment.comment_id === commentId
+              ? { ...comment, likes: data.count } // update `likes` prop here!
+              : comment
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error liking comment:', error);
+    }
+  };
 
 
 
@@ -104,7 +139,7 @@ export default function CommentsSection({ reviewId, userId }: { reviewId: string
       {comments.map(comment => (
         <div key={comment.comment_id || Math.random()} className="mb-4 p-3 bg-[#2d2838] rounded">
           <div className="flex items-center mb-1">
-            <span className="text-white font-semibold mr-2">User {comment.user_id ? comment.user_id.slice(0, 6) : 'Unknown'}</span>
+            <span className="text-white font-semibold mr-2">{comment.user?.username || 'Unknown User'}</span>
             <button onClick={() => handleLikeComment(comment.comment_id)} className="text-red-400 ml-2">♥ {comment.likes || 0}</button>
           </div>
           <div className="text-gray-200 mb-1">{comment.content}</div>
@@ -121,7 +156,7 @@ function RepliesSection({ parentId, replies, onAddReply }: { parentId: string, r
     <div className="ml-6 mt-2">
       {replies.map(reply => (
         <div key={reply.comment_id || Math.random()} className="mb-2 p-2 bg-[#231b32] rounded">
-          <span className="text-white font-semibold mr-2">User {reply.user_id ? reply.user_id.slice(0, 6) : 'Unknown'}</span>
+          <span className="text-white font-semibold mr-2">{reply.user?.username || 'Unknown User'}</span>
           <span className="text-gray-200">{reply.content}</span>
         </div>
       ))}
