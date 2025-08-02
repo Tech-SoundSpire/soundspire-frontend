@@ -36,8 +36,11 @@ export default function ArtistOnboardingPage() {
 
   const handleRoleSelection = (roleId: string) => {
     setSelectedRole(roleId);
-    // You can add navigation logic here based on the selected role
-    // For now, we'll just store the selection
+    // Navigate based on the selected role
+    if (roleId === 'artist') {
+      router.push('/find-artist');
+    }
+    // Add navigation logic for other roles as needed
   };
 
   return (
