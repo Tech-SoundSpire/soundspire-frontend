@@ -38,7 +38,7 @@ export default function ArtistOnboardingPage() {
     setSelectedRole(roleId);
     // Navigate based on the selected role
     if (roleId === 'artist') {
-      router.push('/find-artist');
+      router.push('/find-artist-profile');
     }
     // Add navigation logic for other roles as needed
   };
