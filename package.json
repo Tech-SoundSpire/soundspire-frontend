@@ -19,7 +19,7 @@
     "clsx": "^2.1.1",
     "dotenv": "^16.5.0",
     "jsonwebtoken": "^9.0.2",
-    "lucide-react": "^0.531.0",
+    "lucide-react": "^0.284.0",
     "next": "15.3.5",
     "nodemailer": "^7.0.3",
     "pg": "^8.16.0",
