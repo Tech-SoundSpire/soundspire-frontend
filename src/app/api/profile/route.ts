@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
-// ✅ Import from models/index.ts instead of individual files
-import { User, CommunitySubscription, Community, Artist } from '@/models/index';
+// Import concrete model classes directly to satisfy Sequelize include
+import { User } from '@/models/User';
+import CommunitySubscription from '@/models/CommunitySubscription';
+import Community from '@/models/Community';
+import Artist from '@/models/Artist';
+// Ensure associations are registered
+import '@/models/index';
 import { UserAttributes } from '@/types/user';
 
 interface ArtistAttributes {

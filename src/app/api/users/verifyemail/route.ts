@@ -33,51 +33,49 @@ export async function POST(request: NextRequest) {
     await connectionTestingAndHelper();
 
     // Check if user already exists
-    const existingUser = await User.findOne({
-      where: { email: decoded.email },
-    });
+    const existingUser = await User.findOne({ where: { email: decoded.email } });
+
+    let verifiedUser = existingUser;
+
     if (existingUser) {
-      console.log("User Exists");
-      return NextResponse.json(
-        { error: "User already exists" },
-        { status: 400 }
-      );
+      // If user exists, just mark as verified (idempotent)
+      if (!existingUser.is_verified) {
+        await existingUser.update({ is_verified: true });
+      }
+      console.log("Email verified for existing user");
+    } else {
+      // Create user in DB (legacy path)
+      verifiedUser = await User.create({
+        username: decoded.username,
+        email: decoded.email,
+        password_hash: decoded.password_hash,
+        full_name: decoded.full_name,
+        gender: decoded.gender,
+        mobile_number: decoded.mobile_number,
+        date_of_birth: decoded.date_of_birth,
+        city: decoded.city,
+        is_verified: true,
+      });
+      console.log("Email verified and account created");
     }
 
-    // Create user in DB
-    const newUser = await User.create({
-      username: decoded.username,
-      email: decoded.email,
-      password_hash: decoded.password_hash,
-      full_name: decoded.full_name,
-      gender: decoded.gender,
-      mobile_number: decoded.mobile_number,
-      date_of_birth: decoded.date_of_birth,
-      city: decoded.city,
-      is_verified: true,
-    });
-
-    console.log("Email verified and Account created");
-
-    
-    // setting cookies with the session token
+    // Issue session token and record verification
     const authToken = jwt.sign(
-      { id: newUser.user_id, email: newUser.email },
+      { id: verifiedUser!.user_id, email: verifiedUser!.email },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );
-    
-    console.log("Creating another table:");
+
     await UserVerification.create({
-        user_id: newUser.user_id,
-        verification_type: "Email Verification",
-        is_used: true,
-        verification_token: authToken,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 
-      });
+      user_id: verifiedUser!.user_id,
+      verification_type: "Email Verification",
+      is_used: true,
+      verification_token: authToken,
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
 
     const response = NextResponse.json({
-      message: "Email verified and account created",
+      message: "Email verified successfully",
       success: true,
     });
 
@@ -86,7 +84,7 @@ export async function POST(request: NextRequest) {
       value: authToken,
       httpOnly: true,
       path: "/",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge: 7 * 24 * 60 * 60,
     });
 
     return response;
