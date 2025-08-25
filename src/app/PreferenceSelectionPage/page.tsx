@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { getImageUrl, getDefaultProfileImageUrl } from '@/utils/userProfileImageUtils';
 
 // --- TYPE DEFINITIONS ---
 interface Language {
@@ -89,16 +90,18 @@ const LanguageSelection: React.FC<SelectionProps<Language>> = ({ selected, onSel
     const isSelected = selected.some(item => item.language_id === language.language_id);
     if (isSelected) {
       onSelect(selected.filter(item => item.language_id !== language.language_id));
-    } else {
+    } else if (selected.length < 5) {
       onSelect([...selected, language]);
+    } else {
+      toast.error('You can select up to 5 languages');
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">What languages do you prefer?</h2>
-        <p className="text-gray-400">Select the languages you're most comfortable with</p>
+      <div className="text-left">
+        <h2 className="text-3xl font-bold mb-2">Choose Your Languages</h2>
+        <p className="text-orange-400 font-medium">Choose upto 5 Languages</p>
       </div>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -142,16 +145,18 @@ const GenreSelection: React.FC<SelectionProps<Genre>> = ({ selected, onSelect, i
     const isSelected = selected.some(item => item.genre_id === genre.genre_id);
     if (isSelected) {
       onSelect(selected.filter(item => item.genre_id !== genre.genre_id));
-    } else {
+    } else if (selected.length < 5) {
       onSelect([...selected, genre]);
+    } else {
+      toast.error('You can select up to 5 genres');
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">What genres do you love?</h2>
-        <p className="text-gray-400">Choose your favorite music genres</p>
+      <div className="text-left">
+        <h2 className="text-3xl font-bold mb-2">Choose Your Favourite Genre</h2>
+        <p className="text-orange-400 font-medium">Choose upto 5 Genres</p>
       </div>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -199,16 +204,18 @@ const ArtistSelection: React.FC<SelectionProps<Artist>> = ({ selected, onSelect,
     const isSelected = selected.some(item => item.artist_id === artist.artist_id);
     if (isSelected) {
       onSelect(selected.filter(item => item.artist_id !== artist.artist_id));
-    } else {
+    } else if (selected.length < 5) {
       onSelect([...selected, artist]);
+    } else {
+      toast.error('You can select up to 5 artists');
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">Who are your favorite artists?</h2>
-        <p className="text-gray-400">Select artists you love listening to</p>
+      <div className="text-left">
+        <h2 className="text-3xl font-bold mb-2">Choose Your Favourite Artists</h2>
+        <p className="text-orange-400 font-medium">Choose upto 5 Artists</p>
       </div>
       
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -288,7 +295,7 @@ const PreferenceSelectionPage: React.FC = () => {
         const genresResponse = await axios.get('/api/preferences/available/genres');
         const genresData = genresResponse.data.genres.map((genre: any) => ({
           ...genre,
-          img: `https://placehold.co/200x200/${getRandomHexColor()}/FFFFFF?text=${genre.name}`
+          img: `https://placehold.co/600x400/111827/FFFFFF?text=${encodeURIComponent(genre.name)}`
         }));
         setAvailableGenres(genresData);
 
@@ -297,7 +304,7 @@ const PreferenceSelectionPage: React.FC = () => {
         const artistsData = artistsResponse.data.artists.map((artist: any) => ({
           artist_id: artist.artist_id,
           name: artist.artist_name,
-          img: artist.profile_picture_url || `https://placehold.co/150x150/${getRandomHexColor()}/1f2937?text=${artist.artist_name}`
+          img: getImageUrl(artist.profile_picture_url || getDefaultProfileImageUrl())
         }));
         setAvailableArtists(artistsData);
       } catch (error) {
@@ -387,7 +394,7 @@ const PreferenceSelectionPage: React.FC = () => {
             className="flex transition-transform duration-500 ease-in-out"
             style={{ transform: `translateX(-${(step - 1) * 100}%)` }}
           >
-            <div className="w-full flex-shrink-0 px-2">
+            <div className="w-full flex-shrink-0 px-2 overflow-hidden">
               <LanguageSelection 
                 selected={selections.languages} 
                 onSelect={(items) => handleSelect('languages', items)}
@@ -395,7 +402,7 @@ const PreferenceSelectionPage: React.FC = () => {
                 searchQuery={searchQueries.languages}
               />
             </div>
-            <div className="w-full flex-shrink-0 px-2">
+            <div className="w-full flex-shrink-0 px-2 overflow-hidden">
               <GenreSelection 
                 selected={selections.genres} 
                 onSelect={(items) => handleSelect('genres', items)}
@@ -403,7 +410,7 @@ const PreferenceSelectionPage: React.FC = () => {
                 searchQuery={searchQueries.genres}
               />
             </div>
-            <div className="w-full flex-shrink-0 px-2">
+            <div className="w-full flex-shrink-0 px-2 overflow-hidden">
               <ArtistSelection 
                 selected={selections.artists} 
                 onSelect={(items) => handleSelect('artists', items)}
