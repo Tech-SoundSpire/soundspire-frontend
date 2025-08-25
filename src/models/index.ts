@@ -8,6 +8,9 @@ import CommunitySubscription from './CommunitySubscription';
 import Artist from './Artist';
 import Review from './Review';
 import { User } from './User';
+import UserPreferences from './UserPreferences';
+import Genres from './Genres';
+import Languages from './Languages';
 
 import { defineAssociations } from './associations';
 
@@ -21,6 +24,9 @@ const models = {
   Artist,
   Review,
   User,
+  UserPreferences,
+  Genres,
+  Languages,
 };
 
 // Define a type for the models map
@@ -56,4 +62,4 @@ export async function initializeDatabase() {
 
 export { sequelize };
 export default models;
-export { Post, Comment, Like, Community, CommunitySubscription, Artist, Review, User };
+export { User };

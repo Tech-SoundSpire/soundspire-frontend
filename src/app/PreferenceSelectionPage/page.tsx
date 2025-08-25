@@ -1,67 +1,48 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useState } from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { Search, CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 // --- TYPE DEFINITIONS ---
 interface Language {
+  language_id: string;
   name: string;
   color: string;
   char: string;
 }
 
 interface Genre {
+  genre_id: string;
   name: string;
   img: string;
 }
 
 interface Artist {
-    name: string;
-    img: string;
+  artist_id: string;
+  name: string;
+  img: string;
 }
 
 interface Selections {
-  languages: string[];
-  genres: string[];
-  artists: string[];
+  languages: Language[];
+  genres: Genre[];
+  artists: Artist[];
 }
-
-// --- MOCK DATA ---
-const languagesData: Language[] = [
-  { name: 'English', color: 'bg-teal-500', char: 'a' },
-  { name: 'Hindi', color: 'bg-orange-500', char: 'अ' },
-  { name: 'Urdu', color: 'bg-yellow-500', char: 'ع' },
-  { name: 'Punjabi', color: 'bg-pink-500', char: 'ਪ' },
-  { name: 'Tamil', color: 'bg-blue-500', char: 'த' },
-  { name: 'Telugu', color: 'bg-green-500', char: 'తె' },
-  { name: 'Marathi', color: 'bg-indigo-500', char: 'म' },
-  { name: 'Bengali', color: 'bg-red-500', char: 'ব' },
-];
-
-const genresData: Genre[] = [
-  { name: 'Trending', img: 'https://placehold.co/200x200/9333ea/FFFFFF?text=Trending' },
-  { name: 'Pop', img: 'https://placehold.co/200x200/db2777/FFFFFF?text=Pop' },
-  { name: 'Hip-Hop', img: 'https://placehold.co/200x200/f59e0b/FFFFFF?text=Hip-Hop' },
-  { name: 'Electronic', img: 'https://placehold.co/200x200/10b981/FFFFFF?text=Electronic' },
-  { name: 'Rock', img: 'https://placehold.co/200x200/ef4444/FFFFFF?text=Rock' },
-  { name: 'Indie', img: 'https://placehold.co/200x200/6366f1/FFFFFF?text=Indie' },
-  { name: 'Classical', img: 'https://placehold.co/200x200/84cc16/FFFFFF?text=Classical' },
-  { name: 'Jazz', img: 'https://placehold.co/200x200/3b82f6/FFFFFF?text=Jazz' },
-];
-
-const artistsData: Artist[] = Array(10).fill({
-  name: 'Ed Sheeran',
-  img: 'https://placehold.co/150x150/d1d5db/1f2937?text=Artist',
-});
-
 
 // --- HELPER COMPONENTS ---
 
 // Search Bar Component
-const SearchBar: React.FC<{ placeholder: string }> = ({ placeholder }) => (
+const SearchBar: React.FC<{ placeholder: string; onSearch: (query: string) => void }> = ({ placeholder, onSearch }) => (
   <div className="relative w-full max-w-md mx-auto">
     <input
       type="text"
       placeholder={placeholder}
+      onChange={(e) => onSearch(e.target.value)}
       className="w-full py-3 px-5 rounded-full bg-[#1e122d] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
     />
     <Search className="w-5 h-5 absolute right-5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -94,138 +75,311 @@ const Pagination: React.FC<PaginationProps> = ({ total, current, onDotClick }) =
 interface SelectionProps<T> {
     selected: T[];
     onSelect: (selected: T[]) => void;
+    items: T[];
+    searchQuery: string;
 }
 
 // Step 1: Language Selection
-const LanguageSelection: React.FC<SelectionProps<string>> = ({ selected, onSelect }) => {
-  const handleSelect = (langName: string) => {
-    const isSelected = selected.includes(langName);
+const LanguageSelection: React.FC<SelectionProps<Language>> = ({ selected, onSelect, items, searchQuery }) => {
+  const filteredItems = items.filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleToggle = (language: Language) => {
+    const isSelected = selected.some(item => item.language_id === language.language_id);
     if (isSelected) {
-      onSelect(selected.filter((item) => item !== langName));
-    } else if (selected.length < 5) {
-      onSelect([...selected, langName]);
+      onSelect(selected.filter(item => item.language_id !== language.language_id));
+    } else {
+      onSelect([...selected, language]);
     }
   };
 
   return (
-    <div className="w-full flex-shrink-0">
-      <h1 className="text-2xl md:text-3xl font-bold mb-1">Choose Your Languages</h1>
-      <p className="text-sm text-gray-400 mb-8">Choose up to 5 Languages</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
-        {languagesData.map((lang) => (
-          <div
-            key={lang.name}
-            onClick={() => handleSelect(lang.name)}
-            className={`rounded-lg p-4 flex flex-col justify-between h-28 md:h-32 cursor-pointer transition-all duration-300 transform hover:scale-105 ${lang.color} ${selected.includes(lang.name) ? 'ring-2 ring-offset-2 ring-offset-[#120B1A] ring-white' : ''}`}
-          >
-            <span className="font-bold text-lg">{lang.name}</span>
-            <span className="text-4xl font-bold self-end opacity-50">{lang.char}</span>
-          </div>
-        ))}
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">What languages do you prefer?</h2>
+        <p className="text-gray-400">Select the languages you're most comfortable with</p>
+      </div>
+      
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {filteredItems.map((language) => {
+          const isSelected = selected.some(item => item.language_id === language.language_id);
+          return (
+            <div
+              key={language.language_id}
+              onClick={() => handleToggle(language)}
+              className={`relative cursor-pointer group transition-all duration-300 ${
+                isSelected ? 'scale-105' : 'hover:scale-105'
+              }`}
+            >
+              <div className={`aspect-square rounded-2xl ${language.color} flex items-center justify-center text-white text-4xl font-bold transition-all duration-300 ${
+                isSelected ? 'ring-4 ring-orange-400 shadow-lg' : 'group-hover:shadow-lg'
+              }`}>
+                {language.char}
+              </div>
+              <p className="text-center mt-2 font-medium">{language.name}</p>
+              
+              {isSelected && (
+                <div className="absolute -top-2 -right-2">
+                  <CheckCircle className="w-8 h-8 text-white bg-orange-500 rounded-full p-1" />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 };
 
 // Step 2: Genre Selection
-const GenreSelection: React.FC<SelectionProps<string>> = ({ selected, onSelect }) => {
-    const handleSelect = (genreName: string) => {
-        const isSelected = selected.includes(genreName);
-        if (isSelected) {
-            onSelect(selected.filter((item) => item !== genreName));
-        } else if (selected.length < 5) {
-            onSelect([...selected, genreName]);
-        }
-    };
+const GenreSelection: React.FC<SelectionProps<Genre>> = ({ selected, onSelect, items, searchQuery }) => {
+  const filteredItems = items.filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-    return (
-        <div className="w-full flex-shrink-0">
-            <h1 className="text-2xl md:text-3xl font-bold mb-1">Choose Your Favourite Genre</h1>
-            <p className="text-sm text-gray-400 mb-8">Choose up to 5 Genres</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
-                {genresData.map((genre) => (
-                    <div
-                        key={genre.name}
-                        onClick={() => handleSelect(genre.name)}
-                        className={`rounded-lg overflow-hidden relative h-32 md:h-40 cursor-pointer transition-all duration-300 transform hover:scale-105 group ${selected.includes(genre.name) ? 'ring-2 ring-offset-2 ring-offset-[#120B1A] ring-white' : ''}`}
-                    >
-                        <img src={genre.img} alt={genre.name} className="w-full h-full object-cover group-hover:brightness-75 transition-all" />
-                        <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                            <span className="font-bold text-lg">{genre.name}</span>
-                        </div>
-                    </div>
-                ))}
+  const handleToggle = (genre: Genre) => {
+    const isSelected = selected.some(item => item.genre_id === genre.genre_id);
+    if (isSelected) {
+      onSelect(selected.filter(item => item.genre_id !== genre.genre_id));
+    } else {
+      onSelect([...selected, genre]);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">What genres do you love?</h2>
+        <p className="text-gray-400">Choose your favorite music genres</p>
+      </div>
+      
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {filteredItems.map((genre) => {
+          const isSelected = selected.some(item => item.genre_id === genre.genre_id);
+          return (
+            <div
+              key={genre.genre_id}
+              onClick={() => handleToggle(genre)}
+              className={`relative cursor-pointer group transition-all duration-300 ${
+                isSelected ? 'scale-105' : 'hover:scale-105'
+              }`}
+            >
+              <div className="relative aspect-square rounded-2xl overflow-hidden">
+                <img
+                  src={genre.img}
+                  alt={genre.name}
+                  className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-75"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                  <h3 className="text-white text-lg font-bold text-center">{genre.name}</h3>
+                </div>
+              </div>
+              
+              {isSelected && (
+                <div className="absolute -top-2 -right-2">
+                  <CheckCircle className="w-8 h-8 text-white bg-orange-500 rounded-full p-1" />
+                </div>
+              )}
             </div>
-        </div>
-    );
+          );
+        })}
+      </div>
+    </div>
+  );
 };
-
 
 // Step 3: Artist Selection
-const ArtistSelection: React.FC<SelectionProps<string>> = ({ selected, onSelect }) => {
-    const handleSelect = (artistId: string) => {
-        const isSelected = selected.includes(artistId);
-        if (isSelected) {
-            onSelect(selected.filter((item) => item !== artistId));
-        } else if (selected.length < 5) {
-            onSelect([...selected, artistId]);
-        }
-    };
+const ArtistSelection: React.FC<SelectionProps<Artist>> = ({ selected, onSelect, items, searchQuery }) => {
+  const filteredItems = items.filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-    return (
-        <div className="w-full flex-shrink-0">
-            <h1 className="text-2xl md:text-3xl font-bold mb-1">Choose Your Favourite Artists</h1>
-            <p className="text-sm text-gray-400 mb-8">Choose up to 5 Artists</p>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 md:gap-6">
-                {artistsData.map((artist, index) => {
-                    const uniqueArtistId = `${artist.name}-${index}`;
-                    const isSelected = selected.includes(uniqueArtistId);
-                    return (
-                        <div
-                            key={uniqueArtistId}
-                            onClick={() => handleSelect(uniqueArtistId)}
-                            className="relative cursor-pointer transition-all duration-300 transform hover:scale-105 group"
-                        >
-                            <img src={artist.img} alt={artist.name} className="w-full h-auto rounded-full aspect-square object-cover" />
-                            <div className={`absolute inset-0 rounded-full bg-black transition-opacity duration-300 ${isSelected ? 'bg-opacity-50' : 'bg-opacity-0 group-hover:bg-opacity-30'}`}></div>
-                            {isSelected && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <CheckCircle className="w-8 h-8 text-white bg-orange-500 rounded-full p-1" />
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
+  const handleToggle = (artist: Artist) => {
+    const isSelected = selected.some(item => item.artist_id === artist.artist_id);
+    if (isSelected) {
+      onSelect(selected.filter(item => item.artist_id !== artist.artist_id));
+    } else {
+      onSelect([...selected, artist]);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">Who are your favorite artists?</h2>
+        <p className="text-gray-400">Select artists you love listening to</p>
+      </div>
+      
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {filteredItems.map((artist, index) => {
+          const isSelected = selected.some(item => item.artist_id === artist.artist_id);
+          return (
+            <div
+              key={index}
+              onClick={() => handleToggle(artist)}
+              className={`relative cursor-pointer group transition-all duration-300 ${
+                isSelected ? 'scale-105' : 'hover:scale-105'
+              }`}
+            >
+              <div className="relative aspect-square rounded-full overflow-hidden">
+                <img
+                  src={artist.img}
+                  alt={artist.name}
+                  className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-75"
+                />
+              </div>
+              <p className="text-center mt-2 text-sm font-medium truncate">{artist.name}</p>
+              
+              {isSelected && (
+                <div className="absolute -top-2 -right-2">
+                  <CheckCircle className="w-8 h-8 text-white bg-orange-500 rounded-full p-1" />
+                </div>
+              )}
             </div>
-        </div>
-    );
+          );
+        })}
+      </div>
+    </div>
+  );
 };
 
-
 // --- MAIN APP COMPONENT ---
-const App: React.FC = () => {
+const PreferenceSelectionPage: React.FC = () => {
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const [step, setStep] = useState<number>(1);
   const [selections, setSelections] = useState<Selections>({
     languages: [],
     genres: [],
     artists: [],
   });
+  const [searchQueries, setSearchQueries] = useState({
+    languages: '',
+    genres: '',
+    artists: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [availableLanguages, setAvailableLanguages] = useState<Language[]>([]);
+  const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
+  const [availableArtists, setAvailableArtists] = useState<Artist[]>([]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/');
+    }
+  }, [user, authLoading, router]);
+
+  // Load available options from database
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        // Load languages
+        const languagesResponse = await axios.get('/api/preferences/available/languages');
+        const languagesData = languagesResponse.data.languages.map((lang: any) => ({
+          ...lang,
+          color: getRandomColor(),
+          char: lang.name.charAt(0).toUpperCase()
+        }));
+        setAvailableLanguages(languagesData);
+
+        // Load genres
+        const genresResponse = await axios.get('/api/preferences/available/genres');
+        const genresData = genresResponse.data.genres.map((genre: any) => ({
+          ...genre,
+          img: `https://placehold.co/200x200/${getRandomHexColor()}/FFFFFF?text=${genre.name}`
+        }));
+        setAvailableGenres(genresData);
+
+        // Load real artists from the database
+        const artistsResponse = await axios.get('/api/preferences/available/artists');
+        const artistsData = artistsResponse.data.artists.map((artist: any) => ({
+          artist_id: artist.artist_id,
+          name: artist.artist_name,
+          img: artist.profile_picture_url || `https://placehold.co/150x150/${getRandomHexColor()}/1f2937?text=${artist.artist_name}`
+        }));
+        setAvailableArtists(artistsData);
+      } catch (error) {
+        console.error('Error loading options:', error);
+        toast.error('Failed to load preference options');
+      }
+    };
+
+    if (user) {
+      loadOptions();
+    }
+  }, [user]);
+
+  const getRandomColor = () => {
+    const colors = ['bg-teal-500', 'bg-orange-500', 'bg-yellow-500', 'bg-pink-500', 'bg-blue-500', 'bg-green-500', 'bg-indigo-500', 'bg-red-500'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
+
+  const getRandomHexColor = () => {
+    return Math.floor(Math.random() * 16777215).toString(16);
+  };
 
   const handleSelect = <K extends keyof Selections>(category: K, items: Selections[K]) => {
     setSelections(prev => ({ ...prev, [category]: items }));
+  };
+
+  const handleSearch = (category: keyof typeof searchQueries, query: string) => {
+    setSearchQueries(prev => ({ ...prev, [category]: query }));
   };
 
   const nextStep = () => setStep(prev => Math.min(prev + 1, 3));
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
   const goToStep = (stepNumber: number) => setStep(stepNumber);
 
+  const savePreferences = async () => {
+    if (!user) return;
+
+    try {
+      setIsLoading(true);
+      
+      await axios.post('/api/preferences/save', {
+        userId: user.id,
+        genres: selections.genres.map((g: any) => g.name),
+        languages: selections.languages.map((l: any) => l.name),
+        favoriteArtists: selections.artists.map((a: any) => a.name) // Send artist names, API will convert to IDs
+      });
+
+      toast.success('Preferences saved successfully!');
+      router.push('/explore');
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      toast.error('Failed to save preferences. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const placeholders: string[] = ["Find Your Language...", "Find Your Genre...", "Find Your Artists..."];
+
+  if (authLoading) {
+    return (
+      <div className="bg-[#120B1A] text-white min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-4 text-xl">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect
+  }
 
   return (
     <div className="bg-[#120B1A] text-white min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
       <div className="w-full max-w-4xl mx-auto space-y-8">
         {/* Search Bar */}
-        <SearchBar placeholder={placeholders[step - 1]} />
+        <SearchBar 
+          placeholder={placeholders[step - 1]} 
+          onSearch={(query) => handleSearch(Object.keys(searchQueries)[step - 1] as keyof typeof searchQueries, query)}
+        />
 
         {/* Carousel Container */}
         <div className="overflow-hidden">
@@ -234,13 +388,28 @@ const App: React.FC = () => {
             style={{ transform: `translateX(-${(step - 1) * 100}%)` }}
           >
             <div className="w-full flex-shrink-0 px-2">
-              <LanguageSelection selected={selections.languages} onSelect={(items) => handleSelect('languages', items)} />
+              <LanguageSelection 
+                selected={selections.languages} 
+                onSelect={(items) => handleSelect('languages', items)}
+                items={availableLanguages}
+                searchQuery={searchQueries.languages}
+              />
             </div>
             <div className="w-full flex-shrink-0 px-2">
-              <GenreSelection selected={selections.genres} onSelect={(items) => handleSelect('genres', items)} />
+              <GenreSelection 
+                selected={selections.genres} 
+                onSelect={(items) => handleSelect('genres', items)}
+                items={availableGenres}
+                searchQuery={searchQueries.genres}
+              />
             </div>
             <div className="w-full flex-shrink-0 px-2">
-              <ArtistSelection selected={selections.artists} onSelect={(items) => handleSelect('artists', items)} />
+              <ArtistSelection 
+                selected={selections.artists} 
+                onSelect={(items) => handleSelect('artists', items)}
+                items={availableArtists}
+                searchQuery={searchQueries.artists}
+              />
             </div>
           </div>
         </div>
@@ -268,17 +437,20 @@ const App: React.FC = () => {
             {step < 3 ? (
               <button
                 onClick={nextStep}
-                className="bg-orange-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-orange-600 transition-all flex items-center gap-2"
+                disabled={step === 1 && selections.languages.length === 0 || 
+                         step === 2 && selections.genres.length === 0}
+                className="bg-orange-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-orange-600 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
                 <ArrowRight size={18} />
               </button>
             ) : (
               <button
-                onClick={() => alert('Setup Complete! Selections: ' + JSON.stringify(selections, null, 2))}
-                className="bg-orange-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-orange-600 transition-all"
+                onClick={savePreferences}
+                disabled={isLoading || selections.artists.length === 0}
+                className="bg-orange-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Done
+                {isLoading ? 'Saving...' : 'Complete Setup'}
               </button>
             )}
           </div>
@@ -288,4 +460,4 @@ const App: React.FC = () => {
   );
 }
 
-export default App;
+export default PreferenceSelectionPage;

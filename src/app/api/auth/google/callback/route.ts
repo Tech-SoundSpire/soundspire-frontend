@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { User } from "@/models/User";
 import { UserVerification } from "@/models/UserVerification";
+import UserPreferences from "@/models/UserPreferences";
 import bcrypt from "bcryptjs";
 
 export const dynamic = "force-dynamic";
@@ -73,8 +74,10 @@ export async function GET(request: Request) {
     const baseUsername = userData.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "_");
 
     let userInDb = await User.findOne({ where: { email: userData.email } });
+    let isNewUser = false;
 
     if (!userInDb) {
+      isNewUser = true;
       try {
         userInDb = await User.create({
           email: userData.email,
@@ -110,6 +113,25 @@ export async function GET(request: Request) {
       });
     }
 
+    // Check if user has preferences
+    let redirectPath = "/explore"; // Default to explore
+    if (isNewUser) {
+      // New users always go to preference selection
+      redirectPath = "/PreferenceSelectionPage";
+    } else {
+      // Check existing user preferences
+      const preferences = await UserPreferences.findOne({
+        where: { user_id: userInDb!.user_id }
+      });
+
+      if (!preferences || 
+          (preferences.genres.length === 0 && 
+           preferences.languages.length === 0 && 
+           preferences.favorite_artists.length === 0)) {
+        redirectPath = "/PreferenceSelectionPage";
+      }
+    }
+
     // ✅ Safe usage with non-null assertion
     const user = {
       id: userInDb!.user_id,
@@ -121,7 +143,7 @@ export async function GET(request: Request) {
       refreshToken: tokenData.refresh_token,
     };
 
-    const response = NextResponse.redirect(`${FRONTEND_URL}/explore`);
+    const response = NextResponse.redirect(`${FRONTEND_URL}${redirectPath}`);
 
     // Set secure cookie
     response.cookies.set("user", JSON.stringify(user), {

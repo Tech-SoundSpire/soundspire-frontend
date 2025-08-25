@@ -1,5 +1,6 @@
 import { connectionTestingAndHelper } from "@/utils/temp";
 import { User } from "@/models/User";
+import UserPreferences from "@/models/UserPreferences";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import  jwt from "jsonwebtoken";
@@ -58,6 +59,19 @@ export async function POST(request: NextRequest) {
       last_login: new Date(),
     });
 
+    // Check if user has preferences
+    const preferences = await UserPreferences.findOne({
+      where: { user_id: user.user_id }
+    });
+
+    let redirectPath = "/explore"; // Default to explore
+    if (!preferences || 
+        (preferences.genres.length === 0 && 
+         preferences.languages.length === 0 && 
+         preferences.favorite_artists.length === 0)) {
+      redirectPath = "/PreferenceSelectionPage";
+    }
+
     const token = jwt.sign(
       { id: user.user_id, email: user.email },
       process.env.JWT_SECRET!,
@@ -67,12 +81,13 @@ export async function POST(request: NextRequest) {
     //creating response
     const response = NextResponse.json({
       message: "Logged In Success",
-     user: {
+      user: {
         id: user.user_id,
         name: user.full_name,
         email: user.email,
         // provider: "local",
       },
+      redirect: redirectPath,
     });
 
      response.cookies.set({

@@ -41,6 +41,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if username already exists
+    const existingUsername = await User.findOne({ where: { username } });
+    if (existingUsername) {
+      return NextResponse.json(
+        { error: "Username already taken! Please choose another." },
+        { status: 400 }
+      );
+    }
+
     //Hashing password
     console.log("🔐 Hashing password...");
 
@@ -50,6 +59,20 @@ export async function POST(request: NextRequest) {
 
     //Creating new User
     console.log("🧑‍💻 Creating new user...");
+
+    const newUser = await User.create({
+      username,
+      email,
+      password_hash: hashedPassword,
+      full_name,
+      gender,
+      mobile_number,
+      date_of_birth,
+      city,
+      is_verified: false,
+      is_artist: false,
+      spotify_linked: false,
+    });
 
     //If password is authenticated creating the token
     const tokenPayload = {
@@ -87,6 +110,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: "Verification email sent. Please check your inbox.",
       success: true,
+      redirect: "/PreferenceSelectionPage", // Redirect to preference selection
+      userId: newUser.user_id,
     });
   } catch (error: unknown) {
     if(error instanceof Error){
