@@ -49,11 +49,18 @@ function LoginPageInner() {
   const onLogin = async () => {
     try {
       setLoading(true);
-      // const { data } = await axios.post("/api/users/login", user);
-    await axios.post("/api/users/login", user);
-      toast.success("Login successful!");
-      // router.push("/explore");
-      window.location.href = "/explore";
+      const response = await axios.post("/api/users/login", user);
+      
+      if (response.data.message === "Logged In Success") {
+        toast.success("Login successful!");
+        
+        // Redirect based on preferences
+        if (response.data.redirect) {
+          window.location.href = response.data.redirect;
+        } else {
+          window.location.href = "/explore";
+        }
+      }
     } catch (error) {
       if(axios.isAxiosError(error)){
         const message =

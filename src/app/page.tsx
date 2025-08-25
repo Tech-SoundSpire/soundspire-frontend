@@ -102,8 +102,8 @@ export default function SignupPage() {
     errors.password_hash = "Password must be at least 6 characters";
   }
 
-  if (!["Male", "Female", "Other"].includes(user.gender.toLowerCase())) {
-    errors.gender = "Gender must be Male, Female";
+  if (!["Male", "Female", "Other"].includes(user.gender)) {
+    errors.gender = "Gender must be Male, Female or Other";
   }
 
   if (!mobileRegex.test(user.mobile_number)) {
@@ -145,31 +145,39 @@ export default function SignupPage() {
   }
     try {
       setLoading(true);
-       await axios.post("/api/users/signup", user);
-      // console.log("Signup successful", response.data);
-      toast.success("Verification email sent! Check your inbox.");
+      const response = await axios.post("/api/users/signup", user);
+      
+      if (response.data.success) {
+        toast.success("Verification email sent! Check your inbox.");
+        
+        // Clear form
+        setUser({
+          username: "",
+          email: "",
+          password_hash: "",
+          full_name: "",
+          gender: "",
+          mobile_number: "",
+          date_of_birth: "",
+          city: "",
+        });
 
-      setUser({
-        username: "",
-        email: "",
-        password_hash: "",
-        full_name: "",
-        gender: "",
-        mobile_number: "",
-        date_of_birth: "",
-        city: "",
-      });
+        // Redirect to preference selection
+        if (response.data.redirect) {
+          window.location.href = response.data.redirect;
+        }
+      }
 
     } catch (error) {
       if (axios.isAxiosError(error)) {
-    toast.error(error.response?.data?.error || "Signup failed. Try again!");
-    const redirectPath = error.response?.data?.redirect;
-    if(redirectPath){
-      window.location.href =redirectPath;
-    }
-  } else {
-    toast.error("An unexpected error occurred.");
-  }
+        toast.error(error.response?.data?.error || "Signup failed. Try again!");
+        const redirectPath = error.response?.data?.redirect;
+        if(redirectPath){
+          window.location.href = redirectPath;
+        }
+      } else {
+        toast.error("An unexpected error occurred.");
+      }
     } finally {
       setLoading(false);
     }
@@ -241,25 +249,43 @@ export default function SignupPage() {
               <label htmlFor={field.name} className="mb-1 text-sm font-medium">
                 {field.label}
               </label>
-              <input
-                id={field.name}
-                type={field.type}
-                value={user[field.name as keyof typeof user]}
-                placeholder={field.placeholder}
-                onChange={(e) =>
-                  setUser((prev) => ({
-                    ...prev,
-                    [field.name]:
-                      field.name === "gender"
-                        ? e.target.value.toLowerCase()
-                        : e.target.value,
-                  }))
-                }
-                className="w-full px-4 py-2 rounded-md border border-blue-400/75 placeholder-gray-400 focus:outline-none focus:ring-1  focus:ring-blue-400"
-              />
+              {field.name === "gender" ? (
+                <select
+                  id={field.name}
+                  value={user.gender}
+                  onChange={(e) =>
+                    setUser((prev) => ({
+                      ...prev,
+                      gender: e.target.value,
+                    }))
+                  }
+                  className="w-full px-4 py-2 rounded-md border border-blue-400/75 placeholder-gray-400 focus:outline-none focus:ring-1  focus:ring-blue-400 bg-white"
+                >
+                  <option value="" disabled>
+                    Select gender
+                  </option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              ) : (
+                <input
+                  id={field.name}
+                  type={field.type}
+                  value={user[field.name as keyof typeof user]}
+                  placeholder={field.placeholder}
+                  onChange={(e) =>
+                    setUser((prev) => ({
+                      ...prev,
+                      [field.name]: e.target.value,
+                    }))
+                  }
+                  className="w-full px-4 py-2 rounded-md border border-blue-400/75 placeholder-gray-400 focus:outline-none focus:ring-1  focus:ring-blue-400"
+                />
+              )}
               {formErrors[field.name] && (
-      <p className="text-sm text-red-500 mt-1">{formErrors[field.name]}</p>
-    )}
+                <p className="text-sm text-red-500 mt-1">{formErrors[field.name]}</p>
+              )}
             </div>
           ))}
 
