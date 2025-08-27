@@ -12,6 +12,38 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getImageUrl, DEFAULT_PROFILE_IMAGE } from '@/utils/userProfileImageUtils';
 
+interface Review {
+  review_id: string;
+  title: string;
+  text_content: string;
+  rating: number;
+  image_urls: string[];
+  created_at: string;
+  user: {
+    user_id: string;
+    username: string;
+    full_name: string;
+    profile_picture_url: string;
+  };
+  artist: {
+    artist_id: string;
+    artist_name: string;
+    profile_picture_url: string;
+  };
+}
+
+interface Artist {
+  artist_id: string;
+  artist_name: string;
+  profile_picture_url: string;
+  bio: string;
+}
+
+interface Genre {
+  genre_id: string;
+  name: string;
+}
+
 const carouselItems = [
   {
     title: "INDIE FOLK MUSIC COLLECTION",
@@ -35,14 +67,52 @@ const carouselItems = [
 
 export default function ExplorePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [loading, setLoading] = useState(true);
   const { setUser } = useAuth();
   const router = useRouter();
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [reviewsRes, artistsRes, genresRes] = await Promise.all([
+          fetch('/api/explore/reviews'),
+          fetch('/api/explore/artists'),
+          fetch('/api/explore/genres')
+        ]);
+
+        if (reviewsRes.ok) {
+          const reviewsData = await reviewsRes.json();
+          setReviews(reviewsData);
+        }
+
+        if (artistsRes.ok) {
+          const artistsData = await artistsRes.json();
+          setArtists(artistsData);
+        }
+
+        if (genresRes.ok) {
+          const genresData = await genresRes.json();
+          setGenres(genresData);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Auto-rotate carousel
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % carouselItems.length);
-    }, 3000); // Change slide every 5 seconds
+    }, 3000); // Change slide every 3 seconds
 
     return () => clearInterval(timer);
   }, []);
@@ -151,17 +221,26 @@ export default function ExplorePage() {
               </button>
             </div>
           </div>
-          <div className="flex gap-6 overflow-x-auto pb-4">
-            {Array(8).fill(null).map((_, index) => (
-              <div key={index} className="flex-shrink-0">
-                <img
-                  src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                  alt={`Artist ${index + 1}`}
-                  className="w-24 h-24 rounded-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+            </div>
+          ) : (
+            <div className="flex gap-6 overflow-x-auto pb-4">
+              {artists.map((artist) => (
+                <div key={artist.artist_id} className="flex-shrink-0 text-center">
+                  <img
+                    src={artist.profile_picture_url || getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                    alt={artist.artist_name}
+                    className="w-24 h-24 rounded-full object-cover mb-2"
+                  />
+                  <p className="text-white text-sm font-medium max-w-24 truncate">
+                    {artist.artist_name}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Reviews */}
@@ -170,30 +249,47 @@ export default function ExplorePage() {
             <h2 className="text-2xl font-bold text-white">REVIEWS</h2>
             <a href="#" className="text-gray-400 hover:text-white">See All</a>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array(3).fill(null).map((_, index) => (
-              <div key={index} className="bg-[#2d2838] rounded-lg overflow-hidden">
-                <img
-                  src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                  alt={`Review ${index + 1}`}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="text-white font-bold mb-2">CHROMAKOPIA</h3>
-                  <p className="text-gray-400 text-sm mb-4">Lorem ipsum dolor sit amet sed do eiusmod tempor Lorem ipsum dolor sit amet sed do eiusmod tempor</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm">Ashish Paul, 20th Dec</span>
-                    <button
-                      className="px-4 py-1 bg-[#ff4d4d] text-white rounded-full text-sm"
-                      onClick={() => router.push(`/reviews/${index}`)}
-                    >
-                      Read More
-                    </button>
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {reviews.slice(0, 3).map((review) => (
+                <div key={review.review_id} className="bg-[#2d2838] rounded-lg overflow-hidden">
+                  <img
+                    src={review.image_urls && review.image_urls.length > 0 
+                      ? review.image_urls[0] 
+                      : getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                    alt={review.title}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="p-4">
+                    <h3 className="text-white font-bold mb-2">{review.title}</h3>
+                    {review.artist?.artist_name && (
+                      <p className="text-purple-400 text-sm mb-2">by {review.artist.artist_name}</p>
+                    )}
+                    <p className="text-gray-400 text-sm mb-4">
+                      {review.text_content.length > 100 
+                        ? `${review.text_content.substring(0, 100)}...` 
+                        : review.text_content}
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400 text-sm">
+                        {review.user?.full_name || review.user?.username || 'Unknown User'}, {new Date(review.created_at).toLocaleDateString()}
+                      </span>
+                      <button
+                        className="px-4 py-1 bg-[#ff4d4d] text-white rounded-full text-sm"
+                        onClick={() => router.push(`/reviews/${review.review_id}`)}
+                      >
+                        Read More
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Discover by Genre */}
@@ -202,21 +298,27 @@ export default function ExplorePage() {
             <h2 className="text-2xl font-bold text-white">DISCOVER BY GENRE</h2>
             <a href="#" className="text-gray-400 hover:text-white">See More</a>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Array(8).fill(null).map((_, index) => (
-              <div key={index} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#2d2838]">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <img
-                  src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                  alt={`Genre ${index + 1}`}
-                  className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
-                />
-                <div className="absolute bottom-4 left-4">
-                  <h3 className="text-white text-xl font-bold">Trending</h3>
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {genres.map((genre) => (
+                <div key={genre.genre_id} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#2d2838] cursor-pointer hover:scale-105 transition-transform duration-200">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <img
+                    src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                    alt={genre.name}
+                    className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
+                  />
+                  <div className="absolute bottom-4 left-4">
+                    <h3 className="text-white text-xl font-bold">{genre.name}</h3>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
       </main>
     </div>

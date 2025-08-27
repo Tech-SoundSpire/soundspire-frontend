@@ -44,8 +44,7 @@ class Artist extends Model<ArtistAttributes, ArtistCreationAttributes> implement
 
   // Association definition
   static associate(models: Models) {
-    Artist.hasMany(models.Post, { foreignKey: 'artist_id', as: 'posts' });
-    Artist.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
+    // Associations are now handled centrally in associations.ts
   }
 }
 

@@ -114,7 +114,7 @@ export async function GET(request: Request) {
     }
 
     // Check if user has preferences
-    let redirectPath = "/explore"; // Default to explore
+    let redirectPath = "/feed"; // Default to feed
     if (isNewUser) {
       // New users always go to preference selection
       redirectPath = "/PreferenceSelectionPage";

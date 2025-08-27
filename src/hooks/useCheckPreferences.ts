@@ -33,9 +33,9 @@ const useCheckPreferences = (): UseCheckPreferencesReturn => {
 
         setHasPreferences(userHasPreferences);
 
-        // If user has preferences, redirect to explore
+        // If user has preferences, redirect to feed
         if (userHasPreferences) {
-          router.push('/explore');
+          router.push('/feed');
         }
         // If no preferences, stay on current page (preference selection)
         // The preference selection page will handle the flow

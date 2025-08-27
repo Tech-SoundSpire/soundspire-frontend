@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       where: { user_id: user.user_id }
     });
 
-    let redirectPath = "/explore"; // Default to explore
+    let redirectPath = "/feed"; // Default to feed
     if (!preferences || 
         (preferences.genres.length === 0 && 
          preferences.languages.length === 0 && 

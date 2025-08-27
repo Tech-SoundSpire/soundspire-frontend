@@ -1,4 +1,4 @@
-import sequelize from '@/lib/sequelize';
+import { sequelize } from '@/lib/dbConfig';
 
 import Post from './Post';
 import Comment from './Comment';

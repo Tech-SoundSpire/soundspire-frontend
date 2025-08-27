@@ -46,14 +46,7 @@ export class User
   public deleted_at?: Date;
 
   static associate(models: Models) {
-    User.hasOne(models.Artist, {
-      foreignKey: "user_id",
-      as: "artist",
-    });
-    User.hasMany(models.Comment, {
-      foreignKey: "user_id",
-      as: "comments",
-    });
+    // Associations are now handled centrally in associations.ts
   }
 }
 
