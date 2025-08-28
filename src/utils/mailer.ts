@@ -13,11 +13,13 @@ interface EmailOptions {
 export const sendEmail = async ({ email, emailType, link }: EmailOptions) => {
   try {
     const transport = nodemailer.createTransport({
-     host: process.env.MAILTRAP_HOST,
-  port: parseInt(process.env.MAILTRAP_PORT || "2525"),
-  auth: {
-    user: process.env.MAILTRAP_USER,
-    pass: process.env.MAILTRAP_PASSWORD,
+      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
       },
     });
 
@@ -46,7 +48,7 @@ export const sendEmail = async ({ email, emailType, link }: EmailOptions) => {
     }
 
     const mailOptions = {
-      from: '"Maddison Foo Koch" <maddison53@ethereal.email>',
+      from: `"SoundSpire" <${process.env.GMAIL_USER}>`,
       to: email,
       subject,
       html,
