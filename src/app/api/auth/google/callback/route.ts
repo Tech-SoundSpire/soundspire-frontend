@@ -15,12 +15,15 @@ const FRONTEND_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
 
+console.log("🔍 Using redirect_uri:", REDIRECT_URI);
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get("code");
     const state = searchParams.get("state");
     const error = searchParams.get("error");
+    
 
     if (error) {
       return NextResponse.redirect(`${FRONTEND_URL}?error=${error}`);

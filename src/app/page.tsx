@@ -57,6 +57,12 @@ const fields = [
     type: "text",
     placeholder: "Enter your city",
   },
+  {
+    label:"Country*",
+    name:"country",
+    type:"text",
+    placeholder:"Enter the country"
+  }
 ];
 
 export default function SignupPage() {
@@ -73,6 +79,7 @@ export default function SignupPage() {
     mobile_number: "",
     date_of_birth: "",
     city: "",
+    country:""
   });
 
   const [buttonDisabled, setButtonDisabled] = useState(true);
@@ -132,6 +139,11 @@ export default function SignupPage() {
     errors.city = "City is required";
   }
 
+  if(user.country.trim()==="")
+  {
+    errors.country="Country is required";
+  }
+
   setFormErrors(errors);
   return Object.keys(errors).length === 0;
 };
@@ -160,6 +172,7 @@ export default function SignupPage() {
           mobile_number: "",
           date_of_birth: "",
           city: "",
+          country: ""
         });
 
         // Redirect to preference selection
@@ -201,7 +214,7 @@ export default function SignupPage() {
   };
 
   useEffect(() => {
-    const allFilled = Object.values(user).every((val) => val.trim().length > 0);
+    const allFilled = Object.values(user).every((val) => String(val).trim().length > 0);
     setButtonDisabled(!allFilled);
   }, [user]);
 
