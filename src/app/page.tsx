@@ -61,7 +61,7 @@ const fields = [
     label:"Country*",
     name:"country",
     type:"text",
-    placeholder:"Enter the country"
+    placeholder:"Enter your country"
   }
 ];
 
