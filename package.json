@@ -20,7 +20,7 @@
     "dotenv": "^16.5.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.284.0",
-    "next": "15.3.5",
+    "next": "^15.5.2",
     "nodemailer": "^7.0.3",
     "pg": "^8.16.0",
     "pg-hstore": "^2.3.4",
