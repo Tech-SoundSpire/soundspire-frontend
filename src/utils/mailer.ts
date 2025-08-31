@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config();
+// import dotenv from "dotenv";
+// dotenv.config();
 
 // Defining the typing for clarity and safety
 interface EmailOptions {
@@ -13,11 +13,11 @@ interface EmailOptions {
 export const sendEmail = async ({ email, emailType, link }: EmailOptions) => {
   try {
     const transport = nodemailer.createTransport({
-     host: process.env.MAILTRAP_HOST,
-  port: parseInt(process.env.MAILTRAP_PORT || "2525"),
-  auth: {
-    user: process.env.MAILTRAP_USER,
-    pass: process.env.MAILTRAP_PASSWORD,
+      host: process.env.MAILTRAP_HOST,
+      port: parseInt(process.env.MAILTRAP_PORT || "2525"),
+      auth: {
+        user: process.env.MAILTRAP_USER,
+        pass: process.env.MAILTRAP_PASSWORD,
       },
     });
 
@@ -26,7 +26,6 @@ export const sendEmail = async ({ email, emailType, link }: EmailOptions) => {
 
     //if the type is verify we will send two copies
     if (emailType === "VERIFY") {
-
       subject = "Verify your email";
       html = `
         <h2>Welcome to Our App!</h2>
@@ -35,7 +34,6 @@ export const sendEmail = async ({ email, emailType, link }: EmailOptions) => {
         <p>This link will expire in 20 minutes.</p>
       `;
     } else if (emailType === "RESET") {
-   
       subject = "Reset your password";
       html = `
         <h2>Password Reset Request</h2>
@@ -58,7 +56,7 @@ export const sendEmail = async ({ email, emailType, link }: EmailOptions) => {
 
     return mailResponse;
   } catch (error: unknown) {
-    if(error instanceof Error){
+    if (error instanceof Error) {
       console.error("❌ Error sending email:", error.message);
       throw new Error(error.message);
     }
