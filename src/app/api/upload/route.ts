@@ -7,7 +7,7 @@ const s3Client = new S3Client({
   region: "ap-south-1",
   credentials: {
     accessKeyId: process.env.BUCKET_AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    secretAccessKey: process.env.BUCKET_AWS_SECRET_ACCESS_KEY || "",
   },
 });
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       key,
       region: "ap-south-1", // Log the actual region value
       accessKeyId: process.env.BUCKET_AWS_ACCESS_KEY_ID ? "present" : "missing",
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      secretAccessKey: process.env.BUCKET_AWS_SECRET_ACCESS_KEY
         ? "present"
         : "missing",
     });
