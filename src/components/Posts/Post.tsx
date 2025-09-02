@@ -1,155 +1,181 @@
-'use client';
-import { FaRegHeart, FaRegPaperPlane, FaRegComments, FaHeart } from 'react-icons/fa6';
-import { useState } from 'react';
-import Comment from '@/components/Posts/PostComment';
-import Image from 'next/image';
-import { CommentProps, PostProps } from '@/lib/types';
-import MediaCarousel from '@/components/Posts/PostCarousel';
-import { getImageUrl, DEFAULT_PROFILE_IMAGE } from '@/utils/userProfileImageUtils';
+"use client";
+import {
+  FaRegHeart,
+  FaRegPaperPlane,
+  FaRegComments,
+  FaHeart,
+} from "react-icons/fa6";
+import { useState } from "react";
+import Comment from "@/components/Posts/PostComment";
+import Image from "next/image";
+import { CommentProps, PostProps } from "@/lib/types";
+import MediaCarousel from "@/components/Posts/PostCarousel";
+import {
+  getImageUrl,
+  DEFAULT_PROFILE_IMAGE,
+} from "@/utils/userProfileImageUtils";
 
-export default function Post(props:{
-    post : PostProps,
-    user_id: string
-}){
+export default function Post(props: { post: PostProps; user_id: string }) {
+  const { post, user_id } = props;
+  const effectiveUserId = user_id;
+  //const effectiveUserId='55555555-5555-5555-5555-555555555555';
 
-    const { post,user_id } = props
-    const effectiveUserId = user_id;
-    //const effectiveUserId='55555555-5555-5555-5555-555555555555';
+  const filtered = post.likes.filter((like) => like.user_id == effectiveUserId);
 
-    const filtered = post.likes.filter((like)=>like.user_id==effectiveUserId);
+  const [showComments, setShowComments] = useState<boolean>(false);
+  const [liked, setLiked] = useState<boolean>(filtered.length == 1);
+  const [commentText, setCommentText] = useState("");
+  const [comments, setComments] = useState(post.comments);
+  console.log("Post data:", post);
+  console.log("Comments array:", comments);
 
-    const [showComments,setShowComments]=useState<boolean>(false);
-    const [liked,setLiked]=useState<boolean>(filtered.length==1);
-    const [commentText, setCommentText] = useState('');
-    const [comments,setComments]=useState(post.comments)
-    console.log('Post data:', post);
-    console.log('Comments array:', comments);
+  async function onLike() {
+    await fetch("/api/like/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: effectiveUserId,
+        post_id: post.post_id,
+      }),
+    });
+    setLiked(true);
+  }
 
-    async function onLike(){
-        await fetch('/api/like/',{
-            method : 'POST',
-            headers : { 'Content-Type' : 'application/json' },
-            body : JSON.stringify({
-                user_id : effectiveUserId,
-                post_id : post.post_id
-            })
-        })
-        setLiked(true);
-    }
+  async function onDislike() {
+    await fetch("/api/like/", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: effectiveUserId,
+        post_id: post.post_id,
+      }),
+    });
+    setLiked(false);
+  }
 
-    async function onDislike(){
-        await fetch('/api/like/',{
-            method : 'DELETE',
-            headers : { 'Content-Type' : 'application/json' },
-            body : JSON.stringify({
-                user_id : effectiveUserId,
-                post_id : post.post_id
-            })
-        })
-        setLiked(false);
-    }
-    
+  async function onComment() {
+    if (!commentText.trim()) return;
 
-    async function onComment(){
-        if (!commentText.trim()) return;
-        
-        const res = await fetch('/api/posts/comment',{
-            method : 'POST',
-            headers : { 'Content-Type' : 'application/json' },
-            body : JSON.stringify({
-                user_id : effectiveUserId,
-                content : commentText,
-                post_id : post.post_id
-            })
-        })
+    const res = await fetch("/api/posts/comment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: effectiveUserId,
+        content: commentText,
+        post_id: post.post_id,
+      }),
+    });
 
-       const comment = await res.json();
-       console.log(comment);
-       setComments([...comments,comment]);
-       setCommentText('');
-    }
+    const comment = await res.json();
+    console.log(comment);
+    setComments([...comments, comment]);
+    setCommentText("");
+  }
 
-    return(
-        <div className='post rounded-xl bg-white w-[80%] mb-10'>
-            <div className='post-header flex items-center p-5'>
-                <Image
-                    src={post.artist.profile_picture_url ? post.artist.profile_picture_url : getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                    alt={`Avatar`}
-                    className="w-12 h-12 rounded-full object-cover mr-3"
-                    width={100}
-                    height={100}
-                />
-                <h1 className='font-bold'>{post.artist.artist_name}</h1>
-            </div>
-            
-            <div className='post-body mb-2'>
-                {
-                    post.media_type=="image" ?
-                        <MediaCarousel mediaUrls={post.media_urls}/> :
-                        null 
-                }
-                {
-                    post.media_type=="none" ?
-                    <div className='p-5'>
-                        <p>{post.content_text}</p>
-                    </div>
-                    : null
-                }
-            </div>
-            <div className='post-interactions flex pl-4 py-5 text-lg'>
-                <div className='flex items-center mr-4'>
-                    { !liked ? 
-                        <FaRegHeart className='mr-3 cursor-pointer' onClick={()=> onLike()}/> :
-                        <FaHeart className='mr-3 cursor-pointer fill-rose-400' onClick={()=> onDislike()}/>
-                    }
-                    <p>Like</p>
-                </div>
-                <div className='flex items-center mr-4 cursor-pointer' onClick={()=>setShowComments(!showComments)}>
-                    <FaRegComments className='mr-3'/>
-                    <p>Comment</p>
-                </div>
-                <div className='flex items-center mr-4'>
-                    <FaRegPaperPlane className='mr-3'/>
-                    <p>Share</p>
-                </div>
-            </div>
-            { post.media_type != 'none' ?
-            <div className='post-details flex px-5 pb-5 flex-wrap'>
-                <p><span className='font-bold mr-3'>{post.artist.artist_name}</span>{post.content_text}</p>
-            </div> : null
-            }
-            <div className='post-comments-preview p-4'>
-                {showComments ? 
-                <div className='post-comment flex items-center py-2'>
-                    <Image
-                        src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                        alt={`Avatar`}
-                        className="w-12 h-12 rounded-full object-cover mr-5"
-                         width={100} height={100}
-                    />
-                    <div>
-                        <input 
-                            placeholder='Enter Comment...' 
-                            className='border-b-black border-b-2 w-[35vw] p-2 focus:outline-none'
-                            value={commentText}
-                            onChange={(e) => setCommentText(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && onComment()}
-                        >    
-                        </input>
-                        <button
-                            onClick={onComment}
-                            className="text-black px-3 font-semibold text-md"
-                        > Post
-                        </button>
-                    </div> 
-                </div>: null }           
-                { showComments ? 
-                    comments.map((comment:CommentProps,index:number) => {
-                        console.log('Post comments:', comment);
-                        return <Comment key={index} comment={comment} user_id={effectiveUserId} post_id={post.post_id}/>;
-                    })
-                : null }
-            </div>            
+  return (
+    <div className="post rounded-xl bg-white w-[80%] mb-10">
+      <div className="post-header flex items-center p-5">
+        <img
+          src={
+            post.artist.profile_picture_url
+              ? post.artist.profile_picture_url
+              : getImageUrl(DEFAULT_PROFILE_IMAGE)
+          }
+          alt={`Avatar`}
+          className="w-12 h-12 rounded-full object-cover mr-3"
+          width={100}
+          height={100}
+        />
+        <h1 className="font-bold">{post.artist.artist_name}</h1>
+      </div>
+
+      <div className="post-body mb-2">
+        {post.media_type == "image" ? (
+          <MediaCarousel mediaUrls={post.media_urls} />
+        ) : null}
+        {post.media_type == "none" ? (
+          <div className="p-5">
+            <p>{post.content_text}</p>
+          </div>
+        ) : null}
+      </div>
+      <div className="post-interactions flex pl-4 py-5 text-lg">
+        <div className="flex items-center mr-4">
+          {!liked ? (
+            <FaRegHeart
+              className="mr-3 cursor-pointer"
+              onClick={() => onLike()}
+            />
+          ) : (
+            <FaHeart
+              className="mr-3 cursor-pointer fill-rose-400"
+              onClick={() => onDislike()}
+            />
+          )}
+          <p>Like</p>
         </div>
-    )
+        <div
+          className="flex items-center mr-4 cursor-pointer"
+          onClick={() => setShowComments(!showComments)}
+        >
+          <FaRegComments className="mr-3" />
+          <p>Comment</p>
+        </div>
+        <div className="flex items-center mr-4">
+          <FaRegPaperPlane className="mr-3" />
+          <p>Share</p>
+        </div>
+      </div>
+      {post.media_type != "none" ? (
+        <div className="post-details flex px-5 pb-5 flex-wrap">
+          <p>
+            <span className="font-bold mr-3">{post.artist.artist_name}</span>
+            {post.content_text}
+          </p>
+        </div>
+      ) : null}
+      <div className="post-comments-preview p-4">
+        {showComments ? (
+          <div className="post-comment flex items-center py-2">
+            <img
+              src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+              alt={`Avatar`}
+              className="w-12 h-12 rounded-full object-cover mr-5"
+              width={100}
+              height={100}
+            />
+            <div>
+              <input
+                placeholder="Enter Comment..."
+                className="border-b-black border-b-2 w-[35vw] p-2 focus:outline-none"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && onComment()}
+              ></input>
+              <button
+                onClick={onComment}
+                className="text-black px-3 font-semibold text-md"
+              >
+                {" "}
+                Post
+              </button>
+            </div>
+          </div>
+        ) : null}
+        {showComments
+          ? comments.map((comment: CommentProps, index: number) => {
+              console.log("Post comments:", comment);
+              return (
+                <Comment
+                  key={index}
+                  comment={comment}
+                  user_id={effectiveUserId}
+                  post_id={post.post_id}
+                />
+              );
+            })
+          : null}
+      </div>
+    </div>
+  );
 }

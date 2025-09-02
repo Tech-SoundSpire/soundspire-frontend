@@ -1,7 +1,7 @@
-'use client';
-import { useState } from 'react';
-import Image from 'next/image';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+"use client";
+import { useState } from "react";
+import Image from "next/image";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -18,10 +18,13 @@ export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
 
   return (
     <div className="relative w-full mx-auto overflow-hidden shadow">
-      <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
+      <div
+        className="flex transition-transform duration-500 ease-in-out"
+        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+      >
         {mediaUrls.map((url, index) => (
           <div key={index} className="min-w-full">
-            <Image
+            <img
               src={url}
               alt={`Post Image ${index + 1}`}
               className="w-full h-auto object-contain"
@@ -57,7 +60,7 @@ export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full ${index === currentIndex ? 'bg-white' : 'bg-gray-400'} opacity-80`}
+            className={`w-2 h-2 rounded-full ${index === currentIndex ? "bg-white" : "bg-gray-400"} opacity-80`}
           ></button>
         ))}
       </div>
