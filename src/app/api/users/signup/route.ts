@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+
     //Hashing password
     console.log("🔐 Hashing password...");
 

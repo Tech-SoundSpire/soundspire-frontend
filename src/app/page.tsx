@@ -180,7 +180,7 @@ export default function SignupPage() {
           window.location.href = response.data.redirect;
         }
       }
-
+      
     } catch (error) {
       if (axios.isAxiosError(error)) {
         toast.error(error.response?.data?.error || "Signup failed. Try again!");
