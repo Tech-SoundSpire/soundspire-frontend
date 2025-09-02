@@ -25,6 +25,11 @@ export async function GET(
     const { path } = await params;
     console.log("Path from params:", path);
 
+    // Validate path
+    if (!path || path.length === 0) {
+      return new NextResponse("Invalid image path", { status: 400 });
+    }
+
     // Join the path array back into a string
     const fullPath = path.join("/");
     console.log("Full path:", fullPath);
@@ -84,24 +89,29 @@ export async function GET(
         return new NextResponse("Image not found", { status: 404 });
       }
 
-      // Convert the readable stream to a buffer
-      console.log("Converting stream to buffer");
-      const chunks = [];
-      for await (const chunk of response.Body as any) {
-        chunks.push(chunk);
-      }
-      const buffer = Buffer.concat(chunks);
-      console.log("Buffer created, size:", buffer.length);
-
-      // Get the content type from the S3 response
+      // Stream the response directly instead of buffering
+      console.log("Streaming response directly from S3");
+      const stream = response.Body as any;
+      
+      // Get content type and other metadata
       const contentType = response.ContentType || "image/jpeg";
-      console.log("Content type:", contentType);
+      const contentLength = response.ContentLength;
+      const lastModified = response.LastModified;
+      const etag = response.ETag;
 
-      // Return the image with appropriate headers
-      return new NextResponse(buffer, {
+      // Return streaming response with proper headers
+      return new NextResponse(stream, {
         headers: {
           "Content-Type": contentType,
-          "Cache-Control": "public, max-age=31536000", // Cache for 1 year
+          "Content-Length": contentLength?.toString() || "",
+          "Cache-Control": "public, max-age=31536000, immutable",
+          "Last-Modified": lastModified?.toUTCString() || "",
+          "ETag": etag || "",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "X-Content-Type-Options": "nosniff",
+          "X-Frame-Options": "DENY",
         },
       });
     } catch (s3Error) {
@@ -135,4 +145,16 @@ export async function GET(
       },
     );
   }
+}
+
+// Handle OPTIONS request for CORS
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
 }
