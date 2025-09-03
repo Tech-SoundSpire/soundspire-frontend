@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import {
   getImageUrl,
   DEFAULT_PROFILE_IMAGE,
@@ -77,7 +78,7 @@ export default function ExplorePage() {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
   const [loading, setLoading] = useState(true);
-  const { setUser } = useAuth();
+  const { setUser, logout } = useAuth();
   const router = useRouter();
 
   // Fetch data from API
@@ -135,13 +136,11 @@ export default function ExplorePage() {
 
   const handleLogout = async () => {
     try {
-      await axios.get("../api/users/logout", {
-        withCredentials: true,
-      });
-      setUser(null);
+      await logout();
       router.push("/login");
     } catch (error) {
       console.error("Logout failed:", error);
+      toast.error("Logout failed. Please try again.");
     }
   };
 

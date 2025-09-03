@@ -32,6 +32,17 @@ export async function POST(request: NextRequest) {
     }
     console.log("User Exists");
 
+    // Check if user's email is verified
+    if (!user.is_verified) {
+      return NextResponse.json(
+        { 
+          message: "Please verify your email before logging in. Check your inbox for the verification link.",
+          needsVerification: true 
+        },
+        { status: 401 },
+      );
+    }
+
     if (!user.password_hash) {
       return NextResponse.json(
         {
