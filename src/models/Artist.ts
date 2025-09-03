@@ -1,6 +1,6 @@
-import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '@/lib/sequelize';
-import type { Models } from './index';
+import { DataTypes, Model, Optional } from "sequelize";
+import sequelize from "@/lib/sequelize";
+import type { Models } from "./index";
 
 interface PayoutMethod {
   type: string; // e.g., 'paypal', 'bank_transfer'
@@ -25,9 +25,15 @@ interface ArtistAttributes {
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface ArtistCreationAttributes
-  extends Optional<ArtistAttributes, 'artist_id' | 'created_at' | 'updated_at' | 'featured'> {}
+  extends Optional<
+    ArtistAttributes,
+    "artist_id" | "created_at" | "updated_at" | "featured"
+  > {}
 
-class Artist extends Model<ArtistAttributes, ArtistCreationAttributes> implements ArtistAttributes {
+class Artist
+  extends Model<ArtistAttributes, ArtistCreationAttributes>
+  implements ArtistAttributes
+{
   public artist_id!: string;
   public user_id!: string | null;
   public artist_name!: string;
@@ -44,8 +50,9 @@ class Artist extends Model<ArtistAttributes, ArtistCreationAttributes> implement
 
   // Association definition
   static associate(models: Models) {
-    Artist.hasMany(models.Post, { foreignKey: 'artist_id', as: 'posts' });
-    Artist.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
+    // Artist.hasMany(models.Post, { foreignKey: 'artist_id', as: 'posts' });
+    // Artist.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
+    // Associations are now handled centrally in associations.ts
   }
 }
 
@@ -60,8 +67,8 @@ Artist.init(
       type: DataTypes.UUID,
       allowNull: true,
       references: {
-        model: 'users',
-        key: 'user_id',
+        model: "users",
+        key: "user_id",
       },
     },
     artist_name: {
@@ -82,7 +89,7 @@ Artist.init(
     },
     verification_status: {
       type: DataTypes.STRING(50),
-      defaultValue: 'pending',
+      defaultValue: "pending",
     },
     third_party_platform: {
       type: DataTypes.STRING(50),
@@ -111,13 +118,13 @@ Artist.init(
   },
   {
     sequelize,
-    modelName: 'Artist',
-    tableName: 'artists',
+    modelName: "Artist",
+    tableName: "artists",
     timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
-    indexes: [{ fields: ['artist_name'] }],
-  }
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+    indexes: [{ fields: ["artist_name"] }],
+  },
 );
 
 export default Artist;
