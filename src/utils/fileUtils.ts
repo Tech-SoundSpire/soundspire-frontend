@@ -1,5 +1,5 @@
 // File size constants
-export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 8MB in bytes
+export const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB in bytes
 export const MAX_FILE_SIZE_MB = MAX_FILE_SIZE / (1024 * 1024);
 
 // Allowed image file types

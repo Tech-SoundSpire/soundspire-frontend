@@ -399,7 +399,7 @@ export default function ProfilePage() {
                 {isEditing && (
                   <div className="text-center mb-4">
                     <p className="text-gray-400 text-sm">
-                      Maximum file size: <span className="text-blue-400 font-medium">8MB</span>
+                      Maximum file size: <span className="text-blue-400 font-medium">3MB</span>
                     </p>
                     <p className="text-gray-500 text-xs mt-1">
                       Supported formats: JPEG, PNG, GIF, WebP
