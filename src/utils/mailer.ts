@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import SMTPTransport from "nodemailer/lib/smtp-transport";
 // import dotenv from "dotenv";
 // dotenv.config();
 
@@ -13,28 +14,30 @@ interface EmailOptions {
 export const sendEmail = async ({ email, emailType, link }: EmailOptions) => {
   try {
     const transport = nodemailer.createTransport({
-      host: process.env.MAILTRAP_HOST,
-      port: parseInt(process.env.MAILTRAP_PORT || "2525"),
+      service: process.env.GMAIL_SERVICE,
+      host: process.env.GMAIL_HOST,
+      port: Number(process.env.GMAIL_SMTP_PORT),
+      secure: false, // true for 465, false for other ports
       auth: {
-        user: process.env.MAILTRAP_USER,
-        pass: process.env.MAILTRAP_PASSWORD,
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
       },
-    });
+    } as SMTPTransport.Options);
 
     let subject = "";
     let html = "";
 
     //if the type is verify we will send two copies
     if (emailType === "VERIFY") {
-      subject = "Verify your email";
+      subject = "SoundSpire - Verify your email!";
       html = `
-        <h2>Welcome to Our App!</h2>
+        <h2>Welcome to SoundSpire!</h2>
         <p>Please verify your email by clicking the link below:</p>
         <a href="${link}">Verify Email</a>
         <p>This link will expire in 20 minutes.</p>
       `;
     } else if (emailType === "RESET") {
-      subject = "Reset your password";
+      subject = "SoundSpire - Reset your password";
       html = `
         <h2>Password Reset Request</h2>
         <p>Click below to reset your password:</p>
@@ -44,7 +47,7 @@ export const sendEmail = async ({ email, emailType, link }: EmailOptions) => {
     }
 
     const mailOptions = {
-      from: '"Maddison Foo Koch" <maddison53@ethereal.email>',
+      from: `"SoundSpire" <${process.env.GMAIL_USER}>`,
       to: email,
       subject,
       html,
