@@ -1,18 +1,15 @@
 "use client";
 
-import { useAuth } from "@/context/AuthContext";
-import Navbar from "@/components/Navbar";
-import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import { getImageUrl, DEFAULT_PROFILE_IMAGE } from "@/utils/userProfileImageUtils";
+import { validateFile } from "@/utils/fileUtils";
+import Navbar from "@/components/Navbar";
+import { useAuth } from "@/context/AuthContext";
+import Image from "next/image";
 import { countriesWithCities } from "@/lib/locationData";
-import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  getImageUrl,
-  getDefaultProfileImageUrl,
-  DEFAULT_PROFILE_IMAGE,
-} from "@/utils/userProfileImageUtils";
 
 interface Subscription {
   name: string;
@@ -233,18 +230,34 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file before proceeding
+    const validation = validateFile(file);
+    if (!validation.isValid) {
+      toast.error(validation.error || "Invalid file");
+      return;
+    }
+
     try {
       // 1. Generate a unique filename
       const extension = file.name.split(".").pop();
       const fileName = `${profile.userName || "user"}-${user?.id || "unknown"}.${extension}`;
 
-      // 2. Request a presigned URL from the backend
+      // 2. Request a presigned URL from the backend with file size validation
       const res = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileName, fileType: file.type }),
+        body: JSON.stringify({ 
+          fileName, 
+          fileType: file.type,
+          fileSize: file.size 
+        }),
       });
-      if (!res.ok) throw new Error("Failed to get upload URL");
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to get upload URL");
+      }
+      
       const { uploadUrl } = await res.json();
 
       // 3. Upload the file directly to S3
@@ -258,8 +271,10 @@ export default function ProfilePage() {
       // 4. Set the S3 path in the editableProfile state
       const s3Path = `s3://soundspirewebsiteassets/images/users/${fileName}`;
       setEditableProfile((prev) => ({ ...prev, profileImage: s3Path }));
+      
+      toast.success("Profile image updated successfully!");
     } catch (error) {
-      toast.error("Image upload failed");
+      toast.error((error as Error).message || "Image upload failed");
       console.error(error);
     }
   };
@@ -356,10 +371,10 @@ export default function ProfilePage() {
                           ? getImageUrl(editableProfile.profileImage)
                           : profile.profileImage
                             ? getImageUrl(profile.profileImage)
-                            : getDefaultProfileImageUrl()
+                            : DEFAULT_PROFILE_IMAGE
                         : profile.profileImage
                           ? getImageUrl(profile.profileImage)
-                          : getDefaultProfileImageUrl()
+                          : DEFAULT_PROFILE_IMAGE
                     }
                     alt="Profile picture"
                     width={112}
@@ -379,6 +394,18 @@ export default function ProfilePage() {
                     onChange={handleImageChange}
                   />
                 </div>
+                
+                {/* File size limit indicator when editing */}
+                {isEditing && (
+                  <div className="text-center mb-4">
+                    <p className="text-gray-400 text-sm">
+                      Maximum file size: <span className="text-blue-400 font-medium">8MB</span>
+                    </p>
+                    <p className="text-gray-500 text-xs mt-1">
+                      Supported formats: JPEG, PNG, GIF, WebP
+                    </p>
+                  </div>
+                )}
 
                 {/* Full Name and Username below profile image */}
                 <div className="w-full max-w-xs">
