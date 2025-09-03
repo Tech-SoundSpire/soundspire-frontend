@@ -21,8 +21,6 @@ const Navbar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const menuItems = [
-    { icon: FaHome, label: "Home", href: "/" },
-    { icon: FaCompass, label: "Explore", href: "/explore" },
     // { icon: FaHome, label: 'Home', href: '/' },
     { icon: FaCompass, label: "Explore", href: "/explore" },
     { icon: MdOutlineDynamicFeed, label: "Feed", href: "/feed" },
@@ -49,7 +47,7 @@ const Navbar = () => {
           className={`flex items-center mb-8 ${isExpanded ? "px-4" : "justify-center"}`}
         >
           <div className="relative w-8 h-8">
-            <img
+            <Image
               src="/images/logo.png"
               alt="SoundSpire Logo"
               width={32}
