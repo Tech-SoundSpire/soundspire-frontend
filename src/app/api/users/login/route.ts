@@ -3,8 +3,7 @@ import { User } from "@/models/User";
 import UserPreferences from "@/models/UserPreferences";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
-import  jwt from "jsonwebtoken";
-
+import jwt from "jsonwebtoken";
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,54 +27,58 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { message: "User does not exists" },
-        { status: 401 }
+        { status: 401 },
       );
     }
     console.log("User Exists");
 
-    if(!user.password_hash){
-      return NextResponse.json({
-        message:"Please reset your Password!!"
-      },{status: 400});
+    if (!user.password_hash) {
+      return NextResponse.json(
+        {
+          message: "Please reset your Password!!",
+        },
+        { status: 400 },
+      );
     }
-
 
     //Checking the password
     const validPassword = await bcryptjs.compare(
       password_hash,
-      user.password_hash!
+      user.password_hash!,
     );
 
     if (!validPassword) {
       console.log("Incorrect password!");
       return NextResponse.json(
         { message: "Check your password or password is wrong!" },
-        { status: 401 }
+        { status: 401 },
       );
     }
     console.log("password validated");
 
-     await user.update({
+    await user.update({
       last_login: new Date(),
     });
 
     // Check if user has preferences
     const preferences = await UserPreferences.findOne({
-      where: { user_id: user.user_id }
+      where: { user_id: user.user_id },
     });
 
-    let redirectPath = "/explore"; // Default to explore
-    if (!preferences || 
-        (preferences.genres.length === 0 && 
-         preferences.languages.length === 0 && 
-         preferences.favorite_artists.length === 0)) {
+    let redirectPath = "/feed"; // Default to feed
+    if (
+      !preferences ||
+      (preferences.genres.length === 0 &&
+        preferences.languages.length === 0 &&
+        preferences.favorite_artists.length === 0)
+    ) {
       redirectPath = "/PreferenceSelectionPage";
     }
 
     const token = jwt.sign(
       { id: user.user_id, email: user.email },
       process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     //creating response
@@ -90,7 +93,7 @@ export async function POST(request: NextRequest) {
       redirect: redirectPath,
     });
 
-     response.cookies.set({
+    response.cookies.set({
       name: "token",
       value: token,
       httpOnly: true,
@@ -100,7 +103,7 @@ export async function POST(request: NextRequest) {
 
     return response; //seding response and user is loggedin
   } catch (error: unknown) {
-    if(error instanceof Error){
+    if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
   }
