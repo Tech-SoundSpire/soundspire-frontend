@@ -7,16 +7,17 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
+import { getLogoUrl } from "@/utils/userProfileImageUtils";
 
 const fields = [
   {
-    label: "Email",
+    label: "Email*",
     name: "email",
     type: "email",
     placeholder: "Enter your email",
   },
   {
-    label: "Password",
+    label: "Password*",
     name: "password_hash",
     type: "password",
     placeholder: "Enter your password",
@@ -108,7 +109,7 @@ function LoginPageInner() {
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/logo-Photoroom.png"
+            src={getLogoUrl()}
             alt="SoundSpire logo"
             width={200}
             height={200}

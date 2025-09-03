@@ -1,8 +1,9 @@
 "use client";
 
-// import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { FaGoogle } from "react-icons/fa";
+import { getLogoUrl } from "@/utils/userProfileImageUtils";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
@@ -60,7 +61,7 @@ const fields = [
 ];
 
 export default function SignupPage() {
-  // const router = useRouter();
+  const router = useRouter();
 
   useRedirectIfAuthenticated();
 
@@ -210,7 +211,7 @@ export default function SignupPage() {
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/logo-Photoroom.png"
+            src={getLogoUrl()}
             alt="SoundSpire logo"
             width={200}
             height={200}

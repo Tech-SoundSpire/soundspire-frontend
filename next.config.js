@@ -40,19 +40,13 @@ const nextConfig = {
 
   // Add this configuration for larger payloads and streaming
   experimental: {
-    serverComponentsExternalPackages: ['@aws-sdk/client-s3'],
     serverActions: {
       bodySizeLimit: '10mb',
     },
   },
 
-  // Increase the maximum payload size for API routes
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-    responseLimit: '10mb',
-  },
+  // Server external packages for S3
+  serverExternalPackages: ['@aws-sdk/client-s3'],
 
   webpack: (config) => {
     config.module.exprContextCritical = false;
