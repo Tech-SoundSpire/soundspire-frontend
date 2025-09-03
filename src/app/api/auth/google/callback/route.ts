@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const REDIRECT_URI = process.env.NEXT_PUBLIC_BASE_URL + "/api/auth/google/callback";
+const REDIRECT_URI =
+  process.env.NEXT_PUBLIC_BASE_URL + "/api/auth/google/callback";
 const FRONTEND_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 // Google OAuth endpoints
@@ -71,7 +72,9 @@ export async function GET(request: Request) {
 
     // Attempt to find or create user in DB
     const hashedPassword = await bcrypt.hash(userData.email, 10);
-    const baseUsername = userData.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "_");
+    const baseUsername = userData.email
+      .split("@")[0]
+      .replace(/[^a-zA-Z0-9]/g, "_");
 
     let userInDb = await User.findOne({ where: { email: userData.email } });
     let isNewUser = false;
@@ -100,8 +103,8 @@ export async function GET(request: Request) {
           google_id: userData.id,
         });
       }
-       if (!userInDb) {
-    throw new Error("Failed to create user");
+      if (!userInDb) {
+        throw new Error("Failed to create user");
       }
 
       await UserVerification.create({
@@ -114,20 +117,22 @@ export async function GET(request: Request) {
     }
 
     // Check if user has preferences
-    let redirectPath = "/explore"; // Default to explore
+    let redirectPath = "/feed"; // Default to feed
     if (isNewUser) {
       // New users always go to preference selection
       redirectPath = "/PreferenceSelectionPage";
     } else {
       // Check existing user preferences
       const preferences = await UserPreferences.findOne({
-        where: { user_id: userInDb!.user_id }
+        where: { user_id: userInDb!.user_id },
       });
 
-      if (!preferences || 
-          (preferences.genres.length === 0 && 
-           preferences.languages.length === 0 && 
-           preferences.favorite_artists.length === 0)) {
+      if (
+        !preferences ||
+        (preferences.genres.length === 0 &&
+          preferences.languages.length === 0 &&
+          preferences.favorite_artists.length === 0)
+      ) {
         redirectPath = "/PreferenceSelectionPage";
       }
     }

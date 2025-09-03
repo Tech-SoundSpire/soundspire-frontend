@@ -11,6 +11,7 @@ import {
   FaUser,
   FaCog,
 } from "react-icons/fa";
+import { MdOutlineDynamicFeed } from "react-icons/md";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
@@ -22,6 +23,9 @@ const Navbar = () => {
   const menuItems = [
     { icon: FaHome, label: "Home", href: "/" },
     { icon: FaCompass, label: "Explore", href: "/explore" },
+    // { icon: FaHome, label: 'Home', href: '/' },
+    { icon: FaCompass, label: "Explore", href: "/explore" },
+    { icon: MdOutlineDynamicFeed, label: "Feed", href: "/feed" },
     { icon: FaHeadphones, label: "My Music", href: "/my-music" },
     { icon: FaUsers, label: "My Communities", href: "/communities" },
     { icon: FaClipboard, label: "Reviews", href: "/reviews" },
