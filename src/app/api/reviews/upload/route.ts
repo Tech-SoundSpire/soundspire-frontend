@@ -4,18 +4,37 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { MAX_FILE_SIZE, ALLOWED_IMAGE_TYPES } from "@/utils/fileUtils";
 import { getDataFromToken } from '@/utils/getDataFromToken';
 import { User } from '@/models/User';
+// Import models index to ensure associations are registered
+import '@/models/index';
 
 // Create S3 client with explicit configuration
 const s3Client = new S3Client({
-  region: "ap-south-1",
+  region: "ap-south-1", // Use the same region as the working upload route
   credentials: {
     accessKeyId: process.env.BUCKET_AWS_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.BUCKET_AWS_SECRET_ACCESS_KEY || "",
   },
 });
 
+// Validate S3 client configuration
+const validateS3Config = () => {
+  if (!process.env.BUCKET_AWS_ACCESS_KEY_ID || !process.env.BUCKET_AWS_SECRET_ACCESS_KEY) {
+    console.error("Missing AWS credentials in environment variables");
+    return false;
+  }
+  return true;
+};
+
 export async function POST(request: NextRequest) {
   try {
+    // Validate S3 configuration
+    if (!validateS3Config()) {
+      return NextResponse.json(
+        { error: "Server configuration error: Missing AWS credentials" },
+        { status: 500 }
+      );
+    }
+
     // Get user ID from token
     const userId = await getDataFromToken(request);
     if (!userId) {
@@ -23,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user from database to verify
-    const user = await User.findByPk(userId);
+    const user = await User.findOne({ where: { user_id: userId } });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
@@ -89,11 +108,18 @@ export async function POST(request: NextRequest) {
       expiresIn: 3600,
     });
 
+    // Convert S3 path to API URL format
+    const s3Path = `s3://${bucket}/${key}`;
+    // Extract the path after 'images/' since the API route already includes 'images/'
+    const apiPath = key.replace(/^images\//, '');
+    const imageUrl = `/api/images/${apiPath}`;
+
     return NextResponse.json({
       uploadUrl,
       key,
       bucket,
-      s3Path: `s3://${bucket}/${key}`,
+      s3Path,
+      imageUrl, // Add a ready-to-use image URL
       maxFileSize: MAX_FILE_SIZE,
       maxFileSizeMB: MAX_FILE_SIZE / (1024 * 1024),
     });
