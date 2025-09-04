@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDataFromToken } from '@/utils/getDataFromToken';
 import Review from '@/models/Review';
 import { User } from '@/models/User';
+import '@/models/index';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user from database to verify
-    const user = await User.findByPk(userId);
+    const user = await User.findOne({ where: { user_id: userId } });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }

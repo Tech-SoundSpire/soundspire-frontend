@@ -3,9 +3,6 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { MAX_FILE_SIZE, ALLOWED_IMAGE_TYPES } from "@/utils/fileUtils";
 import { getDataFromToken } from '@/utils/getDataFromToken';
-import { User } from '@/models/User';
-// Import models index to ensure associations are registered
-import '@/models/index';
 
 // Create S3 client with explicit configuration
 const s3Client = new S3Client({
@@ -35,24 +32,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user ID from token
+    // Require authentication (token presence). Domain check is enforced on submit route.
     const userId = await getDataFromToken(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get user from database to verify
-    const user = await User.findOne({ where: { user_id: userId } });
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Check if user has @soundspire.online email domain
-    if (!user.email || !user.email.endsWith('@soundspire.online')) {
-      return NextResponse.json(
-        { error: 'Only users with @soundspire.online email domain can upload review images' },
-        { status: 403 }
-      );
     }
 
     const { fileName, fileType, fileSize } = await request.json();
@@ -94,7 +77,6 @@ export async function POST(request: NextRequest) {
       key,
       region: "ap-south-1",
       userId: userId,
-      userEmail: user.email,
     });
 
     const command = new PutObjectCommand({
