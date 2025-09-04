@@ -11,6 +11,12 @@ const sequelize = new Sequelize(
     dialect: "postgres",
     dialectModule: pg,
     logging: false,
+    pool: {
+      max: 10, // Reduce max connections
+      min: 0, // Start with 0 connections
+      acquire: 30000, // Increase timeout to 30 seconds
+      idle: 10000, // Release connections after 10 seconds of inactivity
+    },
     dialectOptions: {
       ssl: {
         require: true,

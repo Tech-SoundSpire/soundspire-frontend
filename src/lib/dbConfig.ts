@@ -1,14 +1,21 @@
 // src/lib/dbConfig.ts
-import sequelize from './sequelize';
+import sequelize from "./sequelize";
+
+let cachedConnection: any = null;
 
 // Create the establishConnection function that your temp.ts is looking for
 export const establishConnection = async () => {
   try {
+    if (cachedConnection) {
+      return cachedConnection;
+    }
+
     await sequelize.authenticate();
-    console.log('✅ Database connection established successfully.');
+    console.log("✅ Database connection established successfully.");
+    cachedConnection = sequelize;
     return sequelize;
   } catch (error) {
-    console.error('❌ Unable to connect to the database:', error);
+    console.error("❌ Unable to connect to the database:", error);
     throw error;
   }
 };
