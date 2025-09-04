@@ -14,6 +14,10 @@ interface ReviewAttributes {
   text_content: string;
   rating: number;
   image_urls?: string[] | null;
+  // New fields for SoundSpire reviews
+  author?: string | null;
+  review_date?: Date | null;
+  review_type?: string | null; // 'album' or 'single'
   created_at: Date;
   updated_at: Date;
   deleted_at?: Date | null;
@@ -25,7 +29,7 @@ interface ReviewAttributes {
 interface ReviewCreationAttributes
   extends Optional<
     ReviewAttributes,
-    "review_id" | "created_at" | "updated_at"
+    "review_id" | "created_at" | "updated_at" | "author" | "review_date" | "review_type"
   > {}
 
 class Review
@@ -43,6 +47,10 @@ class Review
   public text_content!: string;
   public rating!: number;
   public image_urls!: string[] | null;
+  // New fields for SoundSpire reviews
+  public author!: string | null;
+  public review_date!: Date | null;
+  public review_type!: string | null;
   public created_at!: Date;
   public updated_at!: Date;
   public deleted_at!: Date | null;
@@ -98,6 +106,19 @@ Review.init(
     },
     image_urls: {
       type: DataTypes.ARRAY(DataTypes.TEXT),
+      allowNull: true,
+    },
+    // New fields for SoundSpire reviews
+    author: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    review_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    review_type: {
+      type: DataTypes.ENUM('album', 'single'),
       allowNull: true,
     },
     created_at: {
