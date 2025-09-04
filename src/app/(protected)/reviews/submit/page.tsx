@@ -86,7 +86,7 @@ export default function SubmitReviewPage() {
         throw new Error(errorData.error || 'Failed to get upload URL');
       }
 
-      const { uploadUrl, s3Path } = await res.json();
+      const { uploadUrl, imageUrl } = await res.json();
 
       // Upload to S3
       const uploadRes = await fetch(uploadUrl, {
@@ -99,7 +99,7 @@ export default function SubmitReviewPage() {
         throw new Error('Failed to upload image to S3');
       }
 
-      setImageUrl(s3Path);
+      setImageUrl(imageUrl);
       toast.success('Image uploaded successfully!');
     } catch (error) {
       toast.error((error as Error).message || 'Image upload failed');
