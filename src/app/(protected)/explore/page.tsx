@@ -265,9 +265,12 @@ export default function ExplorePage() {
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-white">REVIEWS</h2>
-            <a href="#" className="text-gray-400 hover:text-white">
+            <button
+              className="text-gray-400 hover:text-white"
+              onClick={() => router.push('/reviews')}
+            >
               See All
-            </a>
+            </button>
           </div>
           {loading ? (
             <div className="flex justify-center items-center h-32">

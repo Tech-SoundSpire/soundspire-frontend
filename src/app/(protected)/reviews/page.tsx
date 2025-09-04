@@ -8,6 +8,7 @@ interface Review {
   review_id: string;
   user_id: string;
   content_type: string;
+  review_type?: string | null;
   content_id: string;
   artist_id: string | null;
   artist_name: string | null;
@@ -62,7 +63,11 @@ export default function ReviewsPage() {
         {reviews.map(review => (
           <div key={review.review_id} className="flex flex-col bg-[#231b32] rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
             <img src={(review.image_urls && review.image_urls.length > 0) ? review.image_urls[0] : getImageUrl(DEFAULT_PROFILE_IMAGE)} alt={review.title} className="w-full h-56 object-cover" />
-            <span className="absolute top-4 left-4 bg-green-700 text-white text-xs px-3 py-1 rounded-full">{review.content_type}</span>
+            <span className="absolute top-4 left-4 bg-green-700 text-white text-xs px-3 py-1 rounded-full">
+              {(review.review_type || review.content_type || '').toString()
+                .toLowerCase()
+                .replace(/^./, (c) => c.toUpperCase())}
+            </span>
             <div className="p-4 flex-1 flex flex-col justify-between">
               <div>
                 <h3 className="font-semibold text-white text-lg mb-1">{review.title}</h3>
