@@ -1,22 +1,38 @@
 import { NextRequest } from "next/server";
-import  jwt  from "jsonwebtoken";
-
+import jwt from "jsonwebtoken";
 
 interface DecodedToken {
   id: string;
 }
-export const getDataFromToken = (request: NextRequest) => {
-  try{ 
-    //Getting the data from the database using the cookies
-    const token = request.cookies.get("token")?.value || "";
 
-    // decoding the token
-   const decodedToken= jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
-   return decodedToken.id;
+// Returns user id if available, otherwise null. Never throws for missing/invalid token.
+export const getDataFromToken = (request: NextRequest): string | null => {
+  try {
+    // Prefer explicit JWT cookie named 'token' if present
+    const token = request.cookies.get("token")?.value;
+    if (token) {
+      try {
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
+        return decodedToken.id;
+      } catch {
+        // fall through to try other sources
+      }
+    }
 
-  }catch(error: unknown){
-    if(error instanceof Error)
-    throw new Error(error.message);
+    // Fallback: parse 'user' cookie (set by app) and return its id
+    const userCookie = request.cookies.get("user")?.value;
+    if (userCookie) {
+      try {
+        const decoded = decodeURIComponent(userCookie);
+        const userObj = JSON.parse(decoded);
+        return userObj?.id || userObj?.user_id || null;
+      } catch {
+        // ignore parse errors
+      }
+    }
 
+    return null;
+  } catch {
+    return null;
   }
-}
+};
