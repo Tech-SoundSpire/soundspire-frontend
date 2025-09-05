@@ -23,11 +23,16 @@ GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
 
 # Base URL for OAuth redirects
-NEXT_PUBLIC_BASE_URL=https://localhost:3000
+NEXT_PUBLIC_BASE_URL=https://127.0.0.1:3000
 
 # NextAuth configuration
-NEXTAUTH_URL=https://localhost:3000
+NEXTAUTH_URL=https://127.0.0.1:3000
 NEXTAUTH_SECRET="" 
+
+# Spotify OAuth
+SPOTIFY_CLIENT_ID=""
+SPOTIFY_CLIENT_SECRET=""
+SPOTIFY_REDIRECT_URI="https://127.0.0.1:3000/api/auth/callback/spotify"
 ```
 
 Install Dependencies:
@@ -38,9 +43,7 @@ npm install
 npm install -g pg --save
 npm install sequelize pg pg-hstore
 
-```
-
-Install dependencies:
+```Install dependencies:
 
 ```bash
 npm install
@@ -79,3 +82,5 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 # jsonwebtoken for token
 # bcryptjs
 # sequqlize
+
+

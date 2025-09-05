@@ -11,6 +11,7 @@ import { User } from './User';
 import UserPreferences from './UserPreferences';
 import Genres from './Genres';
 import Languages from './Languages';
+import UserSpotifyToken from './UserSpotifyToken';
 
 import { defineAssociations } from './associations';
 
@@ -27,6 +28,7 @@ const models = {
   UserPreferences,
   Genres,
   Languages,
+  UserSpotifyToken,
 };
 
 // Define a type for the models map

@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import SpotifySection from './SpotifySection';
 import { countriesWithCities } from '@/lib/locationData';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -234,24 +235,12 @@ export default function ProfilePage() {
     }
   };
 
-  const syncSpotify = async () => {
+  const handleConnectSpotify = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: profile.email,
-          spotify_linked: true,
-        }),
-      });
-      if (!res.ok) throw new Error('Spotify sync failed');
-      setProfile((prev) => ({ ...prev, spotifyLinked: true }));
-      toast.success('Spotify linked');
-    } catch (err) {
-      toast.error((err as Error).message);
+      window.location.href = '/api/spotify/login';
     } finally {
-      setIsLoading(false);
+      // let navigation proceed
     }
   };
 
@@ -527,14 +516,52 @@ export default function ProfilePage() {
           <span className="text-2xl font-bold text-[#1DB954]">SPOTIFY</span>
           <h2 className="text-2xl font-bold text-white">!</h2>
         </div>
-        <button
-          onClick={syncSpotify}
-          className={`px-6 py-2 ${profile.spotifyLinked ? 'bg-[#1DB954]' : 'bg-[#ff5733] hover:bg-[#e64a2e]'} text-white rounded-md transition-colors duration-200`}
-          disabled={isLoading || profile.spotifyLinked}
-        >
-          {isLoading ? 'Connecting...' : profile.spotifyLinked ? 'Connected' : 'Sync Now'}
-        </button>
+        {!profile.spotifyLinked ? (
+          <button
+            onClick={handleConnectSpotify}
+            className={`px-6 py-2 bg-[#1DB954] hover:opacity-90 text-white rounded-md transition-colors duration-200`}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Redirecting…' : 'Connect with Spotify'}
+          </button>
+        ) : (
+          <span className="px-4 py-2 bg-[#1DB954] text-white rounded-md">Connected</span>
+        )}
       </div>
+      {profile.spotifyLinked && (
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <SpotifySection title="Top Artists" endpoint="/api/spotify/top-artists" render={(data: any) => (
+            <ul className="space-y-2">
+              {(data.items || []).map((a: any) => (
+                <li key={a.id} className="text-white">{a.name}</li>
+              ))}
+            </ul>
+          )} />
+          <SpotifySection title="Top Genres" endpoint="/api/spotify/genres" render={(data: any) => (
+            <ul className="space-y-2">
+              {(data.genres || []).map((g: any) => (
+                <li key={g.genre} className="text-white">{g.genre} ({g.count})</li>
+              ))}
+            </ul>
+          )} />
+          <SpotifySection title="Liked Songs" endpoint="/api/spotify/liked-songs" render={(data: any) => (
+            <ul className="space-y-2 max-h-64 overflow-auto pr-2">
+              {(data.items || []).map((i: any) => (
+                <li key={i.track.id} className="text-white">
+                  {i.track.name} — {i.track.artists.map((ar: any) => ar.name).join(', ')}
+                </li>
+              ))}
+            </ul>
+          )} />
+          <SpotifySection title="Languages" endpoint="/api/spotify/languages" render={(data: any) => (
+            <ul className="space-y-2">
+              {(data.languages || []).map((l: any) => (
+                <li key={l.language} className="text-white">{l.language} ({l.count})</li>
+              ))}
+            </ul>
+          )} />
+        </div>
+      )}
     </div>
   </main>
 </div>

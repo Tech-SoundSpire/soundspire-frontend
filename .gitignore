@@ -43,3 +43,5 @@ next-env.d.ts
 
 # Ignore SSL certificate files
 localhost*
+
+soundspire_backup.sql
