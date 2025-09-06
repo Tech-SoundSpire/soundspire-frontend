@@ -3,7 +3,7 @@ import { Model, DataTypes, Sequelize, Optional } from "sequelize";
 import { sequelize } from "../lib/dbConfig";
 import { v4 as uuidv4 } from "uuid";
 import { UserAttributes } from "@/types/user";
-import type { Models } from './index';
+import type { Models } from "./index";
 
 type UserCreationAttributes = Optional<
   UserAttributes,
@@ -46,14 +46,15 @@ export class User
   public deleted_at?: Date;
 
   static associate(models: Models) {
-    User.hasOne(models.Artist, {
-      foreignKey: "user_id",
-      as: "artist",
-    });
-    User.hasMany(models.Comment, {
-      foreignKey: "user_id",
-      as: "comments",
-    });
+    // User.hasOne(models.Artist, {
+    //   foreignKey: "user_id",
+    //   as: "artist",
+    // });
+    // User.hasMany(models.Comment, {
+    //   foreignKey: "user_id",
+    //   as: "comments",
+    // });
+    // Associations are now handled centrally in associations.ts
   }
 }
 
@@ -160,5 +161,5 @@ User.init(
       { name: "idx_users_email", fields: ["email"] },
       { name: "idx_users_username", fields: ["username"] },
     ],
-  }
+  },
 );

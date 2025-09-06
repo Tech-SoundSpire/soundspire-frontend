@@ -61,7 +61,7 @@ const fields = [
 
 export default function SignupPage() {
   // const router = useRouter();
-  
+
   useRedirectIfAuthenticated();
 
   const [user, setUser] = useState({
@@ -82,74 +82,72 @@ export default function SignupPage() {
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
   const validateForm = () => {
-  const errors: { [key: string]: string } = {};
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const mobileRegex = /^\d{10}$/;
+    const errors: { [key: string]: string } = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const mobileRegex = /^\d{10}$/;
 
-  if (user.full_name.trim().length < 3) {
-    errors.full_name = "Name must be at least 3 characters";
-  }
-
-  if (user.username.trim().length < 3) {
-    errors.username = "Username must be at least 3 characters";
-  }
-
-  if (!emailRegex.test(user.email)) {
-    errors.email = "Invalid email format";
-  }
-
-  if (user.password_hash.length < 6) {
-    errors.password_hash = "Password must be at least 6 characters";
-  }
-
-  if (!["Male", "Female", "Other"].includes(user.gender)) {
-    errors.gender = "Gender must be Male, Female or Other";
-  }
-
-  if (!mobileRegex.test(user.mobile_number)) {
-    errors.mobile_number = "Mobile number must be 10 digits";
-  }
-
-  if (!user.date_of_birth) {
-    errors.date_of_birth = "Date of Birth is required";
-  } else {
-    const birthDate = new Date(user.date_of_birth);
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    const dayDiff = today.getDate() - birthDate.getDate();
-
-    const isBirthdayPassedThisYear = monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0);
-    const actualAge = isBirthdayPassedThisYear ? age : age - 1;
-
-    if (actualAge < 13) {
-      errors.date_of_birth = "You must be at least 13 years old";
+    if (user.full_name.trim().length < 3) {
+      errors.full_name = "Name must be at least 3 characters";
     }
-  }
 
+    if (user.username.trim().length < 3) {
+      errors.username = "Username must be at least 3 characters";
+    }
 
-  if (user.city.trim() === "") {
-    errors.city = "City is required";
-  }
+    if (!emailRegex.test(user.email)) {
+      errors.email = "Invalid email format";
+    }
 
-  setFormErrors(errors);
-  return Object.keys(errors).length === 0;
-};
+    if (user.password_hash.length < 6) {
+      errors.password_hash = "Password must be at least 6 characters";
+    }
 
+    if (!["Male", "Female", "Other"].includes(user.gender)) {
+      errors.gender = "Gender must be Male, Female or Other";
+    }
 
+    if (!mobileRegex.test(user.mobile_number)) {
+      errors.mobile_number = "Mobile number must be 10 digits";
+    }
+
+    if (!user.date_of_birth) {
+      errors.date_of_birth = "Date of Birth is required";
+    } else {
+      const birthDate = new Date(user.date_of_birth);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      const dayDiff = today.getDate() - birthDate.getDate();
+
+      const isBirthdayPassedThisYear =
+        monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0);
+      const actualAge = isBirthdayPassedThisYear ? age : age - 1;
+
+      if (actualAge < 13) {
+        errors.date_of_birth = "You must be at least 13 years old";
+      }
+    }
+
+    if (user.city.trim() === "") {
+      errors.city = "City is required";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const onSignup = async () => {
-     if (!validateForm()) {
-    toast.error("Please fix the errors in the form.");
-    return;
-  }
+    if (!validateForm()) {
+      toast.error("Please fix the errors in the form.");
+      return;
+    }
     try {
       setLoading(true);
       const response = await axios.post("/api/users/signup", user);
-      
+
       if (response.data.success) {
         toast.success("Verification email sent! Check your inbox.");
-        
+
         // Clear form
         setUser({
           username: "",
@@ -167,12 +165,11 @@ export default function SignupPage() {
           window.location.href = response.data.redirect;
         }
       }
-
     } catch (error) {
       if (axios.isAxiosError(error)) {
         toast.error(error.response?.data?.error || "Signup failed. Try again!");
         const redirectPath = error.response?.data?.redirect;
-        if(redirectPath){
+        if (redirectPath) {
           window.location.href = redirectPath;
         }
       } else {
@@ -207,35 +204,32 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white">
+      {/* Left Side: Branding & Welcome */}
+      <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
+        {/* Logo at Top */}
+        <div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/logo-Photoroom.png"
+            alt="SoundSpire logo"
+            width={200}
+            height={200}
+            className="mb-4"
+          />
+        </div>
 
-       {/* Left Side: Branding & Welcome */}
-  <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
-  
-    
-    {/* Logo at Top */}
-    <div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/images/logo-Photoroom.png"
-        alt="SoundSpire logo"
-        width={200}
-        height={200}
-        className="mb-4"
-      />
-    </div>
-
-    {/* Welcome Text at Bottom */}
-    <div className="mb-12">
-      <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">
-        Welcome Back_
-      </h1>
-      <div className="text-5xl bg-gradient-to-t from-gray-400 to-gray-50 font-light bg-clip-text text-transparent space-y-2 italic">
-        <h2>Your Vibe,</h2>
-        <h2>Your Beats,</h2>
-        <h2>Your World Awaits.</h2>
+        {/* Welcome Text at Bottom */}
+        <div className="mb-12">
+          <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">
+            Welcome Back
+          </h1>
+          <div className="text-5xl bg-gradient-to-t from-gray-400 to-gray-50 font-light bg-clip-text text-transparent space-y-2 italic">
+            <h2>Your Vibe,</h2>
+            <h2>Your Beats,</h2>
+            <h2>Your World Awaits.</h2>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
 
       {/* Right Side: Login Form */}
       <div className="bg-white text-black flex flex-col justify-center items-center w-full md:w-1/2 p-8">
@@ -284,7 +278,9 @@ export default function SignupPage() {
                 />
               )}
               {formErrors[field.name] && (
-                <p className="text-sm text-red-500 mt-1">{formErrors[field.name]}</p>
+                <p className="text-sm text-red-500 mt-1">
+                  {formErrors[field.name]}
+                </p>
               )}
             </div>
           ))}

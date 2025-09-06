@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 interface UseCheckPreferencesReturn {
   hasPreferences: boolean;
@@ -28,21 +28,22 @@ const useCheckPreferences = (): UseCheckPreferencesReturn => {
         setIsLoading(true);
         setError(null);
 
-        const response = await axios.get(`/api/preferences/check?userId=${user.id}`);
+        const response = await axios.get(
+          `/api/preferences/check?userId=${user.id}`,
+        );
         const { hasPreferences: userHasPreferences } = response.data;
 
         setHasPreferences(userHasPreferences);
 
-        // If user has preferences, redirect to explore
+        // If user has preferences, redirect to feed
         if (userHasPreferences) {
-          router.push('/explore');
+          router.push("/feed");
         }
         // If no preferences, stay on current page (preference selection)
         // The preference selection page will handle the flow
-
       } catch (err) {
-        console.error('Error checking preferences:', err);
-        setError('Failed to check preferences');
+        console.error("Error checking preferences:", err);
+        setError("Failed to check preferences");
         // On error, assume no preferences and stay on preference selection
         setHasPreferences(false);
       } finally {
