@@ -7,6 +7,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
+import { FaGoogle } from "react-icons/fa";
 
 const fields = [
   {
@@ -44,7 +45,7 @@ function LoginPageInner() {
 
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
-  // const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const onLogin = async () => {
     try {
@@ -99,6 +100,20 @@ function LoginPageInner() {
     const allFilled = Object.values(user).every((val) => val.trim().length > 0);
     setButtonDisabled(!allFilled);
   }, [user]);
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    try {
+      console.log("Google login clicked");
+      window.location.href = "/api/auth/google";
+    } catch (error) {
+      console.error("Google login failed:", error);
+      toast.error("Google login failed");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white">
@@ -175,6 +190,15 @@ function LoginPageInner() {
           >
             Forgot Password?
           </Link>
+
+          <button
+            onClick={handleGoogleLogin}
+            disabled={googleLoading}
+            className="w-full py-3 flex justify-center items-center bg-red-600 hover:bg-red-700 rounded text-white font-semibold transition"
+          >
+            <FaGoogle className="mr-2" />
+            {googleLoading ? "Signing in with Google..." : "Continue with Google"}
+          </button>
 
           <p className="text-center text-sm mt-6 text-gray-400">
             Don&apos;t have an account yet?{" "}
