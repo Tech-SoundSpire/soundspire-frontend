@@ -6,9 +6,22 @@ const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
 
 export function getSpotifyAuthUrl(state: string) {
   const baseUrl = process.env.NEXTAUTH_URL || 'http://127.0.0.1:3000';
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  
+  // Add debugging to help identify the issue
+  console.log('🔧 [Spotify Auth] Environment check:', {
+    NODE_ENV: process.env.NODE_ENV,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    SPOTIFY_CLIENT_ID: clientId ? 'SET' : 'NOT SET',
+    clientIdLength: clientId?.length || 0
+  });
+  
+  if (!clientId) {
+    throw new Error('SPOTIFY_CLIENT_ID environment variable is not set');
+  }
   
   const params = new URLSearchParams({
-    client_id: process.env.SPOTIFY_CLIENT_ID || '',
+    client_id: clientId,
     response_type: 'code',
     redirect_uri: `${baseUrl}/api/auth/callback/spotify`,
     scope: [
@@ -24,14 +37,19 @@ export function getSpotifyAuthUrl(state: string) {
 
 export async function exchangeCodeForTokens(code: string) {
   const baseUrl = process.env.NEXTAUTH_URL || 'http://127.0.0.1:3000';
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
   
+  if (!clientId || !clientSecret) {
+    throw new Error('SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET environment variables are not set');
+  }
 
   const body = new URLSearchParams({
     grant_type: 'authorization_code',
     code,
     redirect_uri: `${baseUrl}/api/auth/callback/spotify`,
-    client_id: process.env.SPOTIFY_CLIENT_ID || '',
-    client_secret: process.env.SPOTIFY_CLIENT_SECRET || '',
+    client_id: clientId,
+    client_secret: clientSecret,
   });
 
   const res = await fetch(SPOTIFY_TOKEN_URL, {
@@ -56,11 +74,18 @@ export async function refreshAccessTokenForUser(userId: string) {
   const record = await UserSpotifyToken.findOne({ where: { user_id: userId } });
   if (!record) throw new Error('No Spotify token found');
 
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+  
+  if (!clientId || !clientSecret) {
+    throw new Error('SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET environment variables are not set');
+  }
+
   const body = new URLSearchParams({
     grant_type: 'refresh_token',
     refresh_token: record.refresh_token,
-    client_id: process.env.SPOTIFY_CLIENT_ID || '',
-    client_secret: process.env.SPOTIFY_CLIENT_SECRET || '',
+    client_id: clientId,
+    client_secret: clientSecret,
   });
   const res = await fetch(SPOTIFY_TOKEN_URL, {
     method: 'POST',
