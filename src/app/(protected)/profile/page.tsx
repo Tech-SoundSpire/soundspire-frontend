@@ -57,46 +57,48 @@ export default function ProfilePage() {
     ...profile,
   });
 
+  const fetchProfile = async () => {
+    if (!user || !user.email) return;
+    
+    try {
+      setIsLoading(true);
+      const res = await fetch(
+        `/api/profile?email=${encodeURIComponent(user.email || "")}`,
+      );
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+
+      setProfile({
+        fullName:
+          data.full_name || user.name || user.email?.split("@")[0] || "User",
+        userName:
+          data.username || user.email?.split("@")[0].toLowerCase() || "user",
+        email: data.email || user.email || "",
+        gender: data.gender || "Other",
+        phoneNumber: data.mobile_number || "",
+        dob: data.date_of_birth
+          ? new Date(data.date_of_birth).toISOString().split("T")[0]
+          : "2000-01-01",
+        city: data.city || "New York",
+        country: data.country || "United States",
+        profileImage: data.profile_picture_url || user.photoURL || null,
+        spotifyLinked: data.spotify_linked || false,
+        subscriptions: data.subscriptions || [],
+      });
+    } catch (err) {
+      toast.error("Failed to load profile data");
+      console.error('Error fetching profile:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!user || !user.email) {
       router.push("/login");
       return;
     }
-
-    const fetchProfile = async () => {
-      try {
-        setIsLoading(true);
-        const res = await fetch(
-          `/api/profile?email=${encodeURIComponent(user.email || "")}`,
-        );
-        const data = await res.json();
-
-        if (data.error) throw new Error(data.error);
-
-        setProfile({
-          fullName:
-            data.full_name || user.name || user.email?.split("@")[0] || "User",
-          userName:
-            data.username || user.email?.split("@")[0].toLowerCase() || "user",
-          email: data.email || user.email || "",
-          gender: data.gender || "Other",
-          phoneNumber: data.mobile_number || "",
-          dob: data.date_of_birth
-            ? new Date(data.date_of_birth).toISOString().split("T")[0]
-            : "2000-01-01",
-          city: data.city || "New York",
-          country: data.country || "United States",
-          profileImage: data.profile_picture_url || user.photoURL || null,
-          spotifyLinked: data.spotify_linked || false,
-          subscriptions: data.subscriptions || [],
-        });
-      } catch (err) {
-        toast.error("Failed to load profile data");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
     fetchProfile();
   }, [user, router]);
@@ -104,6 +106,19 @@ export default function ProfilePage() {
   useEffect(() => {
     setEditableProfile({ ...profile });
   }, [profile]);
+
+  // Refresh profile data when returning from Spotify connection
+  useEffect(() => {
+    const handleFocus = () => {
+      // Refresh profile data to check if Spotify was connected
+      if (user?.email) {
+        fetchProfile();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user]);
 
   const countries = countriesWithCities.map((c) => c.name);
   const editableCities =
@@ -636,37 +651,98 @@ export default function ProfilePage() {
 
           {/* Spotify Data Sections */}
           {profile.spotifyLinked && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <SpotifySection title="Top Artists" endpoint="/api/spotify/top-artists" render={(data: any) => (
-                <ul className="space-y-2">
-                  {(data.items || []).map((a: any) => (
-                    <li key={a.id} className="text-white">{a.name}</li>
-                  ))}
-                </ul>
-              )} />
-              <SpotifySection title="Top Genres" endpoint="/api/spotify/genres" render={(data: any) => (
-                <ul className="space-y-2">
-                  {(data.genres || []).map((g: any) => (
-                    <li key={g.genre} className="text-white">{g.genre} ({g.count})</li>
-                  ))}
-                </ul>
-              )} />
-              <SpotifySection title="Liked Songs" endpoint="/api/spotify/liked-songs" render={(data: any) => (
-                <ul className="space-y-2 max-h-64 overflow-auto pr-2">
-                  {(data.items || []).map((i: any) => (
-                    <li key={i.track.id} className="text-white">
-                      {i.track.name} — {i.track.artists.map((ar: any) => ar.name).join(', ')}
-                    </li>
-                  ))}
-                </ul>
-              )} />
-              <SpotifySection title="Languages" endpoint="/api/spotify/languages" render={(data: any) => (
-                <ul className="space-y-2">
-                  {(data.languages || []).map((l: any) => (
-                    <li key={l.language} className="text-white">{l.language} ({l.count})</li>
-                  ))}
-                </ul>
-              )} />
+            <div className="mt-6">
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+                <span className="mr-2">🎵</span>
+                Your Spotify Music Profile
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <SpotifySection title="🎤 Top 10 Artists" endpoint="/api/spotify/top-artists" render={(data: any) => (
+                  <div className="space-y-3">
+                    {(data.items || []).map((artist: any, index: number) => (
+                      <div key={artist.id} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors">
+                        <span className="text-green-400 font-bold text-sm w-6">{index + 1}</span>
+                        {artist.images && artist.images[0] && (
+                          <Image
+                            src={artist.images[0].url}
+                            alt={artist.name}
+                            width={40}
+                            height={40}
+                            className="rounded-full"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <p className="text-white font-medium">{artist.name}</p>
+                          <p className="text-gray-400 text-sm">{artist.genres?.slice(0, 2).join(', ')}</p>
+                        </div>
+                        <span className="text-gray-500 text-sm">{artist.popularity}%</span>
+                      </div>
+                    ))}
+                  </div>
+                )} />
+                
+                <SpotifySection title="🎭 Top 10 Genres" endpoint="/api/spotify/genres" render={(data: any) => (
+                  <div className="space-y-3">
+                    {(data.genres || []).map((genre: any, index: number) => (
+                      <div key={genre.genre} className="flex items-center justify-between p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-green-400 font-bold text-sm w-6">{index + 1}</span>
+                          <span className="text-white font-medium capitalize">{genre.genre}</span>
+                        </div>
+                        <span className="text-gray-400 text-sm bg-gray-700 px-2 py-1 rounded-full">
+                          {genre.count} songs
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )} />
+                
+                <SpotifySection title="❤️ Liked Songs" endpoint="/api/spotify/liked-songs" render={(data: any) => (
+                  <div className="max-h-80 overflow-auto pr-2 space-y-2">
+                    {(data.items || []).slice(0, 20).map((item: any, index: number) => (
+                      <div key={item.track.id} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors">
+                        <span className="text-green-400 font-bold text-sm w-6">{index + 1}</span>
+                        {item.track.album?.images && item.track.album.images[0] && (
+                          <Image
+                            src={item.track.album.images[0].url}
+                            alt={item.track.name}
+                            width={32}
+                            height={32}
+                            className="rounded"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-medium truncate">{item.track.name}</p>
+                          <p className="text-gray-400 text-sm truncate">
+                            {item.track.artists.map((ar: any) => ar.name).join(', ')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {(data.items || []).length > 20 && (
+                      <p className="text-gray-500 text-sm text-center mt-2">
+                        ... and {(data.items || []).length - 20} more songs
+                      </p>
+                    )}
+                  </div>
+                )} />
+                
+                <SpotifySection title="🌍 Languages" endpoint="/api/spotify/languages" render={(data: any) => (
+                  <div className="space-y-3">
+                    {(data.languages || []).map((lang: any, index: number) => (
+                      <div key={lang.language} className="flex items-center justify-between p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-green-400 font-bold text-sm w-6">{index + 1}</span>
+                          <span className="text-white font-medium">{lang.language}</span>
+                        </div>
+                        <span className="text-gray-400 text-sm bg-gray-700 px-2 py-1 rounded-full">
+                          {lang.count} songs
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )} />
+              </div>
             </div>
           )}
         </div>

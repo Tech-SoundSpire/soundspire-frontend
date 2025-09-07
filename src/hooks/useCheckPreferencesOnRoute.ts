@@ -39,7 +39,7 @@ const useCheckPreferencesOnRoute = (): UseCheckPreferencesOnRouteReturn => {
         }
 
       } catch (err) {
-        console.error('Error checking preferences:', error);
+        console.error('Error checking preferences:', err);
         setError('Failed to check preferences');
         // On error, assume no preferences and redirect to preference selection
         router.push('/PreferenceSelectionPage');

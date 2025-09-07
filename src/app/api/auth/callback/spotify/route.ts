@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exchangeCodeForTokens } from '@/lib/spotify';
 import UserSpotifyToken from '@/models/UserSpotifyToken';
+import { User } from '@/models/User';
 import { getDataFromToken } from '@/utils/getDataFromToken';
 
 export async function GET(request: NextRequest) {
@@ -57,8 +58,16 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Update user's spotify_linked status
+    console.log('Updating user spotify_linked status...');
+    await User.update(
+      { spotify_linked: true },
+      { where: { user_id: userId } }
+    );
+
     console.log('OAuth flow completed successfully');
-    const response = NextResponse.redirect(`${process.env.NEXTAUTH_URL || 'https://127.0.0.1:3000'}/(protected)/profile`);
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://127.0.0.1:3000';
+    const response = NextResponse.redirect(`${baseUrl}/profile`);
     response.cookies.delete('spotify_oauth_state');
     return response;
   } catch (e: unknown) {

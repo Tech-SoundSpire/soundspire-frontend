@@ -42,7 +42,8 @@ export async function GET(request: NextRequest) {
 
     // Optional: mark user as spotify_linked in profile API (existing endpoint handles updates)
     // Redirect back to profile page
-    const response = NextResponse.redirect(`${process.env.NEXTAUTH_URL || 'https://localhost:3000'}/(protected)/profile`);
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://127.0.0.1:3000';
+    const response = NextResponse.redirect(`${baseUrl}/(protected)/profile`);
     response.cookies.delete('spotify_oauth_state');
     return response;
   } catch (e: unknown) {

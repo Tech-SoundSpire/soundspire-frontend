@@ -12,6 +12,13 @@ export async function GET(request: NextRequest) {
       redirect_uri: parsed.searchParams.get('redirect_uri'),
       scope: parsed.searchParams.get('scope'),
       state,
+      client_id: parsed.searchParams.get('client_id'),
+      environment: {
+        NODE_ENV: process.env.NODE_ENV,
+        NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+        SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID ? 'SET' : 'NOT SET',
+        SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET ? 'SET' : 'NOT SET',
+      }
     });
   }
   const res = NextResponse.redirect(url);

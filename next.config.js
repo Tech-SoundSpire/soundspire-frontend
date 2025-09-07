@@ -31,6 +31,21 @@ const nextConfig = {
         hostname: 'localhost',
         port: '3000',
         pathname: '/api/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.scdn.co',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'mosaic.scdn.co',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'wrapped-images.spotifycdn.com',
+        pathname: '**',
       }
     ],
     // Add these configurations for better image handling

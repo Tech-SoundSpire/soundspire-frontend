@@ -45,3 +45,9 @@ next-env.d.ts
 localhost*
 
 soundspire_backup.sql
+
+# Ignore local server file
+server.js
+
+# Ignore package-lock.json (team requirement)
+package-lock.json
