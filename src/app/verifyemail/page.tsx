@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-// import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function VerifyEmailPage() {
@@ -24,28 +23,31 @@ export default function VerifyEmailPage() {
     const verifyUserEmail = async () => {
       setLoading(true);
       try {
-        await axios.post("/api/users/verifyemail", { token }, {withCredentials: true});
+        await axios.post(
+          "/api/users/verifyemail",
+          { token },
+          { withCredentials: true }
+        );
+
         setVerified(true);
         setError(false);
-        // setLoadding(false);
-        
-        toast.success("Email verified successfully! Redirecting....");
-        setTimeout(() => {
-          // router.replace("/explore");
-          window.location.href = "/explore";
-        },3000);
 
+        toast.success("Email verified successfully! Redirecting...");
+        setTimeout(() => {
+          // ✅ Redirect to profile completion form
+          router.replace("/complete-profile");
+        }, 2000);
       } catch (err) {
-        // setLoadding(false);
         setError(true);
-        if(axios.isAxiosError(err)){
-          const message = err?.response?.data?.message || "Verification failed!";
+        if (axios.isAxiosError(err)) {
+          const message =
+            err?.response?.data?.message || "Verification failed!";
           toast.error(message);
-        }else{
-          toast.error("unexpected error occured!");
+        } else {
+          toast.error("Unexpected error occurred!");
           console.error(err);
         }
-      }finally{
+      } finally {
         setLoading(false);
       }
     };
@@ -53,7 +55,7 @@ export default function VerifyEmailPage() {
     if (token) {
       verifyUserEmail();
     }
-  }, [token,router]);
+  }, [token, router]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 text-white">
@@ -69,7 +71,7 @@ export default function VerifyEmailPage() {
       {!loading && verified && (
         <div className="text-green-500 mt-4">
           <h2>Email Verified Successfully!</h2>
-          <p>Redirecting to your dashboard...</p>
+          <p>Redirecting you to complete your profile...</p>
         </div>
       )}
 
