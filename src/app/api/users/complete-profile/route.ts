@@ -5,12 +5,14 @@ import jwt from "jsonwebtoken";
 export async function POST(req: NextRequest) {
   try {
     const token = req.cookies.get("token")?.value;
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
     const body = await req.json();
 
-    // Update user
+    // ✅ Update user including profile picture
     const [rows, updatedUsers] = await User.update(
       {
         full_name: body.full_name,
@@ -19,13 +21,14 @@ export async function POST(req: NextRequest) {
         city: body.city,
         country: body.country,
         mobile_number: body.phone_number,
+        profile_picture_url: body.profile_picture_url, // <--- ADD THIS
       },
       { where: { user_id: decoded.id }, returning: true }
     );
 
     const updatedUser = updatedUsers[0];
 
-    // Issue new JWT cookie
+    // ✅ Issue new JWT cookie with updated info
     const authToken = jwt.sign(
       { id: updatedUser.user_id, email: updatedUser.email },
       process.env.JWT_SECRET!,
@@ -39,6 +42,7 @@ export async function POST(req: NextRequest) {
         name: updatedUser.full_name,
         email: updatedUser.email,
         provider: "local",
+        profile_picture_url: updatedUser.profile_picture_url, // return it back
       },
     });
 
