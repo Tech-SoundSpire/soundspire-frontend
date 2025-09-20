@@ -35,7 +35,11 @@ export default function ReviewsPage() {
     .then(res => res.json())
     .then(data => {
       const safeReviews = Array.isArray(data) ? data : (data.reviews || []);
-      setReviews(safeReviews);
+      // Sort reviews by created_at in descending order (latest first)
+      const sortedReviews = safeReviews.sort((a: Review, b: Review) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setReviews(sortedReviews);
     })
     .catch(err => {
       console.error('Error fetching reviews:', err);
