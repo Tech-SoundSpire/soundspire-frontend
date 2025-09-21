@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMusic, FaRecordVinyl, FaFolder, FaArrowRight } from 'react-icons/fa';
-import Link from 'next/link';
-import { getImageUrl } from '@/utils/userProfileImageUtils';
+import { FaMusic, FaRecordVinyl, FaFolder } from 'react-icons/fa';
+
 
 const roleCards = [
   {
@@ -52,22 +51,6 @@ export default function ArtistOnboardingPage() {
         </button>
       </div> */}
       
-      {/* Top Header Area */}
-      <div className="relative z-10 p-8">
-                 {/* Logo */}
-         <div className="flex items-center mb-8">
-           <div className="flex items-center">
-             <img
-               src={getImageUrl('s3://soundspirewebsiteassets/assets/ss_logo.png')}
-               alt="SoundSpire Logo"
-               width={100}
-               height={100}
-               className="mr-3 object-contain"
-             />
-             <span className="text-white text-2xl font-bold">SoundSpire</span>
-           </div>
-         </div>
-
                  {/* Welcome Message */}
          <div className="text-center mb-8">
            <h1 className="text-4xl md:text-6xl font-bold text-[#FA6400] mb-4">
@@ -80,7 +63,6 @@ export default function ArtistOnboardingPage() {
             To know you better, let us which of the following best describes you:
           </p>
         </div>
-      </div>
 
       {/* Middle Selection Area */}
       <div className="relative z-10 px-8 mb-8">
