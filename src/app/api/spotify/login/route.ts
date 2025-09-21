@@ -3,14 +3,16 @@ import { getSpotifyAuthUrl } from '@/lib/spotify';
 
 export async function GET(request: NextRequest) {
   const state = Math.random().toString(36).slice(2);
-  const url = getSpotifyAuthUrl(state);
   const { searchParams } = new URL(request.url);
+  const force = searchParams.get('force') === '1';
+  const url = getSpotifyAuthUrl(state, { forceConsent: force });
   if (searchParams.get('debug') === '1') {
     const parsed = new URL(url);
     return NextResponse.json({
       authorize_url: url,
       redirect_uri: parsed.searchParams.get('redirect_uri'),
       scope: parsed.searchParams.get('scope'),
+      show_dialog: parsed.searchParams.get('show_dialog'),
       state,
       client_id: parsed.searchParams.get('client_id'),
       environment: {

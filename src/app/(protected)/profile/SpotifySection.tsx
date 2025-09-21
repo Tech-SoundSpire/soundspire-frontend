@@ -10,6 +10,7 @@ interface Props<T = any> {
 export default function SpotifySection<T>({ title, endpoint, render }: Props<T>) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -21,6 +22,7 @@ export default function SpotifySection<T>({ title, endpoint, render }: Props<T>)
         
         const res = await fetch(endpoint);
         const json = await res.json();
+        setStatus(res.status);
         
         if (!res.ok) {
           throw new Error(json.error || 'Failed to load');
@@ -54,9 +56,19 @@ export default function SpotifySection<T>({ title, endpoint, render }: Props<T>)
         <div className="text-red-500 p-4 bg-red-900/20 rounded-lg border border-red-800">
           <p className="font-medium">❌ Error loading {title}</p>
           <p className="text-sm mt-1">{error}</p>
-          <p className="text-xs mt-2 text-red-400">
-            Check the browser console for detailed error information.
-          </p>
+          {status === 500 && error.toLowerCase().includes('permissions') && (
+            <div className="mt-3">
+              <a
+                href="/api/spotify/login?force=1"
+                className="inline-block px-4 py-2 bg-[#1DB954] text-white rounded hover:opacity-90"
+              >
+                Reconnect Spotify
+              </a>
+              <p className="text-xs mt-2 text-red-400">
+                You may need to grant access again to read liked songs/top artists.
+              </p>
+            </div>
+          )}
         </div>
       )}
       {!loading && !error && data && render(data)}

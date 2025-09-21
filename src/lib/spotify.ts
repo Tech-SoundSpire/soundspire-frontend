@@ -4,7 +4,7 @@ import { getDataFromToken } from '@/utils/getDataFromToken';
 
 const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
 
-export function getSpotifyAuthUrl(state: string) {
+export function getSpotifyAuthUrl(state: string, options?: { forceConsent?: boolean }) {
   const baseUrl = process.env.NEXTAUTH_URL || 'http://127.0.0.1:3000';
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   

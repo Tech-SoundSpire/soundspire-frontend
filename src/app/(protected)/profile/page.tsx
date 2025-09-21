@@ -303,6 +303,21 @@ export default function ProfilePage() {
     }
   };
 
+  const handleDisconnectSpotify = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/spotify/disconnect', { method: 'POST' });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to disconnect');
+      setProfile((p) => ({ ...p, spotifyLinked: false }));
+      toast.success('Spotify disconnected');
+    } catch (e) {
+      toast.error((e as Error).message || 'Failed to disconnect');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-[#1a1625] flex items-center justify-center">
@@ -645,7 +660,13 @@ export default function ProfilePage() {
                 {isLoading ? 'Redirecting…' : 'Connect with Spotify'}
               </button>
             ) : (
-              <span className="px-4 py-2 bg-[#1DB954] text-white rounded-md">Connected</span>
+              <button
+                onClick={handleDisconnectSpotify}
+                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors duration-200"
+                disabled={isLoading}
+              >
+                Disconnect Spotify
+              </button>
             )}
           </div>
 
