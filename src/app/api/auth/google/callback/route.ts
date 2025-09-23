@@ -75,7 +75,9 @@ export async function GET(request: Request) {
 
     // Attempt to find or create user in DB
     const hashedPassword = await bcrypt.hash(userData.email, 10);
-    const baseUsername = userData.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "_");
+    const baseUsername = userData.email
+      .split("@")[0]
+      .replace(/[^a-zA-Z0-9]/g, "_");
 
     let userInDb = await User.findOne({ where: { email: userData.email } });
     let isNewUser = false;
@@ -104,8 +106,8 @@ export async function GET(request: Request) {
           google_id: userData.id,
         });
       }
-       if (!userInDb) {
-    throw new Error("Failed to create user");
+      if (!userInDb) {
+        throw new Error("Failed to create user");
       }
 
       await UserVerification.create({
@@ -123,13 +125,15 @@ export async function GET(request: Request) {
       redirectPath = "/complete-profile";
     } else {
       const preferences = await UserPreferences.findOne({
-        where: { user_id: userInDb!.user_id }
+        where: { user_id: userInDb!.user_id },
       });
 
-      if (!preferences || 
-          (preferences.genres.length === 0 && 
-          preferences.languages.length === 0 && 
-          preferences.favorite_artists.length === 0)) {
+      if (
+        !preferences ||
+        (preferences.genres.length === 0 &&
+          preferences.languages.length === 0 &&
+          preferences.favorite_artists.length === 0)
+      ) {
         redirectPath = "/PreferenceSelectionPage";
       }
     }

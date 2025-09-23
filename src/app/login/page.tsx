@@ -35,7 +35,7 @@ function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  useRedirectIfAuthenticated(); // Session checker hook
+  useRedirectIfAuthenticated(); //Session checker hook
 
   const [user, setUser] = useState({
     email: "",
@@ -69,8 +69,8 @@ function LoginPageInner() {
           "Something went wrong during login.";
         toast.error(message);
         console.error("Login failed:", error);
-      } else {
-        toast.error("Unexpected error occurred!");
+      }else{
+        toast.error("unexpected error occured!");
       }
     } finally {
       setLoading(false);
@@ -133,7 +133,7 @@ function LoginPageInner() {
         {/* Welcome Text at Bottom */}
         <div className="mb-12">
           <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">
-            Welcome Back_
+            Welcome Back
           </h1>
           <div className="text-5xl bg-gradient-to-t from-gray-400 to-gray-50 font-light bg-clip-text text-transparent space-y-2 italic">
             <h2>Your Vibe,</h2>
