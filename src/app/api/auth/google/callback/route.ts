@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { User } from "@/models/User";
 import { UserVerification } from "@/models/UserVerification";
+import UserPreferences from "@/models/UserPreferences";
 import bcrypt from "bcryptjs";
 
 export const dynamic = "force-dynamic";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const REDIRECT_URI = process.env.NEXT_PUBLIC_BASE_URL + "/api/auth/google/callback";
+const REDIRECT_URI =
+  process.env.NEXT_PUBLIC_BASE_URL + "/api/auth/google/callback";
 const FRONTEND_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 // Google OAuth endpoints
@@ -70,11 +72,15 @@ export async function GET(request: Request) {
 
     // Attempt to find or create user in DB
     const hashedPassword = await bcrypt.hash(userData.email, 10);
-    const baseUsername = userData.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "_");
+    const baseUsername = userData.email
+      .split("@")[0]
+      .replace(/[^a-zA-Z0-9]/g, "_");
 
     let userInDb = await User.findOne({ where: { email: userData.email } });
+    let isNewUser = false;
 
     if (!userInDb) {
+      isNewUser = true;
       try {
         userInDb = await User.create({
           email: userData.email,
@@ -97,8 +103,8 @@ export async function GET(request: Request) {
           google_id: userData.id,
         });
       }
-       if (!userInDb) {
-    throw new Error("Failed to create user");
+      if (!userInDb) {
+        throw new Error("Failed to create user");
       }
 
       await UserVerification.create({
@@ -108,6 +114,27 @@ export async function GET(request: Request) {
         verification_token: "google-oauth",
         expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
       });
+    }
+
+    // Check if user has preferences
+    let redirectPath = "/feed"; // Default to feed
+    if (isNewUser) {
+      // New users always go to preference selection
+      redirectPath = "/PreferenceSelectionPage";
+    } else {
+      // Check existing user preferences
+      const preferences = await UserPreferences.findOne({
+        where: { user_id: userInDb!.user_id },
+      });
+
+      if (
+        !preferences ||
+        (preferences.genres.length === 0 &&
+          preferences.languages.length === 0 &&
+          preferences.favorite_artists.length === 0)
+      ) {
+        redirectPath = "/PreferenceSelectionPage";
+      }
     }
 
     // ✅ Safe usage with non-null assertion
@@ -121,7 +148,7 @@ export async function GET(request: Request) {
       refreshToken: tokenData.refresh_token,
     };
 
-    const response = NextResponse.redirect(`${FRONTEND_URL}/explore`);
+    const response = NextResponse.redirect(`${FRONTEND_URL}${redirectPath}`);
 
     // Set secure cookie
     response.cookies.set("user", JSON.stringify(user), {

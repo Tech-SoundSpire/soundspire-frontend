@@ -1,15 +1,18 @@
-import sequelize from '@/lib/sequelize';
+// import sequelize from '@/lib/sequelize';
+import { sequelize } from "@/lib/dbConfig";
+import Post from "./Post";
+import Comment from "./Comment";
+import Like from "./Like";
+import Community from "./Community";
+import CommunitySubscription from "./CommunitySubscription";
+import Artist from "./Artist";
+import Review from "./Review";
+import { User } from "./User";
+import UserPreferences from "./UserPreferences";
+import Genres from "./Genres";
+import Languages from "./Languages";
 
-import Post from './Post';
-import Comment from './Comment';
-import Like from './Like';
-import Community from './Community';
-import CommunitySubscription from './CommunitySubscription';
-import Artist from './Artist';
-import Review from './Review';
-import { User } from './User';
-
-import { defineAssociations } from './associations';
+import { defineAssociations } from "./associations";
 
 // Define models map
 const models = {
@@ -21,6 +24,9 @@ const models = {
   Artist,
   Review,
   User,
+  UserPreferences,
+  Genres,
+  Languages,
 };
 
 // Define a type for the models map
@@ -28,7 +34,7 @@ export type Models = typeof models;
 
 // Run associations if using associate pattern
 Object.values(models).forEach((model) => {
-  if ('associate' in model && typeof model.associate === 'function') {
+  if ("associate" in model && typeof model.associate === "function") {
     model.associate(models);
   }
 });
@@ -39,21 +45,22 @@ defineAssociations();
 export async function initializeDatabase() {
   try {
     await sequelize.authenticate();
-    console.log('✅ Database connection established!');
+    console.log("✅ Database connection established!");
 
     // Sync all models (adjust alter: true if needed during dev)
     await Promise.all(
-      Object.values(models).map((model) => model.sync({ alter: false }))
+      Object.values(models).map((model) => model.sync({ alter: false })),
     );
 
-    console.log('✅ All models were synchronized successfully!');
+    console.log("✅ All models were synchronized successfully!");
   } catch (error: unknown) {
-    console.error('❌ Database initialization failed:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    console.error("❌ Database initialization failed:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "An unknown error occurred";
     throw new Error(errorMessage);
   }
 }
 
 export { sequelize };
 export default models;
-export { Post, Comment, Like, Community, CommunitySubscription, Artist, Review, User };
+export { User };
