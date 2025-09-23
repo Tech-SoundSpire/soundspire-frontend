@@ -7,6 +7,9 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
+import Image from "next/image";
+import { getImageUrl } from "@/utils/userProfileImageUtils";
+
 
 const fields = [
   {
@@ -203,14 +206,22 @@ export default function SignupPage() {
   }, [user]);
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white">
-      {/* Left Side: Branding & Welcome */}
+    <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white relative">
+
+      {/* For Artists Button */}
+      <div className="absolute top-4 right-4 z-10">
+        <Link
+          href="/artist-onboarding"
+          className="px-6 py-2 bg-[#FA6400] hover:bg-[#e55a00] text-white font-bold rounded-lg transition-colors duration-200 shadow-lg"
+        >
+          For Artists
+        </Link>
+      </div>
       <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
         {/* Logo at Top */}
         <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/images/logo-Photoroom.png"
+          <Image
+            src={getImageUrl("s3://soundspirewebsiteassets/assets/ss_logo.png")} //logo-Photoroom.png
             alt="SoundSpire logo"
             width={200}
             height={200}

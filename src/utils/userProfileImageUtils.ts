@@ -11,9 +11,7 @@ export const getImageUrl = (s3Path: string): string => {
       const pathMatch = s3Path.match(/^s3:\/\/[^\/]+\/(.+)$/);
       if (pathMatch) {
         const path = pathMatch[1];
-        // Remove 'images/' prefix since it's already in the API route
-        const cleanPath = path.replace(/^images\//, '');
-        return `/api/images/${cleanPath}`;
+        return `/api/images/${path}`;
       }
     }
   
