@@ -78,7 +78,7 @@ export default function ExplorePage() {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
   const [loading, setLoading] = useState(true);
-  const { setUser, logout } = useAuth();
+  const { setUser } = useAuth();
   const router = useRouter();
 
   // Fetch data from API
@@ -136,11 +136,13 @@ export default function ExplorePage() {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await axios.get("../api/users/logout", {
+        withCredentials: true,
+      });
+      setUser(null);
       router.push("/login");
     } catch (error) {
       console.error("Logout failed:", error);
-      toast.error("Logout failed. Please try again.");
     }
   };
 
@@ -265,12 +267,9 @@ export default function ExplorePage() {
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-white">REVIEWS</h2>
-            <button
-              className="text-gray-400 hover:text-white"
-              onClick={() => router.push('/reviews')}
-            >
+            <a href="#" className="text-gray-400 hover:text-white">
               See All
-            </button>
+            </a>
           </div>
           {loading ? (
             <div className="flex justify-center items-center h-32">

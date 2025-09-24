@@ -9,12 +9,12 @@ import { getLogoUrl } from "@/utils/userProfileImageUtils";
 export default function ResetPassword() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <ResetPasswordInner />
+      <Inner />
     </Suspense>
   );
 }
 
-function ResetPasswordInner() {
+function Inner() {
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

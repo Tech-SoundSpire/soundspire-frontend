@@ -61,7 +61,7 @@ const fields = [
 ];
 
 export default function SignupPage() {
-  const router = useRouter();
+  // const router = useRouter();
 
   useRedirectIfAuthenticated();
 
@@ -211,7 +211,7 @@ export default function SignupPage() {
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={getLogoUrl()}
+            src="/images/logo-Photoroom.png"
             alt="SoundSpire logo"
             width={200}
             height={200}

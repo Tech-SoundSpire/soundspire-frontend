@@ -13,8 +13,8 @@ import {
 } from "react-icons/fa";
 import { MdOutlineDynamicFeed } from "react-icons/md";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
-import { getLogoUrl } from "@/utils/userProfileImageUtils";
 
 const Navbar = () => {
   // const { logout } = useAuth();
@@ -47,9 +47,8 @@ const Navbar = () => {
           className={`flex items-center mb-8 ${isExpanded ? "px-4" : "justify-center"}`}
         >
           <div className="relative w-8 h-8">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={getLogoUrl()}
+            <Image
+              src="/images/logo.png"
               alt="SoundSpire Logo"
               width={32}
               height={32}

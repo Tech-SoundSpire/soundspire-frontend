@@ -14,25 +14,27 @@ interface ReviewAttributes {
   text_content: string;
   rating: number;
   image_urls?: string[] | null;
-  // New fields for SoundSpire reviews
-  author?: string | null;
-  review_date?: Date | null;
-  review_type?: string | null; // 'album' or 'single'
   created_at: Date;
   updated_at: Date;
   deleted_at?: Date | null;
+
+  // New fields for SoundSpire reviews
+  author?: string | null;
+  review_date?: Date | null;
+  review_type?: "album" | "single" | null;
+
   // Association properties
   user?: any;
   artist?: any;
 }
 
+
 interface ReviewCreationAttributes
   extends Optional<
     ReviewAttributes,
-    "review_id" | "created_at" | "updated_at" | "author" | "review_date" | "review_type"
+    "review_id" | "created_at" | "updated_at"
   > {}
-
-class Review
+  class Review
   extends Model<ReviewAttributes, ReviewCreationAttributes>
   implements ReviewAttributes
 {
@@ -47,15 +49,16 @@ class Review
   public text_content!: string;
   public rating!: number;
   public image_urls!: string[] | null;
-  // New fields for SoundSpire reviews
-  public author!: string | null;
-  public review_date!: Date | null;
-  public review_type!: string | null;
   public created_at!: Date;
   public updated_at!: Date;
   public deleted_at!: Date | null;
 
-  // Association properties
+  // New fields
+  public author!: string | null;
+  public review_date!: Date | null;
+  public review_type!: "album" | "single" | null;
+
+  // Associations
   public user?: any;
   public artist?: any;
 }

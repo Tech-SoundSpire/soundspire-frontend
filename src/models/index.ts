@@ -1,20 +1,20 @@
 // import sequelize from '@/lib/sequelize';
 import { sequelize } from "@/lib/dbConfig";
+import Post from "./Post";
+import Comment from "./Comment";
+import Like from "./Like";
+import Community from "./Community";
+import CommunitySubscription from "./CommunitySubscription";
+import Artist from "./Artist";
+import Review from "./Review";
+import { User } from "./User";
+import UserPreferences from "./UserPreferences";
+import Genres from "./Genres";
+import Languages from "./Languages";
+import UserSpotifyToken from "./UserSpotifyToken";
 
-import Post from './Post';
-import Comment from './Comment';
-import Like from './Like';
-import Community from './Community';
-import CommunitySubscription from './CommunitySubscription';
-import Artist from './Artist';
-import Review from './Review';
-import { User } from './User';
-import UserPreferences from './UserPreferences';
-import Genres from './Genres';
-import Languages from './Languages';
-import UserSpotifyToken from './UserSpotifyToken';
 
-import { defineAssociations } from './associations';
+import { defineAssociations } from "./associations";
 
 // Define models map
 const models = {
