@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
+import { getImageUrl, DEFAULT_PROFILE_IMAGE } from "@/utils/userProfileImageUtils";
 
 interface FormData {
   full_name: string;
@@ -174,7 +175,7 @@ export default function CompleteProfilePage() {
             <div className="relative group">
               <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-600 border-3 border-orange-400 shadow-lg shadow-orange-400/20">
                 <img
-                  src={preview || form.profile_picture_url || "/default-profile.png"}
+                  src={preview || form.profile_picture_url || getImageUrl(DEFAULT_PROFILE_IMAGE)}
                   alt="Profile Preview"
                   className="object-cover w-full h-full"
                 />

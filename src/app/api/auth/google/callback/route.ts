@@ -120,7 +120,7 @@ export async function GET(request: Request) {
     }
 
     // Check if user has preferences
-    let redirectPath = "/explore"; // Default
+    let redirectPath = "/feed"; // Default
     if (isNewUser) {
       redirectPath = "/complete-profile";
     } else {
