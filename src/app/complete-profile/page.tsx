@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -18,7 +18,7 @@ interface FormData {
 }
 
 export default function CompleteProfilePage() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, refreshUser } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,13 +37,17 @@ export default function CompleteProfilePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Validation functions
+  useEffect(() => {
+    if (!user) {
+      refreshUser();
+    }
+  }, [user, refreshUser]);
+
+  // Validation functions
   const validateFullName = (name: string) =>
     /^[A-Za-z\s]+$/.test(name) ? "" : "Full name should contain only letters.";
   const validatePhoneNumber = (phone: string) =>
-    /^\+?[1-9]\d{9,14}$/.test(phone)
-      ? ""
-      : "Phone number must be valid.";
+    /^\+?[1-9]\d{9,14}$/.test(phone) ? "" : "Phone number must be valid.";
   const validateDOB = (dob: string) => {
     const birthDate = new Date(dob);
     const age = new Date().getFullYear() - birthDate.getFullYear();
@@ -52,7 +56,6 @@ export default function CompleteProfilePage() {
   const validateText = (value: string, field: string) =>
     /^[A-Za-z\s]+$/.test(value) ? "" : `${field} should contain only letters.`;
 
-  // ✅ Handle input changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -68,7 +71,6 @@ export default function CompleteProfilePage() {
     setErrors({ ...errors, [name]: error });
   };
 
-  // ✅ Handle image selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -86,7 +88,6 @@ export default function CompleteProfilePage() {
     setPreview(URL.createObjectURL(file));
   };
 
-  // ✅ Upload image to S3 & get path
   const uploadImageToS3 = async (): Promise<string | null> => {
     if (!selectedFile || !user?.email) return null;
 
@@ -94,7 +95,6 @@ export default function CompleteProfilePage() {
       const extension = selectedFile.name.split(".").pop();
       const fileName = `${user.email.split("@")[0]}-${user.id || "unknown"}.${extension}`;
 
-      // Get presigned URL
       const res = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -104,7 +104,6 @@ export default function CompleteProfilePage() {
       if (!res.ok) throw new Error("Failed to get upload URL");
       const { uploadUrl } = await res.json();
 
-      // Upload to S3
       const uploadRes = await fetch(uploadUrl, {
         method: "PUT",
         headers: { "Content-Type": selectedFile.type },
@@ -121,7 +120,6 @@ export default function CompleteProfilePage() {
     }
   };
 
-  // ✅ Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
