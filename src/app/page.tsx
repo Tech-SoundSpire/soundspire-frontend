@@ -5,7 +5,9 @@ import { FaGoogle } from "react-icons/fa";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
-import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
+import { useRouter } from "next/navigation";
+import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRoute";
+import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
 
 const fields = [
   {
@@ -35,7 +37,9 @@ const fields = [
 ];
 
 export default function SignupPage() {
-  useRedirectIfAuthenticated();
+  const router = useRouter();
+  const { isProfileComplete, isLoading: profileLoading } = useCheckCompleteProfileOnRoute();
+  const { hasPreferences, isLoading: preferencesLoading } = useCheckPreferencesOnRoute();
 
   const [user, setUser] = useState({
     username: "",
@@ -48,6 +52,17 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    if (!profileLoading && !isProfileComplete) {
+      router.push("/complete-profile");
+      return;
+    }
+
+    if (!preferencesLoading && isProfileComplete && !hasPreferences) {
+      router.push("/PreferenceSelectionPage");
+    }
+  }, [profileLoading, preferencesLoading, isProfileComplete, hasPreferences, router]);
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
