@@ -62,6 +62,10 @@ export default function SignupPage() {
     if (!preferencesLoading && isProfileComplete && !hasPreferences) {
       router.push("/PreferenceSelectionPage");
     }
+
+    if (!profileLoading && !preferencesLoading && isProfileComplete && hasPreferences) {
+      router.push("/explore");
+    }
   }, [profileLoading, preferencesLoading, isProfileComplete, hasPreferences, router]);
 
   const validateForm = () => {
