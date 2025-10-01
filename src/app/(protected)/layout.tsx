@@ -4,24 +4,41 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import useCheckPreferencesOnRoute from '@/hooks/useCheckPreferencesOnRoute';
+import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRoute";
 
 export default function Layout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-     const { user, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const { hasPreferences, isLoading: preferencesLoading } = useCheckPreferencesOnRoute();
+  const { isProfileComplete, isLoading: profileLoading } = useCheckCompleteProfileOnRoute();
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (isLoading || profileLoading || preferencesLoading) return;
+
+    if (!user) {
       router.push('/');
+      return;
     }
-  }, [user, isLoading, router]);
+
+    if (!isProfileComplete) {
+      router.push('/complete-profile');
+      return;
+    }
+
+    if (!hasPreferences) {
+      router.push('/PreferenceSelectionPage');
+      return;
+    }
+  }, [
+    user, isLoading, router, profileLoading, isProfileComplete, preferencesLoading, hasPreferences,
+  ]);
 
   // Show loading while checking preferences
-  if (isLoading || preferencesLoading) {
+  if (isLoading || preferencesLoading || profileLoading) {
     return (
       <div className="min-h-screen bg-[#120B1A] text-white flex items-center justify-center">
         <div className="text-center">
@@ -37,14 +54,14 @@ export default function Layout({
   }
 
   // If user doesn't have preferences, they will be redirected by the hook
-  if (!hasPreferences) {
+  if (!isProfileComplete || !hasPreferences) {
     return null; // Will redirect to preference selection
   }
 
   return (
     <>
-        <Navbar/>
-          {children}
+      <Navbar />
+      {children}
     </>
   );
 }
