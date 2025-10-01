@@ -8,6 +8,13 @@ export async function POST() {
   // Clear all auth-related cookies
   response.cookies.set('user', '', { maxAge: 0 });
   response.cookies.set('oauth_state', '', { maxAge: 0 });
+  
+  response.cookies.set('token', '', {
+    httpOnly: true,
+    expires: new Date(0),
+    path: '/',
+    sameSite: 'lax',
+  });
 
   return response;
 } 
