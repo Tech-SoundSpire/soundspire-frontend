@@ -47,7 +47,7 @@ export default function CompleteProfilePage() {
   const validateFullName = (name: string) =>
     /^[A-Za-z\s]+$/.test(name) ? "" : "Full name should contain only letters.";
   const validatePhoneNumber = (phone: string) =>
-    /^\+?[1-9]\d{9,14}$/.test(phone) ? "" : "Phone number must be valid.";
+    /^\d{10}$/.test(phone) ? "" : "Phone number must be exactly 10 digits.";
   const validateDOB = (dob: string) => {
     const birthDate = new Date(dob);
     const age = new Date().getFullYear() - birthDate.getFullYear();
