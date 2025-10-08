@@ -8,11 +8,6 @@ interface SignupTokenPayload {
   email: string;
   username: string;
   password_hash: string;
-  full_name: string;
-  gender: "Male" | "Female" | "Other" | null | undefined;
-  mobile_number: string;
-  date_of_birth: Date;
-  city: string;
 }
 export async function POST(request: NextRequest) {
   try {
@@ -49,11 +44,6 @@ export async function POST(request: NextRequest) {
         username: decoded.username,
         email: decoded.email,
         password_hash: decoded.password_hash,
-        full_name: decoded.full_name,
-        gender: decoded.gender,
-        mobile_number: decoded.mobile_number,
-        date_of_birth: decoded.date_of_birth,
-        city: decoded.city,
         is_verified: true,
       });
       console.log("Email verified and account created");

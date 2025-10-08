@@ -3,18 +3,20 @@ import { User } from "@/models/User";
 import { UserVerification } from "@/models/UserVerification";
 import UserPreferences from "@/models/UserPreferences";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 export const dynamic = "force-dynamic";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const REDIRECT_URI =
-  process.env.NEXT_PUBLIC_BASE_URL + "/api/auth/google/callback";
+const REDIRECT_URI = process.env.NEXT_PUBLIC_BASE_URL + "/api/auth/google/callback";
 const FRONTEND_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 // Google OAuth endpoints
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
+
+console.log("🔍 Using redirect_uri:", REDIRECT_URI);
 
 export async function GET(request: Request) {
   try {
@@ -22,6 +24,7 @@ export async function GET(request: Request) {
     const code = searchParams.get("code");
     const state = searchParams.get("state");
     const error = searchParams.get("error");
+    
 
     if (error) {
       return NextResponse.redirect(`${FRONTEND_URL}?error=${error}`);
@@ -117,12 +120,10 @@ export async function GET(request: Request) {
     }
 
     // Check if user has preferences
-    let redirectPath = "/feed"; // Default to feed
+    let redirectPath = "/feed"; // Default
     if (isNewUser) {
-      // New users always go to preference selection
-      redirectPath = "/PreferenceSelectionPage";
+      redirectPath = "/complete-profile";
     } else {
-      // Check existing user preferences
       const preferences = await UserPreferences.findOne({
         where: { user_id: userInDb!.user_id },
       });
@@ -151,12 +152,34 @@ export async function GET(request: Request) {
     const response = NextResponse.redirect(`${FRONTEND_URL}${redirectPath}`);
 
     // Set secure cookie
-    response.cookies.set("user", JSON.stringify(user), {
+    // response.cookies.set("user", JSON.stringify(user), {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "lax",
+    //   maxAge: 60 * 60 * 24 * 7, // 1 week
+    // });
+
+
+
+    
+
+    const authToken = jwt.sign(
+      { id: userInDb!.user_id, email: userInDb!.email },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" }
+    );
+
+    response.cookies.set({
+      name: "token",
+      value: authToken,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 1 week
+      maxAge: 7 * 24 * 60 * 60, // 7 days
     });
+
+
+
 
     return response;
   } catch (error) {

@@ -1,21 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
-import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
+import { useRouter } from "next/navigation";
+import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRoute";
+import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
 
 const fields = [
-  {
-    label: "Name*",
-    name: "full_name",
-    type: "text",
-    placeholder: "Enter your full name",
-  },
   {
     label: "Username*",
     name: "username",
@@ -35,61 +30,48 @@ const fields = [
     placeholder: "Create a password",
   },
   {
-    label: "Gender*",
-    name: "gender",
-    type: "text",
-    placeholder: "Enter your gender",
-  },
-  {
-    label: "Mobile Number*",
-    name: "mobile_number",
-    type: "text",
-    placeholder: "Enter your mobile number",
-  },
-  {
-    label: "Date of Birth*",
-    name: "date_of_birth",
-    type: "date",
-    placeholder: "dd/mm/yyyy",
-  },
-  {
-    label: "City*",
-    name: "city",
-    type: "text",
-    placeholder: "Enter your city",
+    label: "Confirm Password*",
+    name: "confirm_password",
+    type: "password",
+    placeholder: "Confirm your password",
   },
 ];
 
 export default function SignupPage() {
   const router = useRouter();
-
-  useRedirectIfAuthenticated();
+  const { isProfileComplete, isLoading: profileLoading } = useCheckCompleteProfileOnRoute();
+  const { hasPreferences, isLoading: preferencesLoading } = useCheckPreferencesOnRoute();
 
   const [user, setUser] = useState({
-    full_name: "",
     username: "",
     email: "",
     password_hash: "",
-    gender: "",
-    mobile_number: "",
-    date_of_birth: "",
-    city: "",
+    confirm_password: "",
   });
 
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    if (!profileLoading && !isProfileComplete) {
+      router.push("/complete-profile");
+      return;
+    }
+
+    if (!preferencesLoading && isProfileComplete && !hasPreferences) {
+      router.push("/PreferenceSelectionPage");
+    }
+
+    if (!profileLoading && !preferencesLoading && isProfileComplete && hasPreferences) {
+      router.push("/explore");
+    }
+  }, [profileLoading, preferencesLoading, isProfileComplete, hasPreferences, router]);
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const mobileRegex = /^\d{10}$/;
-
-    if (user.full_name.trim().length < 3) {
-      errors.full_name = "Name must be at least 3 characters";
-    }
 
     if (user.username.trim().length < 3) {
       errors.username = "Username must be at least 3 characters";
@@ -103,34 +85,8 @@ export default function SignupPage() {
       errors.password_hash = "Password must be at least 6 characters";
     }
 
-    if (!["Male", "Female", "Other"].includes(user.gender)) {
-      errors.gender = "Gender must be Male, Female or Other";
-    }
-
-    if (!mobileRegex.test(user.mobile_number)) {
-      errors.mobile_number = "Mobile number must be 10 digits";
-    }
-
-    if (!user.date_of_birth) {
-      errors.date_of_birth = "Date of Birth is required";
-    } else {
-      const birthDate = new Date(user.date_of_birth);
-      const today = new Date();
-      const age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      const dayDiff = today.getDate() - birthDate.getDate();
-
-      const isBirthdayPassedThisYear =
-        monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0);
-      const actualAge = isBirthdayPassedThisYear ? age : age - 1;
-
-      if (actualAge < 13) {
-        errors.date_of_birth = "You must be at least 13 years old";
-      }
-    }
-
-    if (user.city.trim() === "") {
-      errors.city = "City is required";
+    if (user.password_hash !== user.confirm_password) {
+      errors.confirm_password = "Passwords do not match";
     }
 
     setFormErrors(errors);
@@ -142,26 +98,24 @@ export default function SignupPage() {
       toast.error("Please fix the errors in the form.");
       return;
     }
+
     try {
       setLoading(true);
-      const response = await axios.post("/api/users/signup", user);
+      const response = await axios.post("/api/users/signup", {
+        username: user.username,
+        email: user.email,
+        password_hash: user.password_hash,
+      });
 
       if (response.data.success) {
         toast.success("Verification email sent! Check your inbox.");
-
-        // Clear form
         setUser({
           username: "",
           email: "",
           password_hash: "",
-          full_name: "",
-          gender: "",
-          mobile_number: "",
-          date_of_birth: "",
-          city: "",
+          confirm_password: "",
         });
 
-        // Redirect to preference selection
         if (response.data.redirect) {
           window.location.href = response.data.redirect;
         }
@@ -170,9 +124,7 @@ export default function SignupPage() {
       if (axios.isAxiosError(error)) {
         toast.error(error.response?.data?.error || "Signup failed. Try again!");
         const redirectPath = error.response?.data?.redirect;
-        if (redirectPath) {
-          window.location.href = redirectPath;
-        }
+        if (redirectPath) window.location.href = redirectPath;
       } else {
         toast.error("An unexpected error occurred.");
       }
@@ -184,11 +136,6 @@ export default function SignupPage() {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
-      console.log("Google login clicked");
-      // Simulate login logic
-      // setTimeout(() => {
-      //   router.push("/explore");
-      // }, 1000);
       window.location.href = "/api/auth/google";
     } catch (error) {
       console.error("Google login failed:", error);
@@ -199,30 +146,20 @@ export default function SignupPage() {
   };
 
   useEffect(() => {
-    const allFilled = Object.values(user).every((val) => val.trim().length > 0);
+    const allFilled = Object.values(user).every((val) => String(val).trim().length > 0);
     setButtonDisabled(!allFilled);
   }, [user]);
 
   return (
     <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white">
-      {/* Left Side: Branding & Welcome */}
+      {/* Left Side */}
       <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
-        {/* Logo at Top */}
         <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={getLogoUrl()}
-            alt="SoundSpire logo"
-            width={200}
-            height={200}
-            className="mb-4"
-          />
+          <img src="/images/logo-Photoroom.png" alt="SoundSpire logo" width={200} height={200} className="mb-4" />
         </div>
-
-        {/* Welcome Text at Bottom */}
         <div className="mb-12">
           <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">
-            Welcome Back
+            Welcome Back_
           </h1>
           <div className="text-5xl bg-gradient-to-t from-gray-400 to-gray-50 font-light bg-clip-text text-transparent space-y-2 italic">
             <h2>Your Vibe,</h2>
@@ -232,52 +169,22 @@ export default function SignupPage() {
         </div>
       </div>
 
-      {/* Right Side: Login Form */}
+      {/* Right Side: Signup Form */}
       <div className="bg-white text-black flex flex-col justify-center items-center w-full md:w-1/2 p-8">
         <div className="w-full max-w-md space-y-4">
-          <h1 className="text-2xl mb-4 self-start">
-            {loading ? "Processing..." : "Sign Up"}
-          </h1>
+          <h1 className="text-2xl mb-4 self-start">{loading ? "Processing..." : "Sign Up"}</h1>
 
           {fields.map((field) => (
             <div key={field.name} className="flex flex-col">
-              <label htmlFor={field.name} className="mb-1 text-sm font-medium">
-                {field.label}
-              </label>
-              {field.name === "gender" ? (
-                <select
-                  id={field.name}
-                  value={user.gender}
-                  onChange={(e) =>
-                    setUser((prev) => ({
-                      ...prev,
-                      gender: e.target.value,
-                    }))
-                  }
-                  className="w-full px-4 py-2 rounded-md border border-blue-400/75 placeholder-gray-400 focus:outline-none focus:ring-1  focus:ring-blue-400 bg-white"
-                >
-                  <option value="" disabled>
-                    Select gender
-                  </option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              ) : (
-                <input
-                  id={field.name}
-                  type={field.type}
-                  value={user[field.name as keyof typeof user]}
-                  placeholder={field.placeholder}
-                  onChange={(e) =>
-                    setUser((prev) => ({
-                      ...prev,
-                      [field.name]: e.target.value,
-                    }))
-                  }
-                  className="w-full px-4 py-2 rounded-md border border-blue-400/75 placeholder-gray-400 focus:outline-none focus:ring-1  focus:ring-blue-400"
-                />
-              )}
+              <label htmlFor={field.name} className="mb-1 text-sm font-medium">{field.label}</label>
+              <input
+                id={field.name}
+                type={field.type}
+                value={user[field.name as keyof typeof user]}
+                placeholder={field.placeholder}
+                onChange={(e) => setUser((prev) => ({ ...prev, [field.name]: e.target.value }))}
+                className="w-full px-4 py-2 rounded-md border border-blue-400/75 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              />
               {formErrors[field.name] && (
                 <p className="text-sm text-red-500 mt-1">
                   {formErrors[field.name]}
@@ -300,33 +207,19 @@ export default function SignupPage() {
             className="w-full py-3 flex justify-center items-center bg-red-600 hover:bg-red-700 rounded text-white font-semibold opacity-85 transition"
           >
             <FaGoogle className="mr-2" />
-            {isGoogleLoading
-              ? "Signing in with Google..."
-              : "Continue with Google"}
+            {isGoogleLoading ? "Signing in with Google..." : "Continue with Google"}
           </button>
 
-          {/* Login redirect */}
           <h4 className="text-center text-sm mt-4">
             Already have an account?{" "}
-            <Link
-              href="/login"
-              className="text-orange-400 hover:text-orange-300"
-            >
-              Login
-            </Link>
+            <Link href="/login" className="text-orange-400 hover:text-orange-300">Login</Link>
           </h4>
 
-          {/* Terms and Privacy */}
           <div className="mt-4 text-center text-xs text-gray-400">
             By continuing, you agree to SoundSpire&apos;s{" "}
-            <a href="#" className="text-primary hover:underline">
-              Terms of Service
-            </a>{" "}
+            <a href="#" className="text-primary hover:underline">Terms of Service</a>{" "}
             and{" "}
-            <a href="#" className="text-primary hover:underline">
-              Privacy Policy
-            </a>
-            .
+            <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
           </div>
         </div>
       </div>
