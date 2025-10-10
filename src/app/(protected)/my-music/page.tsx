@@ -147,34 +147,39 @@ export default function MyMusicPage() {
             )}
 
             {(activeTab === "All Songs" || activeTab === "Downloads") && (
-              <div className="w-full bg-[#1a1625] rounded-xl p-4 sm:p-6 overflow-x-auto">
+              <div className="w-full bg-[#1a1625] rounded-xl p-4 sm:p-6 overflow-x-auto max-h-[400px] overflow-y-auto music-table-scrollbar">
                 <table className="w-full text-left min-w-[520px]">
                   <thead>
-                    <tr className="text-gray-400 text-sm">
-                      <th className="font-normal hidden sm:table-cell">#</th>
-                      <th className="font-normal">Title</th>
-                      <th className="font-normal hidden md:table-cell"></th>
-                      <th className="font-normal">Artist</th>
-                      <th className="font-normal hidden sm:table-cell">Time</th>
-                      <th className="font-normal hidden xs:table-cell"></th>
+                    <tr className="text-gray-400 text-sm border-b border-gray-700/30">
+                      <th className="font-normal hidden sm:table-cell pb-3 text-center w-12">#</th>
+                      <th className="font-normal pb-3 pl-2">Title</th>
+                      <th className="font-normal hidden md:table-cell pb-3 text-center w-8"></th>
+                      <th className="font-normal pb-3">Artist</th>
+                      <th className="font-normal hidden sm:table-cell pb-3 text-right w-16">Time</th>
+                      <th className="font-normal hidden xs:table-cell pb-3 text-center w-12"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {songs.map((song, idx) => (
                       <tr
                         key={song.title}
-                        className={`group ${song.highlight ? "text-[#ff4e50] font-semibold" : "text-white"} hover:bg-[#3a2767] transition`}>
-                        <td className="py-2 hidden sm:table-cell">{idx + 1}.</td>
-                        <td className="py-2">{song.title}</td>
-                        <td className="py-2 hidden md:table-cell">
+                        className={`group cursor-pointer border-b border-gray-800/20 last:border-b-0 ${song.highlight ? "text-[#ff4e50] font-semibold" : "text-white"} hover:bg-[#3a2767]/80 hover:text-[#ff4e50] transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01]`}>
+                        <td className="py-3 hidden sm:table-cell text-center text-gray-400 group-hover:text-[#ff4e50] transition-colors duration-300 ease-out relative w-12">
+                          <span className="group-hover:hidden inline-block w-full text-center">{idx + 1}.</span>
+                          <button className="hidden group-hover:inline-block text-[#ff4e50] hover:text-white transition-all duration-200 w-full text-center">
+                            <FaPlay className="text-sm mx-auto" />
+                          </button>
+                        </td>
+                        <td className="py-3 pl-2 font-medium transition-colors duration-300 ease-out">{song.title}</td>
+                        <td className="py-3 hidden md:table-cell text-center">
                           {song.highlight && (
                             <span className="text-[#ff4e50] text-lg">📈</span>
                           )}
                         </td>
-                        <td className="py-2">{song.artist}</td>
-                        <td className="py-2 hidden sm:table-cell">{song.duration}</td>
-                        <td className="py-2 hidden xs:table-cell">
-                          <button className="text-[#ff4e50] hover:text-white">
+                        <td className="py-3 text-gray-300 group-hover:text-[#ff4e50] transition-colors duration-300 ease-out">{song.artist}</td>
+                        <td className="py-3 hidden sm:table-cell text-right text-gray-400 group-hover:text-[#ff4e50] transition-colors duration-300 ease-out">{song.duration}</td>
+                        <td className="py-3 hidden xs:table-cell text-center">
+                          <button className="text-[#ff4e50] hover:text-white hover:scale-110 transition-all duration-200 p-1 rounded">
                             <FaDownload />
                           </button>
                         </td>
