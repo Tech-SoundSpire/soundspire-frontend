@@ -50,62 +50,64 @@ export default function MyMusicPage() {
   return (
     <div className="flex min-h-screen bg-slate-950 text-white">
       {/* Main Content */}
-      <main className="pl-4 sm:pl-6 lg:pl-10 flex-1 flex flex-col bg-slate-950 max-w-[calc(100vw-10rem)] mx-auto w-full">
-        {/* Top Bar */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-8 lg:px-12 py-4 sm:py-6 bg-slate-950">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <button className="text-2xl">
-              <FaArrowLeft />
-            </button>
-            <span className="text-2xl sm:text-3xl font-semibold tracking-wide">MY MUSIC</span>
+      <main className="flex-1 flex flex-col bg-slate-950">
+        {/* Container wrapper for consistent alignment */}
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+          {/* Top Bar */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between py-4 sm:py-6 bg-slate-950">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <button className="text-2xl">
+                <FaArrowLeft />
+              </button>
+              <span className="text-2xl sm:text-3xl font-semibold tracking-wide">MY MUSIC</span>
+            </div>
+            <div className="relative w-full sm:w-auto">
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-full sm:w-64 md:w-80 lg:w-96 px-4 py-2 pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
           </div>
-          <div className="relative w-full sm:w-auto">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full sm:w-64 md:w-80 lg:w-96 px-4 py-2 pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          </div>
-        </div>
 
-        {/* Now Playing Section */}
-        <section
-          className="px-4 sm:px-8 lg:px-12 py-8 sm:py-12 lg:py-20 flex flex-col gap-2 relative"
-          style={{
-            background: `url(${getImageUrl(DEFAULT_PROFILE_IMAGE)}) center center / cover no-repeat, #1a1625`
-          }}
-        >
-          <span className="text-lg text-gray-300">Now Playing</span>
-          <div className="flex items-center gap-2">
-            <img
-              src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-              alt="Lana del rey"
-              className="w-8 h-8 rounded-full object-cover"
-            />
-            <span className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-wider">LANA DEL REY</span>
-          </div>
-        </section>
+          {/* Now Playing Section */}
+          <section
+            className="py-8 sm:py-12 lg:py-20 flex flex-col gap-2 relative px-4 sm:px-6 lg:px-8"
+            style={{
+              background: `url(${getImageUrl(DEFAULT_PROFILE_IMAGE)}) center center / cover no-repeat, #1a1625`
+            }}
+          >
+            <span className="text-lg text-gray-300">Now Playing</span>
+            <div className="flex items-center gap-2">
+              <img
+                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                alt="Lana del rey"
+                className="w-8 h-8 rounded-full object-cover"
+              />
+              <span className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-wider">LANA DEL REY</span>
+            </div>
+          </section>
 
-        {/* Tabs */}
-        <div className="px-4 sm:px-8 lg:px-12 pt-4 sm:pt-6">
-          <div className="flex gap-2 sm:gap-3 flex-wrap">
-            {tabs.map(tab => (
-              <TabButton
-                key={tab}
-                active={activeTab === tab}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab}
-              </TabButton>
-            ))}
+          {/* Tabs */}
+          <div className="pt-4 sm:pt-6">
+            <div className="flex gap-2 sm:gap-3 flex-wrap">
+              {tabs.map(tab => (
+                <TabButton
+                  key={tab}
+                  active={activeTab === tab}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab}
+                </TabButton>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Content + Player Panel */}
-        <div className="px-4 sm:px-8 lg:px-10 py-4 sm:py-6 flex-1 flex flex-col lg:flex-row gap-4 sm:gap-6 lg:h-[calc(100vh-260px)] overflow-hidden">
+          {/* Content + Player Panel */}
+          <div className="py-4 sm:py-6 flex-1 flex flex-col lg:flex-row gap-4 sm:gap-6 lg:h-[calc(100vh-260px)] overflow-hidden">
           {/* Content Area */}
-          <div className="flex-1 w-full lg:max-w-[calc(100%-400px)] flex flex-col min-h-0 overflow-y-auto">
+          <div className="flex-1 w-full lg:max-w-[calc(100%-420px)] xl:max-w-[calc(100%-440px)] flex flex-col min-h-0 overflow-y-auto">
             {activeTab === "Artists" && (
               <div className="bg-slate-950 rounded-xl p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
                 {artists.map(artist => (
@@ -193,6 +195,7 @@ export default function MyMusicPage() {
 
           {/* Player Panel */}
           <PlayerPanel />
+          </div>
         </div>
       </main>
     </div>
@@ -202,30 +205,40 @@ export default function MyMusicPage() {
 /* Player Panel */
 function PlayerPanel() {
   return (
-    <div className="w-full lg:w-[400px] bg-[#1a1625] rounded-xl p-4 sm:p-6 flex flex-col items-center justify-between">
-      <div className="w-full flex justify-end mb-4 gap-4 text-lg sm:text-xl text-gray-400">
-        <FaList className="cursor-pointer" />
-        <FaRandom className="cursor-pointer" />
-        <FaRedo className="cursor-pointer" />
-        <FaVolumeUp className="cursor-pointer" />
+    <div className="w-full lg:w-[400px] xl:w-[420px] bg-[#1a1625] rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 flex flex-col items-center justify-between min-h-[300px] sm:min-h-[350px] lg:min-h-[400px]">
+      {/* Top Controls */}
+      <div className="w-full flex justify-end mb-3 sm:mb-4 gap-2 sm:gap-3 md:gap-4 text-sm sm:text-base md:text-lg lg:text-xl text-gray-400">
+        <FaList className="cursor-pointer hover:text-white transition-colors" />
+        <FaRandom className="cursor-pointer hover:text-white transition-colors" />
+        <FaRedo className="cursor-pointer hover:text-white transition-colors" />
+        <FaVolumeUp className="cursor-pointer hover:text-white transition-colors" />
       </div>
-      <div className="flex flex-col items-center">
-        <div className="w-32 h-32 sm:w-40 sm:h-40 bg-black rounded-md mb-4 flex items-center justify-center">
+      
+      {/* Main Content */}
+      <div className="flex flex-col items-center flex-1 justify-center">
+        {/* Album Art */}
+        <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 xl:w-40 xl:h-40 bg-black rounded-md mb-3 sm:mb-4 md:mb-5 lg:mb-6 flex items-center justify-center shadow-lg">
           <img src={getImageUrl(DEFAULT_PROFILE_IMAGE)} alt="Now Playing" className="w-full h-full object-cover rounded-md" />
         </div>
-        <div className="flex items-center gap-6 mb-4">
-          <FaStepBackward className="text-xl sm:text-2xl cursor-pointer" />
-          <button className="bg-[#ff4e50] p-2 sm:p-3 rounded-full text-white text-xl sm:text-2xl shadow-lg">
+        
+        {/* Playback Controls */}
+        <div className="flex items-center gap-4 sm:gap-5 md:gap-6 mb-3 sm:mb-4 md:mb-5">
+          <FaStepBackward className="text-lg sm:text-xl md:text-2xl cursor-pointer hover:text-white transition-colors" />
+          <button className="bg-[#ff4e50] p-2 sm:p-2.5 md:p-3 lg:p-3.5 rounded-full text-white text-lg sm:text-xl md:text-2xl shadow-lg hover:bg-[#ff3a3c] transition-colors">
             <FaPlay />
           </button>
-          <FaStepForward className="text-xl sm:text-2xl cursor-pointer" />
+          <FaStepForward className="text-lg sm:text-xl md:text-2xl cursor-pointer hover:text-white transition-colors" />
         </div>
-        <div className="w-full h-1 bg-[#3a2767] rounded-full mb-2">
+        
+        {/* Progress Bar */}
+        <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] h-1 sm:h-1.5 bg-[#3a2767] rounded-full mb-2 sm:mb-3">
           <div className="w-1/3 h-full bg-[#ff4e50] rounded-full"></div>
         </div>
-        <div className="text-center">
-          <div className="font-semibold">Young and beautiful</div>
-          <div className="text-gray-400 text-sm">Lana del rey</div>
+        
+        {/* Song Info */}
+        <div className="text-center px-2">
+          <div className="font-semibold text-sm sm:text-base md:text-lg lg:text-xl truncate max-w-[200px] sm:max-w-[250px] md:max-w-[300px]">Young and beautiful</div>
+          <div className="text-gray-400 text-xs sm:text-sm md:text-base truncate max-w-[200px] sm:max-w-[250px] md:max-w-[300px]">Lana del rey</div>
         </div>
       </div>
     </div>
