@@ -49,43 +49,43 @@ export default function MyMusicPage() {
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-white">
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col bg-slate-950">
+      {/* Main Content - Account for fixed navbar */}
+      <main className="flex-1 flex flex-col bg-slate-950 w-full ml-16">
         {/* Container wrapper for consistent alignment */}
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-6 sm:px-8 lg:px-12 xl:px-16 2xl:px-20">
           {/* Top Bar */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between py-4 sm:py-6 bg-slate-950">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <button className="text-2xl">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between py-3 sm:py-4 lg:py-6 bg-slate-950">
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+              <button className="text-xl sm:text-2xl">
                 <FaArrowLeft />
               </button>
-              <span className="text-2xl sm:text-3xl font-semibold tracking-wide">MY MUSIC</span>
+              <span className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-wide">MY MUSIC</span>
             </div>
             <div className="relative w-full sm:w-auto">
               <input
                 type="text"
                 placeholder="Search..."
-                className="w-full sm:w-64 md:w-80 lg:w-96 px-4 py-2 pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full sm:w-56 md:w-72 lg:w-80 xl:w-96 px-3 sm:px-4 py-2 pl-9 sm:pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
               />
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FaSearch className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm sm:text-base" />
             </div>
           </div>
 
           {/* Now Playing Section */}
           <section
-            className="py-8 sm:py-12 lg:py-20 flex flex-col gap-2 relative px-4 sm:px-6 lg:px-8"
+            className="py-6 sm:py-8 lg:py-12 xl:py-16 flex flex-col gap-2 relative px-6 sm:px-8 lg:px-12 xl:px-16 2xl:px-20"
             style={{
               background: `url(${getImageUrl(DEFAULT_PROFILE_IMAGE)}) center center / cover no-repeat, #1a1625`
             }}
           >
-            <span className="text-lg text-gray-300">Now Playing</span>
+            <span className="text-base sm:text-lg text-gray-300">Now Playing</span>
             <div className="flex items-center gap-2">
               <img
                 src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                 alt="Lana del rey"
-                className="w-8 h-8 rounded-full object-cover"
+                className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover"
               />
-              <span className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-wider">LANA DEL REY</span>
+              <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold tracking-wider">LANA DEL REY</span>
             </div>
           </section>
 
@@ -105,9 +105,9 @@ export default function MyMusicPage() {
           </div>
 
           {/* Content + Player Panel */}
-          <div className="py-4 sm:py-6 flex-1 flex flex-col lg:flex-row gap-4 sm:gap-6 lg:h-[calc(100vh-260px)] overflow-hidden">
+          <div className="py-4 sm:py-6 flex-1 flex flex-col lg:flex-row gap-4 sm:gap-6 h-[calc(100vh-200px)] sm:h-[calc(100vh-240px)] overflow-hidden">
           {/* Content Area */}
-          <div className="flex-1 w-full lg:max-w-[calc(100%-420px)] xl:max-w-[calc(100%-440px)] flex flex-col min-h-0 overflow-y-auto">
+          <div className="flex-1 w-full lg:max-w-[calc(100%-320px)] xl:max-w-[calc(100%-360px)] 2xl:max-w-[calc(100%-400px)] flex flex-col min-h-0 overflow-y-auto h-full">
             {activeTab === "Artists" && (
               <div className="bg-slate-950 rounded-xl p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
                 {artists.map(artist => (
@@ -124,7 +124,7 @@ export default function MyMusicPage() {
             )}
 
             {activeTab === "Albums" && (
-              <div className="bg-[#1a1625] rounded-xl p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+              <div className="bg-[#1a1625] rounded-xl p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 overflow-y-auto music-table-scrollbar flex-1">
                 {albums.map(album => (
                   <div key={album.title} className="flex flex-col items-center bg-transparent rounded-md p-4 hover:bg-[#3a2767] transition">
                     <img
@@ -149,37 +149,37 @@ export default function MyMusicPage() {
             )}
 
             {(activeTab === "All Songs" || activeTab === "Downloads") && (
-              <div className="w-full bg-[#1a1625] rounded-xl p-4 sm:p-6 overflow-x-auto max-h-[400px] overflow-y-auto music-table-scrollbar">
-                <table className="w-full text-left min-w-[520px]">
+              <div className="w-full bg-[#1a1625] rounded-xl p-2 sm:p-4 lg:p-6 overflow-x-auto flex-1 overflow-y-auto music-table-scrollbar shadow-lg border border-gray-800/20">
+                <table className="w-full text-left min-w-[480px] sm:min-w-[520px]">
                   <thead>
                     <tr className="text-gray-400 text-sm border-b border-gray-700/30">
-                      <th className="font-normal hidden sm:table-cell pb-3 text-center w-12">#</th>
-                      <th className="font-normal pb-3 pl-2">Title</th>
+                      <th className="font-normal hidden sm:table-cell pb-3 text-center w-10">#</th>
+                      <th className="font-normal pb-3 pl-2 min-w-[200px]">Title</th>
                       <th className="font-normal hidden md:table-cell pb-3 text-center w-8"></th>
-                      <th className="font-normal pb-3">Artist</th>
-                      <th className="font-normal hidden sm:table-cell pb-3 text-right w-16">Time</th>
-                      <th className="font-normal hidden xs:table-cell pb-3 text-center w-12"></th>
+                      <th className="font-normal pb-3 min-w-[150px]">Artist</th>
+                      <th className="font-normal hidden sm:table-cell pb-3 text-right w-16 pr-2">Time</th>
+                      <th className="font-normal hidden xs:table-cell pb-3 text-center w-10"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {songs.map((song, idx) => (
                       <tr
                         key={song.title}
-                        className={`group cursor-pointer border-b border-gray-800/20 last:border-b-0 ${song.highlight ? "text-[#ff4e50] font-semibold" : "text-white"} hover:bg-[#3a2767]/80 hover:text-[#ff4e50] transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01]`}>
-                        <td className="py-3 hidden sm:table-cell text-center text-gray-400 group-hover:text-[#ff4e50] transition-colors duration-300 ease-out relative w-12">
+                        className={`group cursor-pointer border-b border-gray-800/20 last:border-b-0 ${song.highlight ? "text-[#ff4e50] font-semibold" : "text-white"} hover:bg-[#3a2767]/40 hover:text-[#ff4e50] transition-all duration-300 ease-out hover:shadow-md hover:scale-[1.01] rounded-lg`}>
+                        <td className={`py-3 hidden sm:table-cell text-center transition-colors duration-300 ease-out relative w-10 ${song.highlight ? "text-[#ff4e50]" : "text-gray-400"} group-hover:text-[#ff4e50]`}>
                           <span className="group-hover:hidden inline-block w-full text-center">{idx + 1}.</span>
                           <button className="hidden group-hover:inline-block text-[#ff4e50] hover:text-white transition-all duration-200 w-full text-center">
                             <FaPlay className="text-sm mx-auto" />
                           </button>
                         </td>
-                        <td className="py-3 pl-2 font-medium transition-colors duration-300 ease-out">{song.title}</td>
+                        <td className="py-3 pl-2 font-medium transition-colors duration-300 ease-out truncate">{song.title}</td>
                         <td className="py-3 hidden md:table-cell text-center">
                           {song.highlight && (
                             <span className="text-[#ff4e50] text-lg">📈</span>
                           )}
                         </td>
-                        <td className="py-3 text-gray-300 group-hover:text-[#ff4e50] transition-colors duration-300 ease-out">{song.artist}</td>
-                        <td className="py-3 hidden sm:table-cell text-right text-gray-400 group-hover:text-[#ff4e50] transition-colors duration-300 ease-out">{song.duration}</td>
+                        <td className={`py-3 transition-colors duration-300 ease-out truncate ${song.highlight ? "text-[#ff4e50]" : "text-gray-300"} group-hover:text-[#ff4e50]`}>{song.artist}</td>
+                        <td className={`py-3 hidden sm:table-cell text-right transition-colors duration-300 ease-out pr-2 ${song.highlight ? "text-[#ff4e50]" : "text-gray-400"} group-hover:text-[#ff4e50]`}>{song.duration}</td>
                         <td className="py-3 hidden xs:table-cell text-center">
                           <button className="text-[#ff4e50] hover:text-white hover:scale-110 transition-all duration-200 p-1 rounded">
                             <FaDownload />
@@ -205,7 +205,7 @@ export default function MyMusicPage() {
 /* Player Panel */
 function PlayerPanel() {
   return (
-    <div className="w-full lg:w-[400px] xl:w-[420px] bg-[#1a1625] rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 flex flex-col items-center justify-between min-h-[300px] sm:min-h-[350px] lg:min-h-[400px]">
+    <div className="w-full lg:w-[300px] xl:w-[340px] 2xl:w-[380px] bg-[#1a1625] rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 flex flex-col items-center justify-between h-full flex-shrink-0">
       {/* Top Controls */}
       <div className="w-full flex justify-end mb-3 sm:mb-4 gap-2 sm:gap-3 md:gap-4 text-sm sm:text-base md:text-lg lg:text-xl text-gray-400">
         <FaList className="cursor-pointer hover:text-white transition-colors" />
@@ -236,9 +236,9 @@ function PlayerPanel() {
         </div>
         
         {/* Song Info */}
-        <div className="text-center px-2">
-          <div className="font-semibold text-sm sm:text-base md:text-lg lg:text-xl truncate max-w-[200px] sm:max-w-[250px] md:max-w-[300px]">Young and beautiful</div>
-          <div className="text-gray-400 text-xs sm:text-sm md:text-base truncate max-w-[200px] sm:max-w-[250px] md:max-w-[300px]">Lana del rey</div>
+        <div className="text-left px-2 w-full">
+          <div className="font-semibold text-sm sm:text-base md:text-lg lg:text-xl truncate">Young and beautiful</div>
+          <div className="text-gray-400 text-xs sm:text-sm md:text-base truncate">Lana del rey</div>
         </div>
       </div>
     </div>
