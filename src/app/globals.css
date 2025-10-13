@@ -23,10 +23,50 @@
   background: #555;
 }
 
-/* Hide scrollbar for Firefox */
+/* Firefox scrollbar */
 * {
   scrollbar-width: thin;
   scrollbar-color: #888 transparent;
+}
+
+/* Custom scrollbar for music table only */
+.music-table-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.music-table-scrollbar::-webkit-scrollbar-track {
+  background: rgba(26, 22, 37, 0.1);
+  border-radius: 5px;
+}
+
+.music-table-scrollbar::-webkit-scrollbar-thumb {
+  background: #ff4e50;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+}
+
+.music-table-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #ff6b6d;
+}
+
+.music-table-scrollbar::-webkit-scrollbar-thumb:active {
+  background: #e63946;
+}
+
+/* Hide scrollbar buttons */
+.music-table-scrollbar::-webkit-scrollbar-button {
+  display: none;
+}
+
+.music-table-scrollbar::-webkit-scrollbar-button:start:decrement,
+.music-table-scrollbar::-webkit-scrollbar-button:end:increment {
+  display: none;
+}
+
+/* Firefox scrollbar for music table */
+.music-table-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #ff4e50 rgba(26, 22, 37, 0.1);
 }
 
 /* Custom styles */
