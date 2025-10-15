@@ -8,6 +8,8 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { getImageUrl, getDefaultProfileImageUrl } from '@/utils/userProfileImageUtils';
+import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRoute";
+import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
 
 // --- TYPE DEFINITIONS ---
 interface Language {
@@ -277,6 +279,21 @@ const PreferenceSelectionPage: React.FC = () => {
       router.push('/');
     }
   }, [user, authLoading, router]);
+
+    // Profile & Preferences checks
+  const { isProfileComplete, isLoading: profileLoading } = useCheckCompleteProfileOnRoute();
+  const { hasPreferences, isLoading: preferencesLoading } = useCheckPreferencesOnRoute();
+
+  useEffect(() => {
+    if (!profileLoading && !isProfileComplete) {
+      router.push('/complete-profile');
+      return;
+    }
+
+    if (!preferencesLoading && isProfileComplete && hasPreferences) {
+      router.push('/explore');
+    }
+  }, [profileLoading, preferencesLoading, isProfileComplete, hasPreferences, router]);
 
   // Load available options from database
   useEffect(() => {

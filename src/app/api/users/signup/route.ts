@@ -15,11 +15,6 @@ export async function POST(request: NextRequest) {
       username,
       email,
       password_hash,
-      full_name,
-      gender,
-      mobile_number,
-      date_of_birth,
-      city,
     } = reqBody; //taking what is needed
 
     console.log(reqBody);
@@ -50,6 +45,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+
     //Hashing password
     console.log("🔐 Hashing password...");
 
@@ -64,11 +60,6 @@ export async function POST(request: NextRequest) {
       username,
       email,
       password_hash: hashedPassword,
-      full_name,
-      gender,
-      mobile_number,
-      date_of_birth,
-      city,
       is_verified: false,
       is_artist: false,
       spotify_linked: false,
@@ -79,12 +70,7 @@ export async function POST(request: NextRequest) {
       //token data created
       username,
       email,
-      full_name,
       password_hash: hashedPassword,
-      gender,
-      mobile_number,
-      date_of_birth,
-      city,
     };
     //creating the signed token
     const token = await jwt.sign(tokenPayload, process.env.JWT_SECRET!, {

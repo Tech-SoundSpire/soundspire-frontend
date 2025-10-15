@@ -13,7 +13,8 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  logout: () => Promise<void>; // ✅ added logout to context
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,38 +23,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const response = await fetch('/api/auth/session', { credentials: 'include' });
-        const data = await response.json();
-        console.log("Session user data:", data.user);
+  const checkSession = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/auth/session', { credentials: 'include' });
+      const data = await res.json();
 
-
-        if (data?.user) {
-          const normalizedUser: User = {
-            id: data.user.id,
-            name: data.user.name || '',
-            email: data.user.email || '',
-            photoURL: data.user.photoURL || data.user.image || null,
-            provider: data.user.provider || 'local',
-          };
-          setUser(normalizedUser);
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
+      if (data?.user) {
+        const normalizedUser: User = {
+          id: data.user.id,
+          name: data.user.name || '',
+          email: data.user.email || '',
+          photoURL: data.user.photoURL || data.user.image || null,
+          provider: data.user.provider || 'local',
+        };
+        setUser(normalizedUser);
+      } else {
         setUser(null);
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (err) {
+      console.error('Auth check failed:', err);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    checkSession();
+  useEffect(() => {
+    checkSession()
   }, []);
 
-  // ✅ Added logout function
   const logout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
@@ -64,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, setUser, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, setUser, logout, refreshUser: checkSession }}>
       {children}
     </AuthContext.Provider>
   );
@@ -72,8 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) { 
+    throw new Error('useAuth must be used within an AuthProvider'); 
   }
   return context;
 }
