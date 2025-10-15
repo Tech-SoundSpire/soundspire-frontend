@@ -27,7 +27,10 @@ NEXT_PUBLIC_BASE_URL=https://localhost:3000
 
 # NextAuth configuration
 NEXTAUTH_URL=https://localhost:3000
-NEXTAUTH_SECRET="" 
+NEXTAUTH_SECRET=""
+
+SOUNDCHARTS_CLIENT_ID=
+SOUNDCHARTS_TOKEN=
 ```
 
 Install Dependencies:

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRoute";
 import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
+import Image from "next/image";
 
 const fields = [
   {
@@ -150,11 +151,28 @@ export default function SignupPage() {
   }, [user]);
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white">
+    <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white relative">
+
+      {/* ✅ For Artists Button Added */}
+      <div className="absolute top-4 right-4 z-10">
+        <Link
+          href="/artist-onboarding"
+          className="px-6 py-2 bg-[#FA6400] hover:bg-[#e55a00] text-white font-bold rounded-lg transition-colors duration-200 shadow-lg"
+        >
+          For Artists
+        </Link>
+      </div>
+
       {/* Left Side */}
       <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
         <div>
-          <img src="/images/logo-Photoroom.png" alt="SoundSpire logo" width={200} height={200} className="mb-4" />
+          <Image
+            src="/images/logo-Photoroom.png"
+            alt="SoundSpire logo"
+            width={200}
+            height={200}
+            className="mb-4"
+          />
         </div>
         <div className="mb-12">
           <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">
