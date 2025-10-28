@@ -61,7 +61,7 @@ export default function ArtistPayoutPage() {
         <div className="flex items-center ml-auto">
           <p className="text-2xl mr-2">Skip For Now</p>
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/artist/dashboard")}
             className="w-[40px] h-[40px] bg-gray-600 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-500 transition-colors duration-200"
           >
             <FaChevronRight className="text-[#ffdcd2] text-xl size-4" />
