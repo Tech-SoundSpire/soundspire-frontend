@@ -23,30 +23,36 @@ export default function ArtistDetailsPage() {
   const profileFileRef = useRef<HTMLInputElement>(null);
   const coverFileRef = useRef<HTMLInputElement>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     artist_name: "",
     username: "",
     bio: "",
-    profile_photo: "",
-    cover_photo: "",
-    facebook: "",
-    twitter: "",
-    instagram: "",
-    snapchat: "",
+    password_hash: "",
     email: "",
     phone: "",
     distribution_company: "",
     city: "",
     country: "",
     acceptTerms: false,
+    profile_photo: "",
+    cover_photo: "",
+    community_name: "",
+    community_description: "",
   });
+
+  const [socialFields, setSocialFields] = useState([
+    "facebook",
+    "instagram",
+    "youtube",
+    "x",
+  ]);
+  const [newSocial, setNewSocial] = useState("");
 
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [selectedProfileFile, setSelectedProfileFile] = useState<File | null>(null);
   const [selectedCoverFile, setSelectedCoverFile] = useState<File | null>(null);
-
-  // NOTE: fix typo: was isLoogedIn -> isLoggedIn
+  const [genreInput, setGenreInput] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -74,7 +80,7 @@ export default function ArtistDetailsPage() {
     }
   }, [artistId, router]);
 
-  // Prefill with Soundcharts data
+  // Fetch artist details + identifiers
   useEffect(() => {
     if (!artistId) return;
 
@@ -90,31 +96,75 @@ export default function ArtistDetailsPage() {
 
         const artistData = await artistRes.json();
         const identifiersData = await identifiersRes.json();
-
         const artist = artistData?.object;
         const identifiers = identifiersData?.items || [];
 
+        const mapPlatform = (p: string) => {
+          const k = (p || "").toLowerCase();
+          if (k === "x") return "twitter";
+          if (k.includes("apple")) return "apple_music";
+          return k;
+        };
+
+        const socialsFromIds = identifiers.map((id: any) => ({
+          platform: mapPlatform(id.platformName || id.platform),
+          url: id.url || "",
+        }));
+
+        // Deduplicate socials
+        const socialsDedup = Object.values(
+          socialsFromIds.reduce((acc: any, s: any) => {
+            if (!s.platform) return acc;
+            const exist = acc[s.platform];
+            if (!exist || (s.url && !exist.url)) acc[s.platform] = s;
+            return acc;
+          }, {})
+        );
+
+        // Store Soundcharts socials separately (don’t modify visible fields yet)
+        const soundchartsSocials = identifiers.map((id: any) => ({
+          platform: (id.platformName || id.platform || "").toLowerCase(),
+          url: id.url || "",
+        }));
+
+        setFormData((prev: any) => ({
+          ...prev,
+          _soundcharts: soundchartsSocials,
+        }));
+
         const getIdentifierUrl = (platform: string) => {
-          const item = identifiers.find(
-            (id: any) => id.platformName.toLowerCase() === platform.toLowerCase()
-          );
+          const lower = platform.toLowerCase();
+          const item = identifiers.find((id: any) => {
+            const name = (id.platformName || id.platform || "").toLowerCase();
+            return (
+              name.includes(lower) ||
+              (lower === "twitter" && name === "x") ||
+              (lower === "x" && name === "twitter")
+            );
+          });
           return item?.url || "";
         };
 
-        setFormData((prev) => ({
+        setFormData((prev: any) => ({
           ...prev,
           artist_name: artist?.name || "",
           username: artist?.slug || "",
-          bio: artist?.biography || "No biography available.",
+          bio: artist?.biography || "",
           profile_photo: artist?.imageUrl || DEFAULT_PLACEHOLDER,
           cover_photo: artist?.imageUrl || DEFAULT_PLACEHOLDER,
-          facebook: getIdentifierUrl("Facebook"),
-          twitter: getIdentifierUrl("X"),
-          instagram: getIdentifierUrl("Instagram"),
-          snapchat: getIdentifierUrl("Snapchat"),
-          city: artist?.cityName || "",
-          country: artist?.countryCode || "",
+          socials: socialsDedup,
+          ...Object.fromEntries(
+            socialFields.map((s) => [s, getIdentifierUrl(s) || ""])
+          ),
         }));
+
+        // Genre setup
+        const genresArray =
+          artist?.genres
+            ?.flatMap((g: any) => [g?.root, ...(g?.sub || [])])
+            .filter(Boolean)
+            .map((g: string) => g.charAt(0).toUpperCase() + g.slice(1).toLowerCase()) || [];
+        setGenreInput([...new Set(genresArray)].join(", "));
 
         setProfilePreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
         setCoverPreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
@@ -129,20 +179,19 @@ export default function ArtistDetailsPage() {
     fetchArtistDetails();
   }, [artistId]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
-    setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
+  const handleChange = (e: any) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev: any) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
-  const handleImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "profile" | "cover"
-  ) => {
+  const handleImageChange = (e: any, type: "profile" | "cover") => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) return toast.error("File size should be under 5MB");
-    if (!file.type.startsWith("image/")) return toast.error("Invalid image type");
+    if (file.size > 5 * 1024 * 1024) return toast.error("File too large");
+    if (!file.type.startsWith("image/")) return toast.error("Invalid image");
 
     if (type === "profile") {
       setSelectedProfileFile(file);
@@ -153,37 +202,33 @@ export default function ArtistDetailsPage() {
     }
   };
 
-  const uploadImageToS3 = async (file: File, folder: string): Promise<string | null> => {
+  const uploadImageToS3 = async (file: File, folder: string) => {
     try {
-      const extension = file.name.split(".").pop();
-      const fileName = `${folder}/${Date.now()}.${extension}`;
+      const ext = file.name.split(".").pop();
+      const fileName = `${folder}/${Date.now()}.${ext}`;
       const res = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileName, fileType: file.type }),
       });
-
-      if (!res.ok) throw new Error("Failed to get upload URL");
-
+      if (!res.ok) throw new Error("Upload URL error");
       const { uploadUrl } = await res.json();
-      const uploadRes = await fetch(uploadUrl, {
+      const put = await fetch(uploadUrl, {
         method: "PUT",
         headers: { "Content-Type": file.type },
         body: file,
       });
-
-      if (!uploadRes.ok) throw new Error("Failed to upload file");
+      if (!put.ok) throw new Error("Upload failed");
       return `https://soundspirewebsiteassets.s3.amazonaws.com/${fileName}`;
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to upload image");
+    } catch (e) {
+      toast.error("Image upload failed");
       return null;
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    if (!formData.acceptTerms) return toast.error("Please accept the terms and conditions");
+    if (!formData.acceptTerms) return toast.error("Please accept terms");
     if (!artistId) return toast.error("Artist not selected");
 
     setLoading(true);
@@ -201,40 +246,58 @@ export default function ArtistDetailsPage() {
         if (uploaded) coverUrl = uploaded;
       }
 
-      // Consolidated endpoint: server will reuse session or create user + artist and set cookies
-      const res = await fetch("/api/artist-signup", {
+      const socialsFromInputs = socialFields
+        .map((p) => {
+          const url = (formData as any)[p] || "";
+          return url ? { platform: p, url } : null;
+        })
+        .filter(Boolean);
+
+      const artistRes = await fetch("/api/artist-signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // artist fields
-          artist_name: formData.artist_name,
-          bio: formData.bio,
+          ...formData,
+          socials: socialsFromInputs,
           profile_picture_url: profileUrl,
           cover_photo_url: coverUrl,
-          third_party_platform: "soundcharts",
-          third_party_id: artistId,
-          // only include account fields if user is NOT logged in
-          ...(isLoggedIn
-            ? {}
-            : {
-              username: formData.username,
-              email: formData.email,
-              // collect a password field on this page if you don't already have one in state
-              password_hash: (formData as any).password_hash,
-            }),
+          genre_names: genreInput.split(",").map((s) => s.trim()).filter(Boolean),
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create artist");
+      const artistData = await artistRes.json();
+      if (!artistRes.ok) {
+        throw new Error(artistData.error || "Failed to create artist");
+      }
 
-      // Important: do NOT call /api/artist-session/login here anymore,
-      // because the server already set the artist_id cookie.
+      const artistId = artistData.artist.artist_id;
       toast.success("Artist created successfully!");
-      router.push(`/payout?artistId=${data.artist.artist_id}`);
+
+      const communityName =
+        formData.community_name?.trim() ||
+        `${formData.artist_name?.trim() || "My"}'s Community`;
+      const communityDescription =
+        formData.community_description?.trim() ||
+        `Welcome to ${formData.artist_name || "this artist"}'s official community!`;
+
+      const communityRes = await fetch("/api/community", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          artist_id: artistId,
+          name: communityName,
+          description: communityDescription,
+        }),
+      });
+
+      const communityData = await communityRes.json();
+      if (!communityRes.ok) throw new Error(communityData.error || "Community creation failed");
+
+      toast.success("Community created successfully!");
+
+      router.push(`/payout?artistId=${artistId}`);
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Error submitting form");
+      toast.error(err.message || "Submission failed");
     } finally {
       setLoading(false);
     }
@@ -284,42 +347,6 @@ export default function ArtistDetailsPage() {
           ))}
         </div>
 
-        {/* If user is NOT logged in, show account fields */}
-        {!isLoggedIn && (
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-2 text-sm font-semibold text-gray-300">Account Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
-              />
-            </div>
-            <div>
-              <label className="block mb-2 text-sm font-semibold text-gray-300">Account Username</label>
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block mb-2 text-sm font-semibold text-gray-300">Password</label>
-              <input
-                type="password"
-                name="password_hash"
-                value={(formData as any).password_hash || ""}
-                onChange={handleChange}
-                className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
-              />
-            </div>
-          </div>
-        )}
-
         {/* Bio */}
         <div>
           <label className="block mb-2 text-sm font-semibold text-gray-300">Bio</label>
@@ -332,13 +359,25 @@ export default function ArtistDetailsPage() {
           />
         </div>
 
+        {/* Genres */}
+        <div>
+          <label className="block mb-2 text-sm font-semibold text-gray-300">Genres (comma separated)</label>
+          <input
+            type="text"
+            value={genreInput}
+            onChange={(e) => setGenreInput(e.target.value)}
+            placeholder="e.g. Hip Hop, Pop"
+            className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
+          />
+        </div>
+
         {/* Profile & Cover Upload */}
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block mb-2 text-sm font-semibold text-gray-300">
               Profile Photo
             </label>
-            <div className="w-60 h-40 rounded-xl overflow-hidden bg-[#2d2838] border-2 border-[#FA6400] relative group mx-auto">
+            <div className="w-60 h-40 rounded-xl overflow-hidden bg-[#2d2838] relative group mx-auto">
               <img
                 src={profilePreview || DEFAULT_PLACEHOLDER}
                 alt="Profile Preview"
@@ -358,7 +397,7 @@ export default function ArtistDetailsPage() {
             <label className="block mb-2 text-sm font-semibold text-gray-300">
               Cover Photo
             </label>
-            <div className="w-60 h-40 rounded-xl overflow-hidden bg-[#2d2838] border-2 border-[#FA6400] relative group mx-auto">
+            <div className="w-60 h-40 rounded-xl overflow-hidden bg-[#2d2838] relative group mx-auto">
               <img
                 src={coverPreview || DEFAULT_PLACEHOLDER}
                 alt="Cover Preview"
@@ -378,20 +417,69 @@ export default function ArtistDetailsPage() {
         {/* Social Links */}
         <div>
           <h2 className="text-xl font-semibold text-[#FA6400] mb-4">Social Links</h2>
+
+          <div className="flex items-center gap-3 mb-4">
+            <input
+              type="text"
+              placeholder="Add new social platform (e.g. TikTok)"
+              value={newSocial}
+              onChange={(e) => setNewSocial(e.target.value)}
+              className="flex-1 p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const name = newSocial.trim().toLowerCase().replace(/\s+/g, "_");
+                if (!name) return toast.error("Enter a platform name");
+                if (socialFields.includes(name)) return toast.error("Field already exists!");
+
+                // Check if Soundcharts had this platform
+                const match = formData._soundcharts?.find(
+                  (s: any) => s.platform === name
+                );
+
+                setSocialFields([...socialFields, name]);
+
+                // Pre-fill its URL if available
+                setFormData((prev: any) => ({
+                  ...prev,
+                  [name]: match?.url || "",
+                }));
+
+                setNewSocial("");
+              }}
+              className="bg-[#FA6400] px-4 py-2 rounded-lg hover:bg-[#ff7f32] transition"
+            >
+              Add
+            </button>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-6">
-            {["facebook", "twitter", "instagram", "snapchat"].map((platform) => (
-              <div key={platform}>
+            {socialFields.map((platform) => (
+              <div key={platform} className="relative">
                 <label className="block mb-2 text-sm font-semibold text-gray-300 capitalize">
-                  {platform}
+                  {platform.replace("_", " ")}
                 </label>
                 <input
                   type="text"
                   name={platform}
-                  value={(formData as any)[platform]}
+                  value={formData[platform] || ""}
                   onChange={handleChange}
-                  placeholder={`Enter ${platform} link`}
+                  placeholder={`Enter ${platform.replace("_", " ")} link`}
                   className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                 />
+                {/* Remove button for dynamic fields only */}
+                {!["facebook", "instagram", "youtube", "x"].includes(platform) && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSocialFields(socialFields.filter((f) => f !== platform))
+                    }
+                    className="absolute right-3 top-9 text-gray-400 hover:text-red-500"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -401,13 +489,19 @@ export default function ArtistDetailsPage() {
         <div>
           <h2 className="text-xl font-semibold text-[#FA6400] mb-4">Contact Information</h2>
           <div className="grid md:grid-cols-2 gap-6">
-            {["email", "phone", "distribution_company", "city", "country"].map((field) => (
+            {[
+              "email",
+              "phone",
+              "distribution_company",
+              "city",
+              "country",
+            ].map((field) => (
               <div key={field}>
                 <label className="block mb-2 text-sm font-semibold text-gray-300 capitalize">
                   {field.replace("_", " ")}
                 </label>
                 <input
-                  type="text"
+                  type={field === "email" ? "email" : "text"}
                   name={field}
                   value={(formData as any)[field]}
                   onChange={handleChange}
@@ -415,7 +509,47 @@ export default function ArtistDetailsPage() {
                 />
               </div>
             ))}
+
+            {/* Only show password if user not logged in */}
+            {!isLoggedIn && (
+              <div className="md:col-span-2">
+                <label className="block mb-2 text-sm font-semibold text-gray-300">Password</label>
+                <input
+                  type="password"
+                  name="password_hash"
+                  value={(formData as any).password_hash || ""}
+                  onChange={handleChange}
+                  className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
+                />
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* Community Setup  */}
+        <h2 className="text-xl font-semibold text-[#FA6400] mb-4">Community Setup</h2>
+
+        <div className="space-y-4">
+          <label className="text-sm text-gray-400">
+            Community Name <span className="text-gray-500">(auto-generated if left empty)</span>
+          </label>
+          <input
+            type="text"
+            name="community_name"
+            placeholder="Community Name"
+            value={formData.community_name || ""}
+            onChange={handleChange}
+            className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
+          />
+
+          <textarea
+            name="community_description"
+            placeholder="Describe your community (optional)"
+            value={formData.community_description || ""}
+            onChange={handleChange}
+            rows={3}
+            className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
+          />
         </div>
 
         {/* Terms & Conditions */}

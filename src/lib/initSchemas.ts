@@ -1,7 +1,10 @@
 // This is used to sync the latest tables with the databases
 import { sequelize } from "./dbConfig";
 
-//Importing all the models
+// Import the models index - this will trigger defineAssociations()
+import "../models/index"; // This imports models/index.ts
+
+// Import individual models for syncing
 import "../models/User"; 
 import "../models/UserVerification"
 

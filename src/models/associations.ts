@@ -60,10 +60,12 @@ export function defineAssociations() {
 
   Artist.hasMany(Community, {
     foreignKey: "artist_id",
+    as: "Communities",
   });
 
   Community.belongsTo(Artist, {
     foreignKey: "artist_id",
+    as: "Artist",
   });
 
   // Artist and Genre associations
@@ -71,14 +73,16 @@ export function defineAssociations() {
     through: "artist_genres",
     foreignKey: "artist_id",
     otherKey: "genre_id",
-    as: "genres"
+    as: "genres",
+    timestamps: false
   });
 
   Genres.belongsToMany(Artist, {
     through: "artist_genres",
     foreignKey: "genre_id",
     otherKey: "artist_id",
-    as: "artist"
+    as: "artist",
+    timestamps: false
   });
 
   // Post associations
