@@ -58,11 +58,12 @@ export async function POST(request: NextRequest) {
           { status: 400 });
       }
 
-      let user = await User.findOne({ where: { email } });
-      if (!user) {
-        const existngUsername = await User.findOne({ where: { username } });
+      let user: InstanceType<typeof User> | null = await User.findOne({ where: { email } });
 
-        if (existngUsername) {
+      if (!user) {
+        const existingUsername = await User.findOne({ where: { username } });
+
+        if (existingUsername) {
           return NextResponse.json({ error: "Username already taken" }, { status: 400 });
         }
 
@@ -96,6 +97,13 @@ export async function POST(request: NextRequest) {
           bio: bio || user.bio,
           profile_picture_url: profile_picture_url || user.profile_picture_url,
         });
+      }
+
+      if (!user) {
+        return NextResponse.json(
+          { error: "User could not be created or found" },
+          { status: 500 }
+        );
       }
 
       userId = user.user_id;
