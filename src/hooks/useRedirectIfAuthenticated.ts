@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { usePathname, useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 //This will redirect if user session is still active to the feed page
 const useRedirectIfAuthenticated = (redirectTo = "/feed") => {
@@ -9,8 +10,21 @@ const useRedirectIfAuthenticated = (redirectTo = "/feed") => {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isLoading && user && (pathname === "/" || pathname === "/login")) {
-      router.push(redirectTo);
+    if (isLoading) return;
+
+    if (!user) return;
+
+    if (pathname === redirectTo || pathname === "/artist/dashboard") return;
+
+    const isAuthPage = ["/", "/login", "/signup"].includes(pathname);
+    if (isAuthPage) {
+      if (user.role === "artist") {
+        toast.success("Welcome back, Artist!");
+        router.replace("/artist/dashboard");
+      } else {
+        toast.success("Welcome back!");
+        router.replace(redirectTo);
+      }
     }
   }, [user, isLoading, pathname, router, redirectTo]);
 };

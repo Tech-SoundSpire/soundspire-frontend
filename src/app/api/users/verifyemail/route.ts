@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     // Issue session token and record verification
     const authToken = jwt.sign(
-      { id: verifiedUser!.user_id, email: verifiedUser!.email },
+      { id: verifiedUser!.user_id, email: verifiedUser!.email, role: verifiedUser!.is_artist ? "artist" : "user" },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );

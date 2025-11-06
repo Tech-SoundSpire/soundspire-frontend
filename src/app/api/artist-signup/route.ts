@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
 
       userId = user.user_id;
 
-      const token = jwt.sign({ id: userId }, process.env.JWT_SECRET!, { expiresIn: "30d" });
+      const token = jwt.sign({ id: userId, role: "artist" }, process.env.JWT_SECRET!, { expiresIn: "30d" });
       cookieStore.set({
         name: "token",
         value: token,

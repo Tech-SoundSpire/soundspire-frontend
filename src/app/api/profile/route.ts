@@ -60,6 +60,7 @@ export async function GET(request: Request) {
               include: [
                 {
                   model: Artist,
+                  as: "Artist",
                   attributes: ['artist_name', 'profile_picture_url'],
                 },
               ],
