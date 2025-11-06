@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import CommentsSection from './CommentsSection';
 import { getImageUrl, DEFAULT_PROFILE_IMAGE } from '@/utils/userProfileImageUtils';
 
@@ -17,7 +18,22 @@ interface Review {
   updated_at: string;
 }
 
-export default function DetailedReview({ review, isPreview = false, userId, likeCount, liked, onLike }: { review: Review, isPreview?: boolean, userId?: string, likeCount: number, liked: boolean, onLike: () => void }) {
+export default function DetailedReview({ 
+  review, 
+  isPreview = false, 
+  userId, 
+  likeCount, 
+  liked, 
+  onLike 
+}: {
+   review: Review, 
+   isPreview?: boolean, 
+   userId?: string, 
+   likeCount: number, 
+   liked: boolean, 
+   onLike: () => void 
+  }) {
+    const [isliking, setIsLiking] = useState(false);
   // Use the provided userId or show message if not authenticated
   const effectiveUserId = userId;
   
@@ -30,6 +46,21 @@ export default function DetailedReview({ review, isPreview = false, userId, like
       </div>
     );
   }
+
+  const handleLike = async() => {
+    if(isliking || liked) return;
+
+    setIsLiking(true);
+    try {
+       await onLike()
+    } finally{
+      //added a small delay so that to prevent spamming likes
+      setTimeout(() =>{
+        setIsLiking(false);
+      }, 500);
+    }
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto mb-12">
       <div className="bg-[#231b32] rounded-lg shadow-lg overflow-hidden">
@@ -49,7 +80,14 @@ export default function DetailedReview({ review, isPreview = false, userId, like
 
       {/* Like button and counter below review, above comments */}
       <div className="flex items-center my-6">
-        <button onClick={onLike} className={`text-red-400 font-bold mr-2 text-2xl ${liked ? 'opacity-100' : 'opacity-50'}`}>♥</button>
+        <button 
+        onClick={handleLike}
+        disabled={isliking || liked}
+        className={`font-bold mr-2 text-2xl transition-colors duration-200 
+          ${liked ? 'text-red-400 cursor-not-allowed' : 'text-gray-400 hover:text-gray-300 cursor-pointer'} 
+          ${isliking ? 'cursor-not-allowed opacity-50' : ''}`}>
+          ♥
+          </button>
         <span className="text-white font-semibold mr-4">{likeCount} Likes</span>
       </div>
       {!isPreview && <CommentsSection reviewId={review.review_id} userId={effectiveUserId} />}

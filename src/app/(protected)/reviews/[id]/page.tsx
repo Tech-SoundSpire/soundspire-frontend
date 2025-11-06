@@ -54,6 +54,9 @@ useEffect(() => {
 }, [params.id]);
 
 const handleLikeReview = async () => {
+  // Prevent multiple clicks if already liked
+  if (liked) return;
+  
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const res = await fetch(`/api/reviews/${id}/like`, {
     method: 'POST',

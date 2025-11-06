@@ -11,7 +11,23 @@ export async function POST(request: NextRequest, context:{ params: Promise<{ id:
       return NextResponse.json({ error: 'user_id is required' }, { status: 400 });
     }
 
-    // Always create a new like — no unlike
+    // Check if user has already liked this comment
+    const existingLike = await Like.findOne({
+      where: {
+        user_id,
+        comment_id,
+        review_id: null,
+        post_id: null,
+      },
+    });
+
+    if (existingLike) {
+      // User has already liked this comment, return current status
+      const count = await Like.count({ where: { comment_id, review_id: null, post_id: null } });
+      return NextResponse.json({ liked: true, count, message: 'Already liked' });
+    }
+
+    // Create a new like
     await Like.create({
       user_id,
       comment_id,
