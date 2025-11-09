@@ -27,7 +27,7 @@ export async function GET(
     
     const bucket = 'soundspirewebsiteassets';
     // Use the full path directly without adding 'images/' prefix
-    const s3Key = fullPath;
+    const s3Key = `images/${fullPath}`;
 
     // Log the request for debugging
     console.log('Image request details:', {

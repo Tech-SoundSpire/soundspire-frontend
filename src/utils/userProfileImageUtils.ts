@@ -7,13 +7,15 @@ export const getImageUrl = (s3Path: string): string => {
   
     // If it's an S3 path, convert it
     if (s3Path.startsWith('s3://')) {
-      // Extract the path after the bucket name
+    // Extract the path after the bucket name
       const pathMatch = s3Path.match(/^s3:\/\/[^\/]+\/(.+)$/);
       if (pathMatch) {
         const path = pathMatch[1];
-        return `/api/images/${path}`;
+        // Remove 'images/' prefix since it's already in the API route
+        const cleanPath = path.replace(/^images\//, '');
+        return `/api/images/${cleanPath}`;
       }
-    }
+  }
   
     // If it's already an API path, return it
     if (s3Path.startsWith('/api/images/')) {
