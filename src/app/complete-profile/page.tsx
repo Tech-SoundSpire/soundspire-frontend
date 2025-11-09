@@ -132,7 +132,7 @@ export default function CompleteProfilePage() {
 
     try {
       const extension = selectedFile.name.split(".").pop();
-      const fileName = `${user.email.split("@")[0]}-${user.id || "unknown"}.${extension}`;
+      const fileName = `images/users/${user.email.split("@")[0]}-${user.id || "unknown"}.${extension}`;
 
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -151,7 +151,7 @@ export default function CompleteProfilePage() {
 
       if (!uploadRes.ok) throw new Error("Failed to upload image");
 
-      return `s3://soundspirewebsiteassets/images/users/${fileName}`;
+      return `s3://soundspirewebsiteassets/${fileName}`;
     } catch (error) {
       console.error(error);
       toast.error("Image upload failed");

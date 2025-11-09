@@ -219,7 +219,8 @@ export default function ArtistDetailsPage() {
         body: file,
       });
       if (!put.ok) throw new Error("Upload failed");
-      return `https://soundspirewebsiteassets.s3.amazonaws.com/${fileName}`;
+
+      return `s3://soundspirewebsiteassets/${fileName}`;
     } catch (e) {
       toast.error("Image upload failed");
       return null;

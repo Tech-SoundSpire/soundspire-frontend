@@ -67,6 +67,17 @@ export default function ArtistDashboard() {
         );
     }
 
+    const profile_image = artist?.profile_picture_url
+        ? getImageUrl(artist.profile_picture_url)
+        : getImageUrl(DEFAULT_PROFILE_IMAGE);
+
+    const cover_image = artist?.cover_photo_url
+        ? getImageUrl(artist.cover_photo_url)
+        : getImageUrl(DEFAULT_PROFILE_IMAGE);
+
+    console.log(profile_image, cover_image);
+
+
     return (
         <div className="min-h-screen bg-[#1a1625] text-white flex flex-col">
             {/* HEADER */}
@@ -106,9 +117,7 @@ export default function ArtistDashboard() {
                 <div
                     className="relative w-[85%] h-[450px] rounded-2xl overflow-hidden shadow-2xl"
                     style={{
-                        backgroundImage: `url(${artist.cover_photo_url?.startsWith("http")
-                            ? artist.cover_photo_url
-                            : `/api/images/${artist.cover_photo_url}`})`,
+                        backgroundImage: `url(${cover_image})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                     }}
@@ -184,11 +193,7 @@ export default function ArtistDashboard() {
                         </h2>
                         <div className="w-48 h-48 rounded-xl overflow-hidden">
                             <img
-                                src={
-                                    artist.profile_picture_url ||
-                                    getImageUrl(DEFAULT_PROFILE_IMAGE) ||
-                                    "/default.png"
-                                }
+                                src={profile_image}
                                 alt="Artist profile"
                                 className="w-full h-full object-cover"
                             />

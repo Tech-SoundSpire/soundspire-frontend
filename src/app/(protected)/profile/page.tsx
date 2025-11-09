@@ -206,7 +206,7 @@ export default function ProfilePage() {
     try {
       // 1. Generate a unique filename
       const extension = file.name.split('.').pop();
-      const fileName = `${profile.userName || 'user'}-${user?.id || 'unknown'}.${extension}`;
+      const fileName = `images/users/${profile.userName || 'user'}-${user?.id || 'unknown'}.${extension}`;
 
       // 2. Request a presigned URL from the backend
       const res = await fetch('/api/upload', {
@@ -226,7 +226,7 @@ export default function ProfilePage() {
       if (!uploadRes.ok) throw new Error('Failed to upload image to S3');
 
       // 4. Set the S3 path in the editableProfile state
-      const s3Path = `s3://soundspirewebsiteassets/images/users/${fileName}`;
+      const s3Path = `s3://soundspirewebsiteassets/${fileName}`;
       setEditableProfile((prev) => ({ ...prev, profileImage: s3Path }));
     } catch (error) {
       toast.error('Image upload failed');
