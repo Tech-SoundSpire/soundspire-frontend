@@ -84,8 +84,8 @@ export default function DetailedReview({
         onClick={handleLike}
         disabled={isliking || liked}
         className={`font-bold mr-2 text-2xl transition-colors duration-200 
-          ${liked ? 'text-red-400 cursor-not-allowed' : 'text-gray-400 hover:text-gray-300 cursor-pointer'} 
-          ${isliking ? 'cursor-not-allowed opacity-50' : ''}`}>
+          ${liked ? 'text-red-400' : 'text-gray-400'} 
+          ${isliking ? 'cursor-not-allowed opacity-50' : liked ? 'cursor-not-allowed' : 'cursor-pointer hover:text-gray-300'}`}>
           ♥
           </button>
         <span className="text-white font-semibold mr-4">{likeCount} Likes</span>

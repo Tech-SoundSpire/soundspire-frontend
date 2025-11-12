@@ -26,6 +26,7 @@ export default function ReviewDetailPage() {
   const [review, setReview] = useState<Review | null>(null);
   const [likeCount, setLikeCount] = useState(0);
   const [liked, setLiked] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
   const { user } = useAuth();
   // Use actual authenticated user ID
   const userId = user?.id || '00000000-0000-0000-0000-000000000001';
@@ -51,25 +52,35 @@ useEffect(() => {
     .then(res => res.json())
     .then(data => setLiked(data.liked || false));
 
-}, [params.id]);
+}, [params.id, userId]);
 
 const handleLikeReview = async () => {
-  // Prevent multiple clicks if already liked
-  if (liked) return;
+  // Prevent multiple clicks if already liked or currently liking
+  if (liked || isLiking) return;
   
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const res = await fetch(`/api/reviews/${id}/like`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: userId }),
-  });
+  setIsLiking(true);
+  try {
+    const id = Array.isArray(params.id) ? params.id[0] : params.id;
+    const res = await fetch(`/api/reviews/${id}/like`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId }),
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  // Update like count only if liked
-  if (data.liked) {
-    setLiked(true);
-    setLikeCount(data.count || likeCount + 1); // prefer backend count
+    // Update like count only if liked
+    if (data.liked) {
+      setLiked(true);
+      setLikeCount(data.count || likeCount + 1); // prefer backend count
+    }
+  } catch (error) {
+    console.error('Error liking review:', error);
+  } finally {
+    // Add a small delay to prevent rapid clicking
+    setTimeout(() => {
+      setIsLiking(false);
+    }, 500);
   }
 };
 
