@@ -31,6 +31,7 @@ const Navbar = () => {
         { icon: FaUser, label: "Profile", href: "/profile" },
         { icon: FaCog, label: "Settings", href: "/settings" },
     ];
+    // Delay for opacity.
     const baseTransitionDelay = 50;
     return (
         <nav
@@ -90,6 +91,7 @@ const Navbar = () => {
                                 className={`whitespace-nowrap overflow-hidden will-change-[opacity] transition-opacity duration-300 ${
                                     isExpanded ? "opacity-1" : "opacity-0"
                                 }`}
+                                // To stagger opacity across children.
                                 style={{
                                     transitionDelay: `${
                                         index * baseTransitionDelay
