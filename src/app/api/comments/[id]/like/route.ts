@@ -47,6 +47,35 @@ export async function POST(request: NextRequest, context:{ params: Promise<{ id:
   }
 }
 
+export async function DELETE(request: NextRequest, context:{ params: Promise<{ id: string }> }) {
+  const params = await context.params;
+  const { id: comment_id } = params;
+
+  try {
+    const { user_id } = await request.json();
+    if (!user_id) {
+      return NextResponse.json({ error: 'user_id is required' }, { status: 400 });
+    }
+
+    await Like.destroy({
+      where: {
+        user_id,
+        comment_id,
+        review_id: null,
+        post_id: null,
+      },
+    });
+
+    const count = await Like.count({ where: { comment_id, review_id: null, post_id: null } });
+
+    return NextResponse.json({ liked: false, count });
+  } catch (error: unknown) {
+    console.error('Error unliking comment:', error);
+    const err = error as Error;
+    return NextResponse.json({ error: 'Failed to unlike comment', details: err?.message }, { status: 500 });
+  }
+}
+
 // GET requests are handled by dedicated routes:
 // - /api/comments/[id]/like/count - for like count
 // - /api/comments/[id]/like/status - for like status

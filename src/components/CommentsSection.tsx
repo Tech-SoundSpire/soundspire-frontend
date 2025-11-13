@@ -52,24 +52,31 @@ export default function CommentsSection({ reviewId, userId }: { reviewId: string
   useEffect(() => {
     fetch(`/api/reviews/${reviewId}/comments`)
       .then(res => res.json())
-      .then(async (comments) => {
-        // Fetch like counts and like status for each comment
-        const withLikes = await Promise.all(comments.map(async (c: Comment) => {
+      .then(async (commentsResponse) => {
+        const commentsArray: Comment[] = Array.isArray(commentsResponse) ? commentsResponse : [];
+        const likedIds: string[] = [];
+
+        const withLikes = await Promise.all(commentsArray.map(async (c: Comment) => {
           const likes = c.comment_id ? await fetchCommentLikeCount(c.comment_id) : 0;
           const liked = c.comment_id && userId ? await fetchCommentLikeStatus(c.comment_id, userId) : false;
+
           if (liked && c.comment_id) {
-            setLikedComments(prev => new Set(prev).add(c.comment_id));
+            likedIds.push(c.comment_id);
           }
+
           return {
             ...c,
             likes,
           };
         }));
+
         setComments(withLikes);
+        setLikedComments(new Set(likedIds));
       })
       .catch(error => {
         console.error('Error fetching comments:', error);
         setComments([]);
+        setLikedComments(new Set());
       });
   }, [reviewId, userId]);
 
@@ -116,12 +123,11 @@ export default function CommentsSection({ reviewId, userId }: { reviewId: string
 
   
 
-  const handleLikeComment = async (commentId: string) => {
+  const handleToggleCommentLike = async (commentId: string) => {
     // Early return if invalid commentId
     if (!commentId || commentId === 'undefined') return;
     
-    // Prevent if already liked
-    if (likedComments.has(commentId)) return;
+    const currentlyLiked = likedComments.has(commentId);
     
     // Prevent if request is already in progress (check both ref and state)
     if (pendingLikesRef.current.has(commentId) || pendingLikes.has(commentId)) return;
@@ -131,31 +137,48 @@ export default function CommentsSection({ reviewId, userId }: { reviewId: string
     setPendingLikes(prev => new Set(prev).add(commentId));
     
     try {
+      const method = currentlyLiked ? 'DELETE' : 'POST';
+
       const res = await fetch(`/api/comments/${commentId}/like`, {
-        method: 'POST',
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId }),
       });
       
-      if (!res.ok) throw new Error('Failed to like comment');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData?.error || 'Failed to toggle comment like');
+      }
       
       const data = await res.json();
 
-      if (data.liked) {
-        // Mark as liked
-        setLikedComments(prev => new Set(prev).add(commentId));
-        
-        // Update like count
-        setComments(prevComments =>
-          prevComments.map(comment =>
-            comment.comment_id === commentId
-              ? { ...comment, likes: data.count || comment.likes + 1 }
-              : comment
-          )
-        );
-      }
+      setLikedComments(prev => {
+        const next = new Set(prev);
+        if (data.liked ?? !currentlyLiked) {
+          next.add(commentId);
+        } else {
+          next.delete(commentId);
+        }
+        return next;
+      });
+
+      setComments(prevComments =>
+        prevComments.map(comment =>
+          comment.comment_id === commentId
+            ? {
+                ...comment,
+                likes:
+                  typeof data.count === 'number'
+                    ? data.count
+                    : currentlyLiked
+                    ? Math.max(0, (comment.likes || 0) - 1)
+                    : (comment.likes || 0) + 1,
+              }
+            : comment
+        )
+      );
     } catch (error) {
-      console.error('Error liking comment:', error);
+      console.error('Error toggling comment like:', error);
     } finally {
       // Remove from pending after a delay to prevent rapid clicking
       setTimeout(() => {
@@ -190,22 +213,23 @@ export default function CommentsSection({ reviewId, userId }: { reviewId: string
       {comments.map(comment => {
         const isLiked = likedComments.has(comment.comment_id);
         const isPending = pendingLikes.has(comment.comment_id);
-        const isDisabled = isLiked || isPending;
+        const isDisabled = isPending;
         
         return (
           <div key={comment.comment_id || Math.random()} className="mb-4 p-3 bg-[#2d2838] rounded">
             <div className="flex items-center mb-1">
               <span className="text-white font-semibold mr-2">{comment.user?.username || 'Unknown User'}</span>
               <button 
-                onClick={() => handleLikeComment(comment.comment_id)} 
+                onClick={() => handleToggleCommentLike(comment.comment_id)} 
                 disabled={isDisabled}
                 className={`ml-2 transition-colors duration-200 ${
-                  isLiked 
-                    ? 'text-red-400 cursor-not-allowed' 
-                    : isPending 
-                    ? 'text-gray-400 cursor-not-allowed opacity-50' 
+                  isPending
+                    ? 'text-gray-400 cursor-not-allowed opacity-50'
+                    : isLiked
+                    ? 'text-red-400 hover:text-red-300 cursor-pointer'
                     : 'text-gray-400 hover:text-gray-300 cursor-pointer'
                 }`}
+                aria-pressed={isLiked}
               >
                 ♥ {comment.likes || 0}
               </button>

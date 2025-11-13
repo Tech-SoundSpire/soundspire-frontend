@@ -54,30 +54,40 @@ useEffect(() => {
 
 }, [params.id, userId]);
 
-const handleLikeReview = async () => {
-  // Prevent multiple clicks if already liked or currently liking
-  if (liked || isLiking) return;
-  
+const handleToggleReviewLike = async (currentlyLiked: boolean) => {
+  if (isLiking) return;
+
   setIsLiking(true);
   try {
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
+    const method = currentlyLiked ? 'DELETE' : 'POST';
+
     const res = await fetch(`/api/reviews/${id}/like`, {
-      method: 'POST',
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: userId }),
     });
 
     const data = await res.json();
 
-    // Update like count only if liked
-    if (data.liked) {
-      setLiked(true);
-      setLikeCount(data.count || likeCount + 1); // prefer backend count
+    if (!res.ok) {
+      throw new Error(data?.error || 'Failed to toggle like');
+    }
+
+    if (typeof data.liked === 'boolean') {
+      setLiked(data.liked);
+    } else {
+      setLiked(!currentlyLiked);
+    }
+
+    if (typeof data.count === 'number') {
+      setLikeCount(data.count);
+    } else {
+      setLikeCount(prev => (currentlyLiked ? Math.max(0, prev - 1) : prev + 1));
     }
   } catch (error) {
-    console.error('Error liking review:', error);
+    console.error('Error toggling review like:', error);
   } finally {
-    // Add a small delay to prevent rapid clicking
     setTimeout(() => {
       setIsLiking(false);
     }, 500);
@@ -95,7 +105,13 @@ const handleLikeReview = async () => {
       >
         ← Back to All Reviews
       </button>
-      <DetailedReview review={review} userId={userId} likeCount={likeCount} liked={liked} onLike={handleLikeReview} />
+      <DetailedReview
+        review={review}
+        userId={userId}
+        likeCount={likeCount}
+        liked={liked}
+        onToggleLike={handleToggleReviewLike}
+      />
     </div>
   );
 } 

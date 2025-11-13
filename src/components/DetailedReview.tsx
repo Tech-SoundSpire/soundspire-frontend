@@ -24,16 +24,16 @@ export default function DetailedReview({
   userId, 
   likeCount, 
   liked, 
-  onLike 
+  onToggleLike 
 }: {
    review: Review, 
    isPreview?: boolean, 
    userId?: string, 
    likeCount: number, 
    liked: boolean, 
-   onLike: () => void 
+   onToggleLike: (currentlyLiked: boolean) => Promise<void> | void 
   }) {
-    const [isliking, setIsLiking] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
   // Use the provided userId or show message if not authenticated
   const effectiveUserId = userId;
   
@@ -47,16 +47,16 @@ export default function DetailedReview({
     );
   }
 
-  const handleLike = async() => {
-    if(isliking || liked) return;
+  const handleToggleLike = async () => {
+    if (isProcessing) return;
 
-    setIsLiking(true);
+    setIsProcessing(true);
     try {
-       await onLike()
+       await onToggleLike(liked);
     } finally{
       //added a small delay so that to prevent spamming likes
       setTimeout(() =>{
-        setIsLiking(false);
+        setIsProcessing(false);
       }, 500);
     }
   };
@@ -81,11 +81,12 @@ export default function DetailedReview({
       {/* Like button and counter below review, above comments */}
       <div className="flex items-center my-6">
         <button 
-        onClick={handleLike}
-        disabled={isliking || liked}
+        onClick={handleToggleLike}
+        disabled={isProcessing}
+        aria-pressed={liked}
         className={`font-bold mr-2 text-2xl transition-colors duration-200 
           ${liked ? 'text-red-400' : 'text-gray-400'} 
-          ${isliking ? 'cursor-not-allowed opacity-50' : liked ? 'cursor-not-allowed' : 'cursor-pointer hover:text-gray-300'}`}>
+          ${isProcessing ? 'cursor-not-allowed opacity-50' : liked ? 'cursor-pointer hover:text-red-300' : 'cursor-pointer hover:text-gray-300'}`}>
           ♥
           </button>
         <span className="text-white font-semibold mr-4">{likeCount} Likes</span>
