@@ -32,7 +32,7 @@ const Navbar = () => {
         { icon: FaCog, label: "Settings", href: "/settings" },
     ];
     // Delay for opacity.
-    const baseTransitionDelay = 50;
+    const baseTransitionDelay = 35;
     return (
         <nav
             className={`fixed left-0 top-0 h-full bg-black transition-all duration-300 z-50 ${
@@ -45,13 +45,13 @@ const Navbar = () => {
                 {/* Logo */}
                 <Link
                     href="/"
-                    className={`grid  mb-8 transition-[grid-template-columns] duration-300 ${
+                    className={`grid items-center gap-4 mb-8 transition-all duration-300 ${
                         isExpanded
                             ? "grid-cols-[1fr_5fr]"
                             : "grid-cols-[1fr_0fr]"
-                    }`}
+                    } p-3`}
                 >
-                    <div className="relative w-8 h-8">
+                    <div className={`relative w-8 h-8`}>
                         <Image
                             src="/images/logo.png"
                             alt="SoundSpire Logo"
@@ -61,7 +61,11 @@ const Navbar = () => {
                         />
                     </div>
                     <span
-                        className={`ml-3 text-white font-bold text-xl whitespace-nowrap overflow-hidden	min-w-0`}
+                        className={` text-white font-bold text-xl whitespace-nowrap overflow-hidden	min-w-0 transition-[opacity_transform] duration-300 ${
+                            isExpanded
+                                ? "translate-x-0 opacity-1"
+                                : "-translate-x-3 opacity-0"
+                        }`}
                     >
                         SoundSpire
                     </span>
