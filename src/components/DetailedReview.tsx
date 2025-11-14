@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import CommentsSection from './CommentsSection';
 import { getImageUrl, DEFAULT_PROFILE_IMAGE } from '@/utils/userProfileImageUtils';
 
@@ -17,7 +18,22 @@ interface Review {
   updated_at: string;
 }
 
-export default function DetailedReview({ review, isPreview = false, userId, likeCount, liked, onLike }: { review: Review, isPreview?: boolean, userId?: string, likeCount: number, liked: boolean, onLike: () => void }) {
+export default function DetailedReview({ 
+  review, 
+  isPreview = false, 
+  userId, 
+  likeCount, 
+  liked, 
+  onToggleLike 
+}: {
+   review: Review, 
+   isPreview?: boolean, 
+   userId?: string, 
+   likeCount: number, 
+   liked: boolean, 
+   onToggleLike: (currentlyLiked: boolean) => Promise<void> | void 
+  }) {
+    const [isProcessing, setIsProcessing] = useState(false);
   // Use the provided userId or show message if not authenticated
   const effectiveUserId = userId;
   
@@ -30,6 +46,21 @@ export default function DetailedReview({ review, isPreview = false, userId, like
       </div>
     );
   }
+
+  const handleToggleLike = async () => {
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+    try {
+       await onToggleLike(liked);
+    } finally{
+      //added a small delay so that to prevent spamming likes
+      setTimeout(() =>{
+        setIsProcessing(false);
+      }, 500);
+    }
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto mb-12">
       <div className="bg-[#231b32] rounded-lg shadow-lg overflow-hidden">
@@ -49,7 +80,15 @@ export default function DetailedReview({ review, isPreview = false, userId, like
 
       {/* Like button and counter below review, above comments */}
       <div className="flex items-center my-6">
-        <button onClick={onLike} className={`text-red-400 font-bold mr-2 text-2xl ${liked ? 'opacity-100' : 'opacity-50'}`}>♥</button>
+        <button 
+        onClick={handleToggleLike}
+        disabled={isProcessing}
+        aria-pressed={liked}
+        className={`font-bold mr-2 text-2xl transition-colors duration-200 
+          ${liked ? 'text-red-400' : 'text-gray-400'} 
+          ${isProcessing ? 'cursor-not-allowed opacity-50' : liked ? 'cursor-pointer hover:text-red-300' : 'cursor-pointer hover:text-gray-300'}`}>
+          ♥
+          </button>
         <span className="text-white font-semibold mr-4">{likeCount} Likes</span>
       </div>
       {!isPreview && <CommentsSection reviewId={review.review_id} userId={effectiveUserId} />}
