@@ -16,7 +16,16 @@ const useRedirectIfAuthenticated = (redirectTo = "/feed") => {
 
     if (pathname === redirectTo || pathname === "/artist/dashboard") return;
 
-    const isAuthPage = ["/", "/login", "/signup"].includes(pathname);
+    const isAuthPage = [
+      "/",
+      "/login",
+      "/signup",
+      "/artist-onboarding",
+      "/find-artist-profile",
+      "/artist-details",
+      "/payout"
+    ].includes(pathname);
+
     if (isAuthPage) {
       if (user.role === "artist") {
         toast.success("Welcome back, Artist!");

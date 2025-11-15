@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { connectionTestingAndHelper } from "@/utils/temp";
 import Artist from "@/models/Artist";
 import Community from "@/models/Community";
+import Social from "@/models/Social";
 
 interface DecodedToken {
     id: string;
@@ -32,6 +33,11 @@ export async function GET(req: NextRequest) {
                     as: "Communities",
                     attributes: ["community_id", "name", "description", "subscription_fee", "subscription_interval"],
                 },
+                {
+                    model: Social,
+                    as: "socials",
+                    attributes: ["platform", "url"],
+                }
             ],
         });
 
@@ -49,6 +55,7 @@ export async function GET(req: NextRequest) {
                 profile_picture_url: artist.profile_picture_url,
                 cover_photo_url: artist.cover_photo_url,
                 verification_status: artist.verification_status,
+                socials: artistData.socials || [],
                 community: artistData.Communities?.length
                     ? artistData.Communities[0]
                     : null,
