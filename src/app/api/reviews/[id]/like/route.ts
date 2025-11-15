@@ -11,7 +11,23 @@ export async function POST(request:NextRequest, context:{ params: Promise<{ id: 
       return NextResponse.json({ error: 'user_id is required' }, { status: 400 });
     }
 
-    // Always create a new like — no toggle
+    // Check if user has already liked this review
+    const existingLike = await Like.findOne({
+      where: {
+        user_id,
+        review_id,
+        post_id: null,
+        comment_id: null,
+      },
+    });
+
+    if (existingLike) {
+      // User has already liked this review, return current status
+      const count = await Like.count({ where: { review_id, post_id: null, comment_id: null } });
+      return NextResponse.json({ liked: true, count, message: 'Already liked' });
+    }
+
+    // Create a new like
     await Like.create({
       user_id,
       review_id,
@@ -28,6 +44,35 @@ export async function POST(request:NextRequest, context:{ params: Promise<{ id: 
     const err = error as Error;
     console.error('Error liking review:', err);
     return NextResponse.json({ error: 'Failed to like review', details: err?.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
+  const { id: review_id } = params;
+
+  try {
+    const { user_id } = await request.json();
+    if (!user_id) {
+      return NextResponse.json({ error: 'user_id is required' }, { status: 400 });
+    }
+
+    await Like.destroy({
+      where: {
+        user_id,
+        review_id,
+        post_id: null,
+        comment_id: null,
+      },
+    });
+
+    const count = await Like.count({ where: { review_id, post_id: null, comment_id: null } });
+
+    return NextResponse.json({ liked: false, count });
+  } catch (error) {
+    const err = error as Error;
+    console.error('Error unliking review:', err);
+    return NextResponse.json({ error: 'Failed to unlike review', details: err?.message }, { status: 500 });
   }
 }
 

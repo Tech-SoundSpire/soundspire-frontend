@@ -71,7 +71,7 @@ Like.init(
       {
         name: 'unique_user_like',
         unique: true,
-        fields: ['user_id', 'post_id', 'comment_id'],
+        fields: ['user_id', 'post_id', 'comment_id', 'review_id'],
       },
     ],
     validate: {

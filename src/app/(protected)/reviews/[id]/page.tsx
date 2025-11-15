@@ -26,6 +26,7 @@ export default function ReviewDetailPage() {
   const [review, setReview] = useState<Review | null>(null);
   const [likeCount, setLikeCount] = useState(0);
   const [liked, setLiked] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
   const { user } = useAuth();
   // Use actual authenticated user ID
   const userId = user?.id || '00000000-0000-0000-0000-000000000001';
@@ -51,22 +52,45 @@ useEffect(() => {
     .then(res => res.json())
     .then(data => setLiked(data.liked || false));
 
-}, [params.id]);
+}, [params.id, userId]);
 
-const handleLikeReview = async () => {
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const res = await fetch(`/api/reviews/${id}/like`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: userId }),
-  });
+const handleToggleReviewLike = async (currentlyLiked: boolean) => {
+  if (isLiking) return;
 
-  const data = await res.json();
+  setIsLiking(true);
+  try {
+    const id = Array.isArray(params.id) ? params.id[0] : params.id;
+    const method = currentlyLiked ? 'DELETE' : 'POST';
 
-  // Update like count only if liked
-  if (data.liked) {
-    setLiked(true);
-    setLikeCount(data.count || likeCount + 1); // prefer backend count
+    const res = await fetch(`/api/reviews/${id}/like`, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.error || 'Failed to toggle like');
+    }
+
+    if (typeof data.liked === 'boolean') {
+      setLiked(data.liked);
+    } else {
+      setLiked(!currentlyLiked);
+    }
+
+    if (typeof data.count === 'number') {
+      setLikeCount(data.count);
+    } else {
+      setLikeCount(prev => (currentlyLiked ? Math.max(0, prev - 1) : prev + 1));
+    }
+  } catch (error) {
+    console.error('Error toggling review like:', error);
+  } finally {
+    setTimeout(() => {
+      setIsLiking(false);
+    }, 500);
   }
 };
 
@@ -81,7 +105,13 @@ const handleLikeReview = async () => {
       >
         ← Back to All Reviews
       </button>
-      <DetailedReview review={review} userId={userId} likeCount={likeCount} liked={liked} onLike={handleLikeReview} />
+      <DetailedReview
+        review={review}
+        userId={userId}
+        likeCount={likeCount}
+        liked={liked}
+        onToggleLike={handleToggleReviewLike}
+      />
     </div>
   );
 } 
