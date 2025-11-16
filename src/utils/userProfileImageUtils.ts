@@ -14,15 +14,8 @@ export const getImageUrl = (s3Path: string): string => {
   if (s3Path.startsWith("s3://")) {
     const match = s3Path.match(/^s3:\/\/[^\/]+\/(.+)$/);
     if (match) {
-      let path = match[1]; // e.g. "assets/ss_logo.png" or "images/placeholder.jpg"
-
-      // Always ensure path is under /api/images/...
-      // Even if it's "assets/", backend will look under "images/assets/..."
-      if (!path.startsWith("images/")) {
-        path = `images/${path}`;
-      }
-
-      return `/api/${path}`;
+      const path = match[1]; // e.g. "assets/ss_logo.png" or "images/placeholder.jpg"
+      return `/api/images/${path}`;
     }
   }
 
@@ -43,8 +36,8 @@ export const getImageUrl = (s3Path: string): string => {
 // Default profile image path
 export const DEFAULT_PROFILE_IMAGE = 's3://soundspirewebsiteassets/images/placeholder.jpg';
 
-// SoundSpire logo path
-export const SOUNDSPIRE_LOGO = 's3://soundspirewebsiteassets/assets/ss_logo.png';
+// SoundSpire logo path - use direct S3 URL for better reliability
+export const SOUNDSPIRE_LOGO = 'https://soundspirewebsiteassets.s3.ap-south-1.amazonaws.com/assets/ss_logo.png';
 
 // Helper to get the default profile image URL
 export const getDefaultProfileImageUrl = () => getImageUrl(DEFAULT_PROFILE_IMAGE);
