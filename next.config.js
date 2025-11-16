@@ -31,6 +31,22 @@ images: {
       hostname: 'localhost',
       port: '3000',
       pathname: '/api/images/**',
+    },
+    {
+      protocol: 'https',
+      hostname: '*.amplifyapp.com',
+      pathname: '/api/images/**',
+    },
+    {
+      protocol: 'https',
+      hostname: '*.vercel.app',
+      pathname: '/api/images/**',
+    },
+    // Allow any HTTPS domain for API images (for production flexibility)
+    {
+      protocol: 'https',
+      hostname: '**',
+      pathname: '/api/images/**',
     }
   ],
 },
