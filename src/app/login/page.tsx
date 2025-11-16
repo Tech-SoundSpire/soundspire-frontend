@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
 import { FaGoogle } from "react-icons/fa";
+import { useAuth } from "@/context/AuthContext";
 
 const fields = [
   {
@@ -34,6 +35,7 @@ export default function LoginPage() {
 function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { refreshUser } = useAuth()
 
   useRedirectIfAuthenticated(); //Session checker hook
 
@@ -54,12 +56,15 @@ function LoginPageInner() {
       if (response.data.message === "Logged In Success") {
         toast.success("Login successful!");
 
+        await refreshUser(); 
+        // router.replace(response.data.redirect || "/feed");
         // Redirect based on preferences
-        if (response.data.redirect) {
-          window.location.href = response.data.redirect;
-        } else {
-          window.location.href = "/explore";
-        }
+        // const redirectPath =
+        //   response.data.user?.role === "artist"
+        //     ? "/artist/dashboard"
+        //     : response.data.redirect || "/PreferenceSelectionPage";
+
+        // router.replace(redirectPath);
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -224,8 +229,8 @@ function LoginPageInner() {
           <div className="text-center pt-4">
             <p className="text-sm text-gray-600">
               Don&apos;t have an account yet?{" "}
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="text-orange-600 hover:text-orange-700 font-medium hover:underline transition-colors duration-200"
               >
                 Sign up

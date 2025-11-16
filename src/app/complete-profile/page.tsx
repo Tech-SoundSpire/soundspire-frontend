@@ -6,6 +6,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import { getImageUrl, DEFAULT_PROFILE_IMAGE } from "@/utils/userProfileImageUtils";
+import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRoute";
+import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
 
 interface FormData {
   full_name: string;
@@ -18,9 +20,12 @@ interface FormData {
 }
 
 export default function CompleteProfilePage() {
-  const { user, setUser, refreshUser } = useAuth();
+  const { user, setUser, refreshUser, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { isProfileComplete, isLoading: profileLoading } = useCheckCompleteProfileOnRoute();
+  const { hasPreferences, isLoading: preferencesLoading } = useCheckPreferencesOnRoute();
 
   const [form, setForm] = useState<FormData>({
     full_name: "",
@@ -37,6 +42,40 @@ export default function CompleteProfilePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    // Wait for all checks to complete
+    if (authLoading || profileLoading || preferencesLoading) {
+      return;
+    }
+
+    // If no user, redirect to login
+    if (!user) {
+      router.replace('/login');
+      return;
+    }
+
+    // If artist, redirect to artist dashboard
+    if (user.role === 'artist') {
+      router.replace('/artist/dashboard');
+      return;
+    }
+
+    // If profile is already complete and has preferences, redirect to explore
+    if (isProfileComplete && hasPreferences) {
+      router.replace('/explore');
+      return;
+    }
+
+    // If profile is complete but no preferences, redirect to preferences page
+    if (isProfileComplete && !hasPreferences) {
+      router.replace('/PreferenceSelectionPage');
+      return;
+    }
+
+    // Otherwise, stay on this page (profile is incomplete)
+  }, [authLoading, profileLoading, preferencesLoading, user, isProfileComplete, hasPreferences, router]);
+
+  // Load user data for the form
   useEffect(() => {
     if (!user) {
       refreshUser();
@@ -93,7 +132,7 @@ export default function CompleteProfilePage() {
 
     try {
       const extension = selectedFile.name.split(".").pop();
-      const fileName = `${user.email.split("@")[0]}-${user.id || "unknown"}.${extension}`;
+      const fileName = `images/users/${user.email.split("@")[0]}-${user.id || "unknown"}.${extension}`;
 
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -112,7 +151,7 @@ export default function CompleteProfilePage() {
 
       if (!uploadRes.ok) throw new Error("Failed to upload image");
 
-      return `s3://soundspirewebsiteassets/images/users/${fileName}`;
+      return `s3://soundspirewebsiteassets/${fileName}`;
     } catch (error) {
       console.error(error);
       toast.error("Image upload failed");

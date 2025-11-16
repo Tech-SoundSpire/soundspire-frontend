@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const bucket = "soundspirewebsiteassets";
-    const key = `images/users/${fileName}`;
+    const bucket = 'soundspirewebsiteassets';
+    const key = fileName;
 
     // Log the request for debugging
     console.log("Upload request details:", {

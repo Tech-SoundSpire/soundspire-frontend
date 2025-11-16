@@ -6,6 +6,7 @@ import { connectionTestingAndHelper } from "@/utils/temp";
 
 interface DecodedToken {
   id: string;
+  role: "user" | "artist"
 }
 
 export async function GET() {
@@ -21,6 +22,8 @@ export async function GET() {
     const user = await User.findOne({ where: { user_id: decoded.id } });
     if (!user) return NextResponse.json({ user: null });
 
+    const role = decoded.role || (user.is_artist ? "artist" : "user");
+
     return NextResponse.json({
       user: {
         id: user.user_id,
@@ -30,6 +33,7 @@ export async function GET() {
         provider: (user as any).provider || "local",
         is_verified: user.is_verified,
         spotifyLinked: user.spotify_linked,
+        role,
       },
     });
   } catch (error) {

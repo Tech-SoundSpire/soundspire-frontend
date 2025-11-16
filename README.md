@@ -26,13 +26,17 @@ GOOGLE_CLIENT_SECRET=""
 NEXT_PUBLIC_BASE_URL=https://127.0.0.1:3000
 
 # NextAuth configuration
-NEXTAUTH_URL=https://127.0.0.1:3000
-NEXTAUTH_SECRET="" 
+NEXTAUTH_URL=https://localhost:3000
+NEXTAUTH_SECRET=""
 
 # Spotify OAuth
 SPOTIFY_CLIENT_ID=""
 SPOTIFY_CLIENT_SECRET=""
 SPOTIFY_REDIRECT_URI="https://127.0.0.1:3000/api/auth/callback/spotify"
+
+# SoundCharts API
+SOUNDCHARTS_CLIENT_ID=
+SOUNDCHARTS_TOKEN=
 ```
 
 Install Dependencies:

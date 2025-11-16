@@ -2,9 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
 
 interface UseCheckCompleteProfileReturn {
     isProfileComplete: boolean;
@@ -14,20 +12,22 @@ interface UseCheckCompleteProfileReturn {
 
 const useCheckCompleteProfileOnRoute = (): UseCheckCompleteProfileReturn => {
     const { user, isLoading: authLoading } = useAuth();
-    const router = useRouter();
     const [isProfileComplete, setIsProfileComplete] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-
         const checkProfile = async () => {
             if (authLoading || !user?.email) return;
 
-            try {
-                setIsLoading(true);
-                setError(null);
+            if (user.role === "artist") {
+                setIsProfileComplete(true);
+                setIsLoading(false);
+                return;
+            }
 
+            try {
+                setError(null);
                 const res = await axios.get(`/api/profile?email=${encodeURIComponent(user.email)}`);
                 const profile = res.data;
 
@@ -40,23 +40,19 @@ const useCheckCompleteProfileOnRoute = (): UseCheckCompleteProfileReturn => {
                     profile.country,
                 ];
 
-                const complete = requiredFields.every((f) => f && f.trim() !== '');
+                const complete = requiredFields.every((f) => f && String(f).trim() !== '');
                 setIsProfileComplete(complete);
-
-                if (!complete) {
-                    router.push('/complete-profile');
-                }
             } catch (err) {
-                console.error('Error checking profile completeness:', err);
-                setError('Failed to check profile');
-                router.push('/complete-profile');
+                console.error("Error checking profile completeness:", err);
+                setError("Failed to check profile");
+                setIsProfileComplete(false);
             } finally {
                 setIsLoading(false);
             }
         };
 
         checkProfile();
-    }, [user, authLoading, router]);
+    }, [user, authLoading]);
 
     return { isProfileComplete, isLoading, error };
 };
