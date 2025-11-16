@@ -21,7 +21,8 @@ export default function RootLayout({
           {/* Logo */}
           <div className="flex items-center">
             <Image
-              src={getImageUrl("s3://soundspirewebsiteassets/assets/ss_logo.png")}
+              // src={getImageUrl("s3://soundspirewebsiteassets/assets/ss_logo.png")}
+              src={getImageUrl("s3://soundspirewebsiteassets/images/placeholder.png")}
               alt="SoundSpire Logo"
               width={100}
               height={100}
