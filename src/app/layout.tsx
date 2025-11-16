@@ -21,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${inter.variable} antialiased min-h-screen bg-black`}>
+      <body className={`${inter.variable} antialiased min-h-screen bg-[#1a1625]`}>
         <AuthProvider>
         <Toaster position="top-center" reverseOrder={false}/>
           {children}

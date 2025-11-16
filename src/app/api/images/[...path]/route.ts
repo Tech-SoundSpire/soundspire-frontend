@@ -26,40 +26,39 @@ export async function GET(
     console.log('Full path:', fullPath);
     
     const bucket = 'soundspirewebsiteassets';
-    // Add 'images/' prefix to the path since it was removed by getImageUrl
-    const s3Key = `images/${fullPath}`;
 
-    // Log the request for debugging
-    console.log('Image request details:', {
-      originalPath: fullPath,
-      s3Key,
-      bucket,
-      region: 'ap-south-1',
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID ? 'present' : 'missing',
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ? 'present' : 'missing',
-    });
+    //  primary key
+    let s3Key = `images/${fullPath}`;
+    console.log("Attempting primary S3 key:", s3Key);
 
-    // First check if the object exists
-    try {
-      console.log('Checking if object exists in S3:', { bucket, key: s3Key });
-      const headCommand = new HeadObjectCommand({
-        Bucket: bucket,
-        Key: s3Key,
-      });
-      
-      const headResponse = await s3Client.send(headCommand);
-      console.log('HeadObject response:', headResponse);
-      
-      console.log('Object exists in S3:', { bucket, key: s3Key });
-    } catch (headError) {
-      console.error('HeadObject error:', {
-        error: headError instanceof Error ? headError.message : 'Unknown error',
-        bucket,
-        key: s3Key,
-        stack: headError instanceof Error ? headError.stack : undefined,
-        name: headError instanceof Error ? headError.name : 'Unknown',
-        code: (headError as any)?.$metadata?.httpStatusCode,
-      });
+    // helper function
+    async function keyExists(key: string) {
+      try {
+        const headCommand = new HeadObjectCommand({ Bucket: bucket, Key: key });
+        await s3Client.send(headCommand);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    // check primary key
+    let exists = await keyExists(s3Key);
+
+    // fallback to raw key
+    if (!exists) {
+      const fallbackKey = fullPath;
+      console.log("Primary key not found, trying fallback key:", fallbackKey);
+
+      if (await keyExists(fallbackKey)) {
+        s3Key = fallbackKey;
+        exists = true;
+      }
+    }
+
+    // if still not found → 404
+    if (!exists) {
+      console.error("❌ S3 object not found:", fullPath);
       return new NextResponse('Image not found', { status: 404 });
     }
 
@@ -129,4 +128,4 @@ export async function GET(
       }
     );
   }
-} 
+}

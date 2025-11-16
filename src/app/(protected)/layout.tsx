@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import Navbar from "@/components/Navbar";
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -6,21 +6,36 @@ import { useEffect } from 'react';
 import useCheckPreferencesOnRoute from '@/hooks/useCheckPreferencesOnRoute';
 import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRoute";
 
-export default function Layout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { user, isLoading } = useAuth();
+export default function Layout({ children }: { children: React.ReactNode }) {
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const { hasPreferences, isLoading: preferencesLoading } = useCheckPreferencesOnRoute();
-  const { isProfileComplete, isLoading: profileLoading } = useCheckCompleteProfileOnRoute();
+
+  const {
+    hasPreferences,
+    isLoading: preferencesLoading
+  } = useCheckPreferencesOnRoute();
+  const {
+    isProfileComplete,
+    isLoading: profileLoading
+  } = useCheckCompleteProfileOnRoute();
+
+  const checksLoading =
+    !!user && (profileLoading || preferencesLoading);
+  const allLoading = authLoading || checksLoading;
 
   useEffect(() => {
-    if (isLoading || profileLoading || preferencesLoading) return;
+    if (authLoading) return;
 
     if (!user) {
-      router.push('/');
+      console.log("No user found → redirecting to /login");
+      router.replace("/login");
+      return;
+    }
+
+    if (profileLoading || preferencesLoading) return;
+
+    if (user.role === "artist") {
+      router.replace("/artist/dashboard");
       return;
     }
 
@@ -34,11 +49,11 @@ export default function Layout({
       return;
     }
   }, [
-    user, isLoading, router, profileLoading, isProfileComplete, preferencesLoading, hasPreferences,
+    user, authLoading, profileLoading, preferencesLoading, isProfileComplete, hasPreferences, router
   ]);
 
   // Show loading while checking preferences
-  if (isLoading || preferencesLoading || profileLoading) {
+  if (allLoading) {
     return (
       <div className="min-h-screen bg-[#120B1A] text-white flex items-center justify-center">
         <div className="text-center">

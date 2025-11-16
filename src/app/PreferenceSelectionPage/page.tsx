@@ -273,27 +273,41 @@ const PreferenceSelectionPage: React.FC = () => {
   const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
   const [availableArtists, setAvailableArtists] = useState<Artist[]>([]);
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/');
-    }
-  }, [user, authLoading, router]);
-
-    // Profile & Preferences checks
+  // Profile & Preferences checks
   const { isProfileComplete, isLoading: profileLoading } = useCheckCompleteProfileOnRoute();
   const { hasPreferences, isLoading: preferencesLoading } = useCheckPreferencesOnRoute();
 
-  useEffect(() => {
-    if (!profileLoading && !isProfileComplete) {
-      router.push('/complete-profile');
+ useEffect(() => {
+    if (authLoading || profileLoading || preferencesLoading) {
       return;
     }
 
-    if (!preferencesLoading && isProfileComplete && hasPreferences) {
-      router.push('/explore');
+    // If no user, redirect to login
+    if (!user) {
+      router.replace('/login');
+      return;
     }
-  }, [profileLoading, preferencesLoading, isProfileComplete, hasPreferences, router]);
+
+    // If artist, redirect to artist dashboard
+    if (user.role === 'artist') {
+      router.replace('/artist/dashboard');
+      return;
+    }
+
+    // If profile is not complete, redirect to complete-profile
+    if (!isProfileComplete) {
+      router.replace('/complete-profile');
+      return;
+    }
+
+    // If preferences already exist, redirect to explore
+    if (hasPreferences) {
+      router.replace('/explore');
+      return;
+    }
+
+    // Otherwise, stay on this page (preferences selection)
+  }, [authLoading, profileLoading, preferencesLoading, user, isProfileComplete, hasPreferences, router]);
 
   // Load available options from database
   useEffect(() => {

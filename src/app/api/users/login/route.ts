@@ -1,9 +1,10 @@
 import { connectionTestingAndHelper } from "@/utils/temp";
 import { User } from "@/models/User";
-import UserPreferences from "@/models/UserPreferences";
+// import UserPreferences from "@/models/UserPreferences";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
+import Artist from "@/models/Artist";
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,25 +62,44 @@ export async function POST(request: NextRequest) {
     });
 
     // Check if user has preferences
-    const preferences = await UserPreferences.findOne({
-      where: { user_id: user.user_id },
-    });
+    // const preferences = await UserPreferences.findOne({
+    //   where: { user_id: user.user_id },
+    // });
 
-    let redirectPath = "/feed"; // Default to feed
-    if (
-      !preferences ||
-      (preferences.genres.length === 0 &&
-        preferences.languages.length === 0 &&
-        preferences.favorite_artists.length === 0)
-    ) {
-      redirectPath = "/PreferenceSelectionPage";
-    }
+    // let redirectPath = user.is_artist ? "/artist/dashboard" : "/feed"; // Default to feed for normal user and artist dashboard for the artists
+    // if (
+    //   !preferences ||
+    //   (preferences.genres.length === 0 &&
+    //     preferences.languages.length === 0 &&
+    //     preferences.favorite_artists.length === 0)
+    // ) {
+    //   redirectPath = "/PreferenceSelectionPage";
+    // }
+
+    // const token = jwt.sign(
+    //   { id: user.user_id, email: user.email, role: user.is_artist ? "artist" : "user" },
+    //   process.env.JWT_SECRET!,
+    //   { expiresIn: "7d" },
+    // );
 
     const token = jwt.sign(
-      { id: user.user_id, email: user.email },
+      {
+        id: user.user_id,
+        email: user.email,
+        role: user.is_artist ? "artist" : "user"
+      },
       process.env.JWT_SECRET!,
-      { expiresIn: "7d" },
+      { expiresIn: "7d" }
     );
+    const redirectPath = user.is_artist ? "/artist/dashboard" : "/feed";
+
+    let artistId: string | null = null;
+    if (user.is_artist) {
+      const artist = await Artist.findOne({ where: { user_id: user.user_id } });
+      if (artist) {
+        artistId = artist.artist_id;
+      }
+    }
 
     //creating response
     const response = NextResponse.json({
@@ -88,7 +108,8 @@ export async function POST(request: NextRequest) {
         id: user.user_id,
         name: user.full_name,
         email: user.email,
-        // provider: "local",
+        role: user.is_artist ? "artist" : "user",
+        ...(artistId ? { artist_id: artistId } : {}),
       },
       redirect: redirectPath,
     });
@@ -100,6 +121,17 @@ export async function POST(request: NextRequest) {
       path: "/",
       maxAge: 7 * 24 * 60 * 60,
     });
+
+    if (artistId) {
+      response.cookies.set({
+        name: "artist_id",
+        value: artistId,
+        httpOnly: true,
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60,
+        sameSite: "lax",
+      });
+    }
 
     return response; //seding response and user is loggedin
   } catch (error: unknown) {

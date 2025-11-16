@@ -8,6 +8,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRoute";
 import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
+import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
 
 const fields = [
   {
@@ -38,6 +40,7 @@ const fields = [
 
 export default function SignupPage() {
   const router = useRouter();
+  const { user: authUser, isLoading: authLoading } = useAuth();
   const { isProfileComplete, isLoading: profileLoading } = useCheckCompleteProfileOnRoute();
   const { hasPreferences, isLoading: preferencesLoading } = useCheckPreferencesOnRoute();
 
@@ -54,19 +57,38 @@ export default function SignupPage() {
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    if (!profileLoading && !isProfileComplete) {
+    if (authLoading || profileLoading || preferencesLoading) return;
+
+    if (!authUser) return;
+
+    const shouldWaitForData =
+      !isProfileComplete && !hasPreferences && (profileLoading === false && preferencesLoading === false);
+
+    if (shouldWaitForData) {
+      console.log("Waiting for final values from profile/preferences APIs...");
+      return;
+    }
+
+    if (authUser.role === "artist") {
+      router.push("/artist/dashboard");
+      return;
+    }
+
+    if (isProfileComplete && hasPreferences) {
+      router.push("/explore");
+      return;
+    }
+
+    if (!isProfileComplete) {
       router.push("/complete-profile");
       return;
     }
 
-    if (!preferencesLoading && isProfileComplete && !hasPreferences) {
+    if (isProfileComplete && !hasPreferences) {
       router.push("/PreferenceSelectionPage");
+      return;
     }
-
-    if (!profileLoading && !preferencesLoading && isProfileComplete && hasPreferences) {
-      router.push("/explore");
-    }
-  }, [profileLoading, preferencesLoading, isProfileComplete, hasPreferences, router]);
+  }, [authUser, authLoading, profileLoading, preferencesLoading, isProfileComplete, hasPreferences, router]);
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
@@ -150,11 +172,28 @@ export default function SignupPage() {
   }, [user]);
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white">
+    <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white relative">
+
+      {/* ✅ For Artists Button Added */}
+      <div className="absolute top-4 right-4 z-10">
+        <Link
+          href="/artist-onboarding"
+          className="px-6 py-2 bg-[#FA6400] hover:bg-[#e55a00] text-white font-bold rounded-lg transition-colors duration-200 shadow-lg"
+        >
+          For Artists
+        </Link>
+      </div>
+
       {/* Left Side */}
       <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
         <div>
-          <img src="/images/logo-Photoroom.png" alt="SoundSpire logo" width={200} height={200} className="mb-4" />
+          <Image
+            src="/images/logo-Photoroom.png"
+            alt="SoundSpire logo"
+            width={200}
+            height={200}
+            className="mb-4"
+          />
         </div>
         <div className="mb-12">
           <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">

@@ -7,6 +7,7 @@ export interface User {
   email: string;
   photoURL?: string | null;
   provider: 'local' | string; // allows flexibility for 'google', etc.
+  role: 'user' | 'artist';
 }
 
 interface AuthContextType {
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: data.user.email || '',
           photoURL: data.user.photoURL || data.user.image || null,
           provider: data.user.provider || 'local',
+          role: data.user.role || 'user',
         };
         setUser(normalizedUser);
       } else {
