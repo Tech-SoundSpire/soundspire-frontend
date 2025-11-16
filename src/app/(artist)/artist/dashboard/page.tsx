@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { getImageUrl, DEFAULT_PROFILE_IMAGE } from "@/utils/userProfileImageUtils";
+import { getImageUrl, DEFAULT_PROFILE_IMAGE, getLogoUrl } from "@/utils/userProfileImageUtils";
 import Image from "next/image";
 import { FaYoutube, FaInstagram, FaFacebook, FaTiktok } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
@@ -84,8 +84,8 @@ export default function ArtistDashboard() {
             <header className="w-full bg-[#1a1625]/90 backdrop-blur-md py-4 px-8 flex items-center justify-between fixed top-0 left-0 z-50">
                 {/* Left: Logo */}
                 <div className="flex items-center gap-2">
-                    <Image
-                        src="/images/logo.png"
+                    <img
+                        src={getLogoUrl()}
                         alt="SoundSpire Logo"
                         width={32}
                         height={32}

@@ -245,10 +245,13 @@ export default function ExplorePage() {
                   className="flex-shrink-0 text-center"
                 >
                   <img
+                    // src={
+                    //   artist.profile_picture_url ||
+                    //   getImageUrl(DEFAULT_PROFILE_IMAGE)
+                    // }
                     src={
-                      artist.profile_picture_url ||
-                      getImageUrl(DEFAULT_PROFILE_IMAGE)
-                    }
+                      artist.profile_picture_url ? 
+                      getImageUrl(artist.profile_picture_url) : getImageUrl(DEFAULT_PROFILE_IMAGE)}
                     alt={artist.artist_name}
                     className="w-24 h-24 rounded-full object-cover mb-2"
                   />

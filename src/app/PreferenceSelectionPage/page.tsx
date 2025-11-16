@@ -335,7 +335,7 @@ const PreferenceSelectionPage: React.FC = () => {
         const artistsData = artistsResponse.data.artists.map((artist: any) => ({
           artist_id: artist.artist_id,
           name: artist.artist_name,
-          img: getImageUrl(artist.profile_picture_url || getDefaultProfileImageUrl())
+          img: artist.profile_picture_url ? getImageUrl(artist.profile_picture_url) : getDefaultProfileImageUrl()
         }));
         setAvailableArtists(artistsData);
       } catch (error) {
