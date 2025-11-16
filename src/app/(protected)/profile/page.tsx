@@ -359,45 +359,38 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Profile Image with Username and Full Name */}
-          <div className="mb-12">
-            <div className="flex flex-col md:flex-row items-start gap-8">
-              <div className="w-full md:w-auto flex flex-col items-center">
-                <div
-                  className={`w-28 h-28 rounded-full overflow-hidden mb-4 ${isEditing ? "cursor-pointer relative" : ""}`}
-                  onClick={handleImageClick}
-                >
-                  <img
-                    src={
-                      isEditing
-                        ? editableProfile.profileImage
-                          ? getImageUrl(editableProfile.profileImage)
-                          : profile.profileImage
-                            ? getImageUrl(profile.profileImage)
-                            : DEFAULT_PROFILE_IMAGE
-                        : profile.profileImage
-                          ? getImageUrl(profile.profileImage)
-                          : DEFAULT_PROFILE_IMAGE
-                    }
-                    alt="Profile picture"
-                    width={112}
-                    height={112}
-                    className="object-cover"
-                  />
-                  {isEditing && (
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity duration-200">
-                      <span>Change</span>
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageChange}
-                  />
+      {/* Profile Image with Username and Full Name */}
+      <div className="mb-12">
+        <div className="flex flex-col md:flex-row items-start gap-8">
+          <div className="w-full md:w-auto flex flex-col items-center">
+            <div
+              className={`w-28 h-28 rounded-full overflow-hidden mb-4 ${isEditing ? 'cursor-pointer relative' : ''}`}
+              onClick={handleImageClick}
+            >
+              <img
+                src={isEditing
+                  ? (editableProfile.profileImage
+                      ? getImageUrl(editableProfile.profileImage)
+                      : (profile.profileImage ? getImageUrl(profile.profileImage) : getDefaultProfileImageUrl()))
+                  : (profile.profileImage ? getImageUrl(profile.profileImage) : getDefaultProfileImageUrl())}
+                alt="Profile picture"
+                width={112}
+                height={112}
+                className="object-cover"
+              />
+              {isEditing && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity duration-200">
+                  <span>Change</span>
                 </div>
-                
+              )}
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+              />
+            </div>
                 {/* File size limit indicator when editing */}
                 {isEditing && (
                   <div className="text-center mb-4">
@@ -598,35 +591,31 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Subscriptions */}
-          <hr className="border-gray-800 my-8" />
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-white mb-8">
-              My Subscriptions
-            </h2>
-            {profile.subscriptions.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-                {profile.subscriptions.map((subscription, index) => (
-                  <div key={index} className="flex flex-col items-center">
-                    <div className="w-24 h-24 rounded-full overflow-hidden mb-2">
-                      <img
-                        src={subscription.image || "/default-community.jpg"}
-                        alt={subscription.name}
-                        width={96}
-                        height={96}
-                        className="object-cover"
-                      />
-                    </div>
-                    <p className="text-white text-center">
-                      {subscription.name}
-                    </p>
-                  </div>
-                ))}
+      {/* Subscriptions from File B */}
+      <hr className="border-gray-800 my-8" />
+      <div className="mb-12">
+        <h2 className="text-3xl font-bold text-white mb-8">My Subscriptions</h2>
+        {profile.subscriptions.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+            {profile.subscriptions.map((subscription, index) => (
+              <div key={index} className="flex flex-col items-center">
+                <div className="w-24 h-24 rounded-full overflow-hidden mb-2">
+                  <img
+                    src={subscription.image ? getImageUrl(subscription.image) : getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                    alt={subscription.name}
+                    width={96}
+                    height={96}
+                    className="object-cover"
+                  />
+                </div>
+                <p className="text-white text-center">{subscription.name}</p>
               </div>
-            ) : (
-              <p className="text-gray-400">No subscriptions found.</p>
-            )}
+            ))}
           </div>
+        ) : (
+          <p className="text-gray-400">No subscriptions found.</p>
+        )}
+      </div>
 
           {/* Spotify Integration */}
           <hr className="border-gray-800 my-8" />

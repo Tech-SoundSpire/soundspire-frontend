@@ -4,13 +4,25 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { MAX_FILE_SIZE, ALLOWED_IMAGE_TYPES } from "@/utils/fileUtils";
 
 // Create S3 client with explicit configuration
-const s3Client = new S3Client({
-  region: "ap-south-1",
-  credentials: {
-    accessKeyId: process.env.BUCKET_AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.BUCKET_AWS_SECRET_ACCESS_KEY || "",
-  },
-});
+// Support both naming conventions for AWS credentials
+const getS3Client = () => {
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.BUCKET_AWS_ACCESS_KEY_ID || '';
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.BUCKET_AWS_SECRET_ACCESS_KEY || '';
+  
+  if (!accessKeyId || !secretAccessKey) {
+    console.error('Missing AWS credentials. Check AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.');
+  }
+  
+  return new S3Client({
+    region: 'ap-south-1',
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  });
+};
+
+const s3Client = getS3Client();
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,17 +57,18 @@ export async function POST(request: NextRequest) {
     const key = `images/users/${fileName}`;
 
     // Log the request for debugging
-    console.log("Upload request details:", {
+    const accessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.BUCKET_AWS_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.BUCKET_AWS_SECRET_ACCESS_KEY;
+    
+    console.log('Upload request details:', {
       fileName,
       fileType,
       fileSize: fileSize ? `${(fileSize / (1024 * 1024)).toFixed(2)}MB` : 'unknown',
       bucket,
       key,
-      region: "ap-south-1",
-      accessKeyId: process.env.BUCKET_AWS_ACCESS_KEY_ID ? "present" : "missing",
-      secretAccessKey: process.env.BUCKET_AWS_SECRET_ACCESS_KEY
-        ? "present"
-        : "missing",
+      region: 'ap-south-1',
+      accessKeyId: accessKeyId ? 'present' : 'missing',
+      secretAccessKey: secretAccessKey ? 'present' : 'missing',
     });
 
     const command = new PutObjectCommand({

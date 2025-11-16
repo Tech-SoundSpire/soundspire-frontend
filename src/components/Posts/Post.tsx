@@ -72,110 +72,87 @@ export default function Post(props: { post: PostProps; user_id: string }) {
     setCommentText("");
   }
 
-  return (
-    <div className="post rounded-xl bg-white w-[80%] mb-10">
-      <div className="post-header flex items-center p-5">
-        <img
-          src={
-            post.artist.profile_picture_url
-              ? post.artist.profile_picture_url
-              : getImageUrl(DEFAULT_PROFILE_IMAGE)
-          }
-          alt={`Avatar`}
-          className="w-12 h-12 rounded-full object-cover mr-3"
-          width={100}
-          height={100}
-        />
-        <h1 className="font-bold">{post.artist.artist_name}</h1>
-      </div>
-
-      <div className="post-body mb-2">
-        {post.media_type == "image" ? (
-          <MediaCarousel mediaUrls={post.media_urls} />
-        ) : null}
-        {post.media_type == "none" ? (
-          <div className="p-5">
-            <p>{post.content_text}</p>
-          </div>
-        ) : null}
-      </div>
-      <div className="post-interactions flex pl-4 py-5 text-lg">
-        <div className="flex items-center mr-4">
-          {!liked ? (
-            <FaRegHeart
-              className="mr-3 cursor-pointer"
-              onClick={() => onLike()}
-            />
-          ) : (
-            <FaHeart
-              className="mr-3 cursor-pointer fill-rose-400"
-              onClick={() => onDislike()}
-            />
-          )}
-          <p>Like</p>
-        </div>
-        <div
-          className="flex items-center mr-4 cursor-pointer"
-          onClick={() => setShowComments(!showComments)}
-        >
-          <FaRegComments className="mr-3" />
-          <p>Comment</p>
-        </div>
-        <div className="flex items-center mr-4">
-          <FaRegPaperPlane className="mr-3" />
-          <p>Share</p>
-        </div>
-      </div>
-      {post.media_type != "none" ? (
-        <div className="post-details flex px-5 pb-5 flex-wrap">
-          <p>
-            <span className="font-bold mr-3">{post.artist.artist_name}</span>
-            {post.content_text}
-          </p>
-        </div>
-      ) : null}
-      <div className="post-comments-preview p-4">
-        {showComments ? (
-          <div className="post-comment flex items-center py-2">
-            <img
-              src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-              alt={`Avatar`}
-              className="w-12 h-12 rounded-full object-cover mr-5"
-              width={100}
-              height={100}
-            />
-            <div>
-              <input
-                placeholder="Enter Comment..."
-                className="border-b-black border-b-2 w-[35vw] p-2 focus:outline-none"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && onComment()}
-              ></input>
-              <button
-                onClick={onComment}
-                className="text-black px-3 font-semibold text-md"
-              >
-                {" "}
-                Post
-              </button>
-            </div>
-          </div>
-        ) : null}
-        {showComments
-          ? comments.map((comment: CommentProps, index: number) => {
-              console.log("Post comments:", comment);
-              return (
-                <Comment
-                  key={index}
-                  comment={comment}
-                  user_id={effectiveUserId}
-                  post_id={post.post_id}
+    return(
+        <div className='post rounded-xl bg-white w-[80%] mb-10'>
+            <div className='post-header flex items-center p-5'>
+                <img
+                    src={post.artist.profile_picture_url ? getImageUrl(post.artist.profile_picture_url) : getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                    alt={`Avatar`}
+                    className="w-12 h-12 rounded-full object-cover mr-3"
+                    width={100}
+                    height={100}
                 />
-              );
-            })
-          : null}
-      </div>
-    </div>
-  );
+                <h1 className='font-bold'>{post.artist.artist_name}</h1>
+            </div>
+            
+            <div className='post-body mb-2'>
+                {
+                    post.media_type=="image" ?
+                        <MediaCarousel mediaUrls={post.media_urls}/> :
+                        null 
+                }
+                {
+                    post.media_type=="none" ?
+                    <div className='p-5'>
+                        <p>{post.content_text}</p>
+                    </div>
+                    : null
+                }
+            </div>
+            <div className='post-interactions flex pl-4 py-5 text-lg'>
+                <div className='flex items-center mr-4'>
+                    { !liked ? 
+                        <FaRegHeart className='mr-3 cursor-pointer' onClick={()=> onLike()}/> :
+                        <FaHeart className='mr-3 cursor-pointer fill-rose-400' onClick={()=> onDislike()}/>
+                    }
+                    <p>Like</p>
+                </div>
+                <div className='flex items-center mr-4 cursor-pointer' onClick={()=>setShowComments(!showComments)}>
+                    <FaRegComments className='mr-3'/>
+                    <p>Comment</p>
+                </div>
+                <div className='flex items-center mr-4'>
+                    <FaRegPaperPlane className='mr-3'/>
+                    <p>Share</p>
+                </div>
+            </div>
+            { post.media_type != 'none' ?
+            <div className='post-details flex px-5 pb-5 flex-wrap'>
+                <p><span className='font-bold mr-3'>{post.artist.artist_name}</span>{post.content_text}</p>
+            </div> : null
+            }
+            <div className='post-comments-preview p-4'>
+                {showComments ? 
+                <div className='post-comment flex items-center py-2'>
+                    <img
+                        src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                        alt={`Avatar`}
+                        className="w-12 h-12 rounded-full object-cover mr-5"
+                         width={100} height={100}
+                    />
+                    <div>
+                        <input 
+                            placeholder='Enter Comment...' 
+                            className='border-b-black border-b-2 w-[35vw] p-2 focus:outline-none'
+                            value={commentText}
+                            onChange={(e) => setCommentText(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && onComment()}
+                        >    
+                        </input>
+                        <button
+                            onClick={onComment}
+                            className="text-black px-3 font-semibold text-md"
+                        > Post
+                        </button>
+                    </div> 
+                </div>: null }           
+                { showComments ? 
+                    comments.map((comment:CommentProps,index:number) => {
+                        console.log('Post comments:', comment);
+                        return <Comment key={index} comment={comment} user_id={effectiveUserId} post_id={post.post_id}/>;
+                    })
+                : null }
+            </div>            
+        </div>
+    )
 }

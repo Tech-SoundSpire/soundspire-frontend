@@ -42,6 +42,21 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'app.soundspire.online',
+        pathname: '/api/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.amplifyapp.com',
+        pathname: '/api/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.vercel.app',
+        pathname: '/api/images/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'i.scdn.co',
         pathname: '**',
       },

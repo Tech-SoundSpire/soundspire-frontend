@@ -155,7 +155,13 @@ export default function SignupPage() {
       {/* Left Side */}
       <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
         <div>
-          <img src="/images/logo-Photoroom.png" alt="SoundSpire logo" width={200} height={200} className="mb-4" />
+          <img
+            src={getLogoUrl()}
+            alt="SoundSpire logo"
+            width={200}
+            height={200}
+            className="mb-4"
+          />
         </div>
         <div className="mb-12">
           <h1 className="text-6xl font-semibold mb-4 bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text text-transparent italic">

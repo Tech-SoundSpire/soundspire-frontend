@@ -6,13 +6,25 @@ import {
 } from "@aws-sdk/client-s3";
 
 // Create S3 client with explicit configuration
-const s3Client = new S3Client({
-  region: "ap-south-1",
-  credentials: {
-    accessKeyId: process.env.BUCKET_AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.BUCKET_AWS_SECRET_ACCESS_KEY || "",
-  },
-});
+// Support both naming conventions for AWS credentials
+const getS3Client = () => {
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.BUCKET_AWS_ACCESS_KEY_ID || '';
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.BUCKET_AWS_SECRET_ACCESS_KEY || '';
+  
+  if (!accessKeyId || !secretAccessKey) {
+    console.error('Missing AWS credentials. Check AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.');
+  }
+  
+  return new S3Client({
+    region: 'ap-south-1',
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  });
+};
+
+const s3Client = getS3Client();
 
 export async function GET(
   request: NextRequest,
@@ -31,52 +43,85 @@ export async function GET(
     }
 
     // Join the path array back into a string
-    const fullPath = path.join("/");
-    console.log("Full path:", fullPath);
+    const fullPath = path.join('/');
+    console.log('Full path:', fullPath);
+    
+    const bucket = 'soundspirewebsiteassets';
 
-    const bucket = "soundspirewebsiteassets";
-    // Handle both 'images/' and 'assets/' prefixes
-    let s3Key;
-    if (fullPath.startsWith('assets/')) {
-      s3Key = fullPath; // Keep assets/ prefix as is
-    } else {
-      s3Key = `images/${fullPath}`; // Add 'images/' prefix for backward compatibility
+    // Helper function to check if key exists with better error handling
+    async function keyExists(key: string): Promise<{ exists: boolean; error?: string }> {
+      try {
+        const headCommand = new HeadObjectCommand({ Bucket: bucket, Key: key });
+        await s3Client.send(headCommand);
+        return { exists: true };
+      } catch (error: any) {
+        // If it's a 404, the key doesn't exist (this is expected)
+        if (error?.$metadata?.httpStatusCode === 404 || error?.name === 'NotFound') {
+          return { exists: false };
+        }
+        // For other errors (like credentials), log and return error
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`Error checking key "${key}":`, errorMsg);
+        return { exists: false, error: errorMsg };
+      }
     }
 
-    // Log the request for debugging
-    console.log("Image request details:", {
-      originalPath: fullPath,
-      s3Key,
-      bucket,
-      region: "ap-south-1",
-      accessKeyId: process.env.BUCKET_AWS_ACCESS_KEY_ID ? "present" : "missing",
-      secretAccessKey: process.env.BUCKET_AWS_SECRET_ACCESS_KEY
-        ? "present"
-        : "missing",
-    });
+    // Try multiple key patterns in order of likelihood
+    const keyPatterns: string[] = [];
+    
+    // If path starts with assets/, try it directly first
+    if (fullPath.startsWith('assets/')) {
+      keyPatterns.push(fullPath); // assets/ss_logo.png
+      keyPatterns.push(`images/${fullPath}`); // images/assets/ss_logo.png
+    } else if (fullPath.startsWith('images/')) {
+      keyPatterns.push(fullPath); // images/placeholder.jpg
+      keyPatterns.push(fullPath.replace(/^images\//, '')); // placeholder.jpg
+    } else {
+      // Default: try images/ prefix first, then raw
+      keyPatterns.push(`images/${fullPath}`); // images/something.jpg
+      keyPatterns.push(fullPath); // something.jpg
+    }
 
-    // First check if the object exists
-    try {
-      console.log("Checking if object exists in S3:", { bucket, key: s3Key });
-      const headCommand = new HeadObjectCommand({
-        Bucket: bucket,
-        Key: s3Key,
-      });
+    let s3Key: string | null = null;
+    let lastError: string | undefined;
 
-      const headResponse = await s3Client.send(headCommand);
-      console.log("HeadObject response:", headResponse);
+    // Try each pattern
+    for (const pattern of keyPatterns) {
+      console.log(`Checking S3 key: ${pattern}`);
+      const result = await keyExists(pattern);
+      
+      if (result.exists) {
+        s3Key = pattern;
+        console.log(`✅ Found S3 key: ${pattern}`);
+        break;
+      }
+      
+      if (result.error) {
+        lastError = result.error;
+        // If it's a credentials error, stop trying and return error
+        if (result.error.includes('credentials') || result.error.includes('AccessDenied') || result.error.includes('Signature')) {
+          console.error('AWS credentials error detected, stopping search');
+          break;
+        }
+      }
+    }
 
-      console.log("Object exists in S3:", { bucket, key: s3Key });
-    } catch (headError) {
-      console.error("HeadObject error:", {
-        error: headError instanceof Error ? headError.message : "Unknown error",
-        bucket,
-        key: s3Key,
-        stack: headError instanceof Error ? headError.stack : undefined,
-        name: headError instanceof Error ? headError.name : "Unknown",
-        code: (headError as any)?.$metadata?.httpStatusCode,
-      });
-      return new NextResponse("Image not found", { status: 404 });
+    // if still not found → 404
+    if (!s3Key) {
+      console.error("❌ S3 object not found after trying all patterns:", keyPatterns);
+      if (lastError && (lastError.includes('credentials') || lastError.includes('AccessDenied') || lastError.includes('Signature'))) {
+        return new NextResponse(
+          JSON.stringify({ 
+            error: 'AWS credentials error',
+            details: 'Unable to access S3. Please check AWS credentials configuration.'
+          }),
+          { 
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+      }
+      return new NextResponse('Image not found', { status: 404 });
     }
 
     console.log("Fetching object from S3:", { bucket, key: s3Key });
@@ -134,15 +179,33 @@ export async function GET(
     console.error("API error:", {
       error: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
-      name: error instanceof Error ? error.name : "Unknown",
+      name: error instanceof Error ? error.name : 'Unknown',
     });
+    
+    // Check if it's a credentials error
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    if (errorMessage.includes('credentials') || errorMessage.includes('AccessDenied')) {
+      return new NextResponse(
+        JSON.stringify({ 
+          error: 'AWS credentials not configured',
+          details: 'Please check AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables'
+        }), 
+        { 
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+    }
+    
     // Return a more specific error message
     return new NextResponse(
-      JSON.stringify({
-        error: "Error fetching image",
-        details: error instanceof Error ? error.message : "Unknown error",
-      }),
-      {
+      JSON.stringify({ 
+        error: 'Error fetching image',
+        details: errorMessage
+      }), 
+      { 
         status: 500,
         headers: {
           "Content-Type": "application/json",
