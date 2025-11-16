@@ -1,90 +1,132 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import models from '@/models';
-import { Op } from 'sequelize';
+const { Comment, Like, User, Review } = models;
 
-export async function GET(request:NextRequest, context:{ params: Promise<{ id: string }> }) {
-  const params = await context.params;
-  const { id: review_id } = params;
+// GET: Fetch all comments for a review
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    // Fetch top-level comments with user information
-    const comments = await models.Comment.findAll({
-      where: { review_id, parent_comment_id: null },
-      order: [['created_at', 'ASC']],
+    const params = await context.params;
+    const { id: review_id } = params;
+
+    const comments = await Comment.findAll({
+      where: {
+        review_id,
+        deleted_at: null,
+        parent_comment_id: null, // Only top-level comments
+      },
       include: [
         {
-          model: models.User,
-          as: 'user',
-          attributes: ['username', 'profile_picture_url', 'full_name'],
+          model: Like,
+          as: 'likes',
           required: false,
-        }
-      ]
-    });
-    
-    // Fetch replies for each comment with user information
-    const commentIds = comments.map(c => c.comment_id);
-    const replies = await models.Comment.findAll({
-      where: { parent_comment_id: { [Op.in]: commentIds } },
-      order: [['created_at', 'ASC']],
-      include: [
+        },
         {
-          model: models.User,
-          as: 'user',
-          attributes: ['username', 'profile_picture_url', 'full_name'],
+          model: Comment,
+          as: 'replies',
           required: false,
-        }
-      ]
+          where: { deleted_at: null },
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['user_id', 'username', 'profile_picture_url', 'full_name'],
+              required: false,
+            },
+          ],
+        },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['user_id', 'username', 'profile_picture_url', 'full_name'],
+          required: false,
+        },
+      ],
+      order: [['created_at', 'DESC']],
     });
-    
-    // Nest replies
-    const repliesByParent: { [parentId: string]: typeof replies } = {};
-    replies.forEach(reply => {
-      if (reply.parent_comment_id && !repliesByParent[reply.parent_comment_id]) repliesByParent[reply.parent_comment_id] = [];
-      if(reply.parent_comment_id) repliesByParent[reply.parent_comment_id].push(reply);
-    });
-    
-    const result = comments.map(comment => ({
-      ...comment.toJSON(),
-      replies: repliesByParent[comment.comment_id] || [],
-    }));
-    return NextResponse.json(result);
-  } catch (error:any) {
+
+    return NextResponse.json({ comments });
+  } catch (error: unknown) {
     console.error('Error fetching comments:', error);
-    return NextResponse.json({ error: 'Failed to fetch comments', details: error?.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json(
+      { error: 'Failed to fetch comments', details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 
-export async function POST(request:NextRequest, context:{ params: Promise<{ id: string }> }) {
-  const params = await context.params;
-  const { id: review_id } = params;
+// POST: Create a new comment on a review
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const { user_id, content } = await request.json();
-    if (!user_id || !content) {
-      return NextResponse.json({ error: 'user_id and content are required' }, { status: 400 });
+    const params = await context.params;
+    const { id: review_id } = params;
+    const { user_id, content, parent_comment_id } = await request.json();
+
+    if (!user_id || !content || !review_id) {
+      return NextResponse.json(
+        { error: 'Missing required parameters: user_id, content, and review_id are required' },
+        { status: 400 }
+      );
     }
-    const comment = await models.Comment.create({
-      review_id,
+
+    // Verify the review exists
+    const review = await Review.findByPk(review_id);
+    if (!review) {
+      return NextResponse.json({ error: 'Review not found' }, { status: 404 });
+    }
+
+    const comment = await Comment.create({
       user_id,
       content,
+      review_id,
+      post_id: null,
+      ...(parent_comment_id && { parent_comment_id }),
       created_at: new Date(),
       updated_at: new Date(),
     });
-    
-    // Fetch the comment with user information
+
     const detailedComment = await comment.reload({
       include: [
         {
-          model: models.User,
-          as: 'user',
-          attributes: ['username', 'profile_picture_url', 'full_name'],
+          model: Like,
+          as: 'likes',
           required: false,
-        }
-      ]
+        },
+        {
+          model: Comment,
+          as: 'replies',
+          required: false,
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['user_id', 'username', 'profile_picture_url', 'full_name'],
+              required: false,
+            },
+          ],
+        },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['user_id', 'username', 'profile_picture_url', 'full_name'],
+          required: false,
+        },
+      ],
     });
-    
+
     return NextResponse.json(detailedComment.get({ plain: true }));
-  } catch (error:any) {
+  } catch (error: unknown) {
     console.error('Error adding comment:', error);
-    return NextResponse.json({ error: 'Failed to add comment', details: error?.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json(
+      { error: 'Failed to add comment', details: errorMessage },
+      { status: 500 }
+    );
   }
-} 
+}

@@ -4,6 +4,7 @@ import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import toast from "react-hot-toast";
+import { getLogoUrl } from "@/utils/userProfileImageUtils";
 
 export default function ResetPassword() {
   return (
@@ -66,7 +67,7 @@ function Inner() {
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/logo-Photoroom.png"
+            src={getLogoUrl()}
             alt="SoundSpire logo"
             width={200}
             height={200}

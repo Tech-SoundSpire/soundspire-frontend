@@ -40,8 +40,14 @@ export const getImageUrl = (s3Path: string): string => {
   return `/api/images/${s3Path}`;
 };
 
-  // Default profile image path
-  export const DEFAULT_PROFILE_IMAGE = 's3://soundspirewebsiteassets/images/placeholder.jpg';
-  
-  // Helper to get the default profile image URL
-  export const getDefaultProfileImageUrl = () => getImageUrl(DEFAULT_PROFILE_IMAGE); 
+// Default profile image path
+export const DEFAULT_PROFILE_IMAGE = 's3://soundspirewebsiteassets/images/placeholder.jpg';
+
+// SoundSpire logo path
+export const SOUNDSPIRE_LOGO = 's3://soundspirewebsiteassets/assets/ss_logo.png';
+
+// Helper to get the default profile image URL
+export const getDefaultProfileImageUrl = () => getImageUrl(DEFAULT_PROFILE_IMAGE);
+
+// Helper to get the logo URL
+export const getLogoUrl = () => getImageUrl(SOUNDSPIRE_LOGO); 

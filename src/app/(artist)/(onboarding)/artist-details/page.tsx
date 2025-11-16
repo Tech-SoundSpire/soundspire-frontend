@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import { X } from "lucide-react";
@@ -11,7 +11,7 @@ import { getImageUrl, DEFAULT_PROFILE_IMAGE } from "@/utils/userProfileImageUtil
 const DEFAULT_PLACEHOLDER =
   "https://soundspirewebsiteassets.s3.amazonaws.com/images/placeholder.jpg";
 
-export default function ArtistDetailsPage() {
+function ArtistDetailsContent() {
   const router = useRouter();
   const params = useSearchParams();
   const artistId = params.get("artistId");
@@ -637,5 +637,13 @@ export default function ArtistDetailsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ArtistDetailsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#1a1625] text-white p-8 flex items-center justify-center">Loading...</div>}>
+      <ArtistDetailsContent />
+    </Suspense>
   );
 }
