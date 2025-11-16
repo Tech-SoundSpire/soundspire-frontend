@@ -27,9 +27,9 @@ export async function GET(
     
     const bucket = 'soundspirewebsiteassets';
 
-    //  primary key
-    let s3Key = `images/${fullPath}`;
-    console.log("Attempting primary S3 key:", s3Key);
+    // Try the direct path first (for assets/ folder)
+    let s3Key = fullPath;
+    console.log("Attempting direct S3 key:", s3Key);
 
     // helper function
     async function keyExists(key: string) {
@@ -42,13 +42,13 @@ export async function GET(
       }
     }
 
-    // check primary key
+    // check direct key first
     let exists = await keyExists(s3Key);
 
-    // fallback to raw key
+    // fallback to images/ prefixed key
     if (!exists) {
-      const fallbackKey = fullPath;
-      console.log("Primary key not found, trying fallback key:", fallbackKey);
+      const fallbackKey = `images/${fullPath}`;
+      console.log("Direct key not found, trying images/ prefixed key:", fallbackKey);
 
       if (await keyExists(fallbackKey)) {
         s3Key = fallbackKey;
