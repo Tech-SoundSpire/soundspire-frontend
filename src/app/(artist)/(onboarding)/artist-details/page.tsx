@@ -8,8 +8,8 @@ import { X } from "lucide-react";
 import toast from "react-hot-toast";
 import { getImageUrl, DEFAULT_PROFILE_IMAGE } from "@/utils/userProfileImageUtils";
 
-const DEFAULT_PLACEHOLDER =
-  "https://soundspirewebsiteassets.s3.amazonaws.com/images/placeholder.jpg";
+// const DEFAULT_PLACEHOLDER = "https://soundspirewebsiteassets.s3.amazonaws.com/images/placeholder.jpg";
+const DEFAULT_PLACEHOLDER = getImageUrl(DEFAULT_PROFILE_IMAGE);
 
 function ArtistDetailsContent() {
   const router = useRouter();
@@ -150,8 +150,10 @@ function ArtistDetailsContent() {
           artist_name: artist?.name || "",
           username: artist?.slug || "",
           bio: artist?.biography || "",
-          profile_photo: artist?.imageUrl || DEFAULT_PLACEHOLDER,
-          cover_photo: artist?.imageUrl || DEFAULT_PLACEHOLDER,
+          // profile_photo: artist?.imageUrl || DEFAULT_PLACEHOLDER,
+          // cover_photo: artist?.imageUrl || DEFAULT_PLACEHOLDER,
+          profile_photo: artist?.imageUrl ? getImageUrl(artist.imageUrl) : getImageUrl(DEFAULT_PROFILE_IMAGE),
+          cover_photo: artist?.imageUrl ? getImageUrl(artist.imageUrl) : getImageUrl(DEFAULT_PROFILE_IMAGE),
           socials: socialsDedup,
           ...Object.fromEntries(
             socialFields.map((s) => [s, getIdentifierUrl(s) || ""])
@@ -166,8 +168,10 @@ function ArtistDetailsContent() {
             .map((g: string) => g.charAt(0).toUpperCase() + g.slice(1).toLowerCase()) || [];
         setGenreInput([...new Set(genresArray)].join(", "));
 
-        setProfilePreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
-        setCoverPreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
+        // setProfilePreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
+        // setCoverPreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
+        setProfilePreview(artist?.imageUrl ? getImageUrl(artist.imageUrl) : getImageUrl(DEFAULT_PROFILE_IMAGE));
+        setCoverPreview(artist?.imageUrl ? getImageUrl(artist.imageUrl) : getImageUrl(DEFAULT_PROFILE_IMAGE));
       } catch (err) {
         console.error(err);
         toast.error("Failed to load artist details");
@@ -380,7 +384,7 @@ function ArtistDetailsContent() {
             </label>
             <div className="w-60 h-40 rounded-xl overflow-hidden bg-[#2d2838] relative group mx-auto">
               <img
-                src={profilePreview || DEFAULT_PLACEHOLDER}
+                src={profilePreview || getImageUrl(DEFAULT_PROFILE_IMAGE)}
                 alt="Profile Preview"
                 className="object-cover w-full h-full"
               />
