@@ -50,4 +50,4 @@ export const SOUNDSPIRE_LOGO = 's3://soundspirewebsiteassets/assets/ss_logo.png'
 export const getDefaultProfileImageUrl = () => getImageUrl(DEFAULT_PROFILE_IMAGE);
 
 // Helper to get the logo URL
-export const getLogoUrl = () => getImageUrl(DEFAULT_PROFILE_IMAGE); 
+export const getLogoUrl = () => getImageUrl(SOUNDSPIRE_LOGO); 

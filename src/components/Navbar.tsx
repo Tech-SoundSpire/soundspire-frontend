@@ -15,6 +15,7 @@ import { MdOutlineDynamicFeed } from "react-icons/md";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { getLogoUrl } from "@/utils/userProfileImageUtils";
 
 const Navbar = () => {
     // const { logout } = useAuth();
@@ -53,7 +54,7 @@ const Navbar = () => {
                 >
                     <div className={`relative w-8 h-8`}>
                         <Image
-                            src="/images/logo.png"
+                            src={getLogoUrl()}
                             alt="SoundSpire Logo"
                             width={32}
                             height={32}

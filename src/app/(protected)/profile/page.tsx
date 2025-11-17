@@ -503,7 +503,7 @@ export default function ProfilePage() {
               <div key={index} className="flex flex-col items-center">
                 <div className="w-24 h-24 rounded-full overflow-hidden mb-2">
                   <Image
-                    src={subscription.image || '/default-community.jpg'}
+                    src={subscription.image ? getImageUrl(subscription.image) : getImageUrl(DEFAULT_PROFILE_IMAGE)}
                     alt={subscription.name}
                     width={96}
                     height={96}

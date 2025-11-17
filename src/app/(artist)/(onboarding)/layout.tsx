@@ -1,6 +1,6 @@
 "use client";
 
-import { getImageUrl } from "@/utils/userProfileImageUtils";
+import { getImageUrl, getLogoUrl } from "@/utils/userProfileImageUtils";
 import Image from "next/image";
 import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
 
@@ -20,9 +20,9 @@ export default function RootLayout({
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Image
+            <img
               // src={getImageUrl("s3://soundspirewebsiteassets/assets/ss_logo.png")}
-              src={getImageUrl("s3://soundspirewebsiteassets/images/placeholder.png")}
+              src={getLogoUrl()}
               alt="SoundSpire Logo"
               width={100}
               height={100}

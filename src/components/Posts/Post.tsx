@@ -73,7 +73,7 @@ export default function Post(props:{
         <div className='post rounded-xl bg-white w-[80%] mb-10'>
             <div className='post-header flex items-center p-5'>
                 <Image
-                    src={post.artist.profile_picture_url ? post.artist.profile_picture_url : getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                    src={post.artist.profile_picture_url ? getImageUrl(post.artist.profile_picture_url) : getImageUrl(DEFAULT_PROFILE_IMAGE)}
                     alt={`Avatar`}
                     className="w-12 h-12 rounded-full object-cover mr-3"
                     width={100}
