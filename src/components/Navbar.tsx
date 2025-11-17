@@ -53,7 +53,7 @@ const Navbar = () => {
                     } p-3`}
                 >
                     <div className={`relative w-8 h-8`}>
-                        <Image
+                        <img
                             src={getLogoUrl()}
                             alt="SoundSpire Logo"
                             width={32}

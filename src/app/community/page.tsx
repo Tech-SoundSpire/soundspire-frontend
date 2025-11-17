@@ -23,11 +23,10 @@ export default function ArtistCommunityPage() {
       {/* Hero Image with Overlay */}
       <div className="relative flex justify-center items-center mt-6">
         <div className="relative w-[80vw] h-[70vh] rounded-2xl overflow-hidden">
-          <Image
+          <img
             src={getImageUrl(DEFAULT_PROFILE_IMAGE)} // replace with your Ed Sheeran image
             alt="Ed Sheeran"
-            fill
-            className="object-cover"
+            className="w-full h-full object-cover object-cover"
           />
           <div className="absolute top-6 right-6 text-right">
             <h2 className="text-3xl font-bold">Ed Sheeran</h2>
@@ -71,19 +70,19 @@ export default function ArtistCommunityPage() {
         <h3 className="text-xl font-bold mb-4">Highlights of Community</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="relative h-48 rounded-lg overflow-hidden">
-            <Image src={getImageUrl(DEFAULT_PROFILE_IMAGE)} alt="Highlight 1" fill className="object-cover" />
+            <img src={getImageUrl(DEFAULT_PROFILE_IMAGE)} alt="Highlight 1" className="w-full h-full object-cover object-cover" />
             <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 px-2 py-1 rounded">
               Be a <span className="font-semibold">part of the TRIBE</span>
             </div>
           </div>
           <div className="relative h-48 rounded-lg overflow-hidden">
-            <Image src={getImageUrl(DEFAULT_PROFILE_IMAGE)} alt="Highlight 2" fill className="object-cover" />
+            <img src={getImageUrl(DEFAULT_PROFILE_IMAGE)} alt="Highlight 2" className="w-full h-full object-cover object-cover" />
             <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 px-2 py-1 rounded">
               Get access to Behind the Scenes
             </div>
           </div>
           <div className="relative h-48 rounded-lg overflow-hidden">
-            <Image src={getImageUrl(DEFAULT_PROFILE_IMAGE)} alt="Highlight 3" fill className="object-cover" />
+            <img src={getImageUrl(DEFAULT_PROFILE_IMAGE)} alt="Highlight 3" className="w-full h-full object-cover object-cover" />
             <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 px-2 py-1 rounded">
               Tap into the global community
             </div>
@@ -94,7 +93,7 @@ export default function ArtistCommunityPage() {
       {/* Artist Profile */}
       <section className="px-12 mt-12">
         <h3 className="text-xl font-bold mb-4">Artist Profile</h3>
-        <Image src={getImageUrl(DEFAULT_PROFILE_IMAGE)} alt="Ed Sheeran" width={80} height={80} className="rounded-lg" />
+        <img src={getImageUrl(DEFAULT_PROFILE_IMAGE)} alt="Ed Sheeran" width={80} height={80} className="rounded-lg" />
       </section>
 
       {/* Reviews Section */}
@@ -104,7 +103,7 @@ export default function ArtistCommunityPage() {
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-[#1e142d] rounded-xl overflow-hidden shadow-md">
               <div className="relative h-48">
-                <Image src={getImageUrl(DEFAULT_PROFILE_IMAGE)} alt="Review" fill className="object-cover" />
+                <img src={getImageUrl(DEFAULT_PROFILE_IMAGE)} alt="Review" className="w-full h-full object-cover object-cover" />
               </div>
               <div className="p-4">
                 <p className="text-sm text-gray-300 mb-3">

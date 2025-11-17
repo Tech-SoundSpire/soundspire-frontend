@@ -76,7 +76,7 @@ export default function Page(){
                     </div>
                     
                     <div className='flex items-center p-2 text-white'>
-                            <Image
+                            <img
                                 src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
@@ -86,7 +86,7 @@ export default function Page(){
                             <h1 className='font-bold'>ArtistName</h1>
                     </div>
                     <div className='flex items-center p-2 text-white'>
-                            <Image
+                            <img
                                 src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
@@ -96,7 +96,7 @@ export default function Page(){
                             <h1 className='font-bold'>ArtistName</h1>
                     </div>
                     <div className='flex items-center p-2 text-white'>
-                            <Image
+                            <img
                                 src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
@@ -106,7 +106,7 @@ export default function Page(){
                             <h1 className='font-bold'>ArtistName</h1>
                     </div>
                     <div className='flex items-center p-2 text-white'>
-                            <Image
+                            <img
                                 src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"
@@ -115,7 +115,7 @@ export default function Page(){
                             <h1 className='font-bold'>ArtistName</h1>
                     </div>
                     <div className='flex items-center p-2 text-white'>
-                            <Image
+                            <img
                                 src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                                 alt={`Avatar`}
                                 className="w-12 h-12 rounded-full object-cover mr-3"

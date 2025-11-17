@@ -295,7 +295,7 @@ export default function ProfilePage() {
               className={`w-28 h-28 rounded-full overflow-hidden mb-4 ${isEditing ? 'cursor-pointer relative' : ''}`}
               onClick={handleImageClick}
             >
-              <Image
+              <img
                 src={isEditing
                   ? (editableProfile.profileImage
                       ? getImageUrl(editableProfile.profileImage)
@@ -502,7 +502,7 @@ export default function ProfilePage() {
             {profile.subscriptions.map((subscription, index) => (
               <div key={index} className="flex flex-col items-center">
                 <div className="w-24 h-24 rounded-full overflow-hidden mb-2">
-                  <Image
+                  <img
                     src={subscription.image ? getImageUrl(subscription.image) : getImageUrl(DEFAULT_PROFILE_IMAGE)}
                     alt={subscription.name}
                     width={96}
