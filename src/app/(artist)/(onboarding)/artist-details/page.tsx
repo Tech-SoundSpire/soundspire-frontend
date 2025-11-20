@@ -28,6 +28,7 @@ function ArtistDetailsContent() {
     username: "",
     bio: "",
     password_hash: "",
+    confirm_password: "",
     email: "",
     phone: "",
     distribution_company: "",
@@ -134,15 +135,24 @@ function ArtistDetailsContent() {
 
         const getIdentifierUrl = (platform: string) => {
           const lower = platform.toLowerCase();
-          const item = identifiers.find((id: any) => {
+
+          // STRICT match for X/Twitter
+          const twitterMatch = identifiers.find((id: any) => {
             const name = (id.platformName || id.platform || "").toLowerCase();
-            return (
-              name.includes(lower) ||
-              (lower === "twitter" && name === "x") ||
-              (lower === "x" && name === "twitter")
-            );
+            return name === "twitter" || name === "x";
           });
-          return item?.url || "";
+
+          if (lower === "x" || lower === "twitter") {
+            return twitterMatch?.url || "";
+          }
+
+          // EXACT match for all other platforms
+          const exact = identifiers.find((id: any) => {
+            const name = (id.platformName || id.platform || "").toLowerCase();
+            return name === lower;
+          });
+
+          return exact?.url || "";
         };
 
         setFormData((prev: any) => ({
@@ -234,6 +244,9 @@ function ArtistDetailsContent() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (!formData.acceptTerms) return toast.error("Please accept terms");
+    if (!isLoggedIn && formData.password_hash !== formData.confirm_password) {
+      return toast.error("Passwords do not match");
+    }
     if (!artistId) return toast.error("Artist not selected");
 
     setLoading(true);
@@ -523,6 +536,21 @@ function ArtistDetailsContent() {
                   type="password"
                   name="password_hash"
                   value={(formData as any).password_hash || ""}
+                  onChange={handleChange}
+                  className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
+                />
+              </div>
+            )}
+
+            {!isLoggedIn && (
+              <div className="md:col-span-2">
+                <label className="block mb-2 text-sm font-semibold text-gray-300">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  name="confirm_password"
+                  value={(formData as any).confirm_password || ""}
                   onChange={handleChange}
                   className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                 />
