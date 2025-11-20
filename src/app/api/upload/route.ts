@@ -3,13 +3,25 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // Create S3 client with explicit configuration
-const s3Client = new S3Client({
-  region: 'ap-south-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
-});
+// Support both naming conventions for AWS credentials
+const getS3Client = () => {
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.BUCKET_AWS_ACCESS_KEY_ID || '';
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.BUCKET_AWS_SECRET_ACCESS_KEY || '';
+  
+  if (!accessKeyId || !secretAccessKey) {
+    console.error('Missing AWS credentials. Check AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.');
+  }
+  
+  return new S3Client({
+    region: 'ap-south-1',
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  });
+};
+
+const s3Client = getS3Client();
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,14 +38,17 @@ export async function POST(request: NextRequest) {
     const key = fileName;
 
     // Log the request for debugging
+    const accessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.BUCKET_AWS_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.BUCKET_AWS_SECRET_ACCESS_KEY;
+    
     console.log('Upload request details:', {
       fileName,
       fileType,
       bucket,
       key,
-      region: 'ap-south-1', // Log the actual region value
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID ? 'present' : 'missing',
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ? 'present' : 'missing',
+      region: 'ap-south-1',
+      accessKeyId: accessKeyId ? 'present' : 'missing',
+      secretAccessKey: secretAccessKey ? 'present' : 'missing',
     });
 
     const command = new PutObjectCommand({

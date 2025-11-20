@@ -4,6 +4,7 @@ import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { getLogoUrl } from "@/utils/userProfileImageUtils";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -29,7 +30,7 @@ export default function ForgotPasswordPage() {
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/logo-Photoroom.png"
+            src={getLogoUrl()}
             alt="SoundSpire logo"
             width={200}
             height={200}

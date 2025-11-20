@@ -8,6 +8,7 @@ import Link from "next/link";
 import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
 import { FaGoogle } from "react-icons/fa";
 import { useAuth } from "@/context/AuthContext";
+import { getLogoUrl } from "@/utils/userProfileImageUtils";
 
 const fields = [
   {
@@ -127,7 +128,7 @@ function LoginPageInner() {
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/logo-Photoroom.png"
+            src={getLogoUrl()}
             alt="SoundSpire logo"
             width={200}
             height={200}

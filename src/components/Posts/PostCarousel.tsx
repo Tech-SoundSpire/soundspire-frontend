@@ -21,7 +21,7 @@ export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
       <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
         {mediaUrls.map((url, index) => (
           <div key={index} className="min-w-full">
-            <Image
+            <img
               src={url}
               alt={`Post Image ${index + 1}`}
               className="w-full h-auto object-contain"

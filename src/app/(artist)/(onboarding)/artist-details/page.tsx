@@ -1,17 +1,17 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
 import { getImageUrl, DEFAULT_PROFILE_IMAGE } from "@/utils/userProfileImageUtils";
 
-const DEFAULT_PLACEHOLDER =
-  "https://soundspirewebsiteassets.s3.amazonaws.com/images/placeholder.jpg";
+// const DEFAULT_PLACEHOLDER = "https://soundspirewebsiteassets.s3.amazonaws.com/images/placeholder.jpg";
+const DEFAULT_PLACEHOLDER = getImageUrl(DEFAULT_PROFILE_IMAGE);
 
-export default function ArtistDetailsPage() {
+function ArtistDetailsContent() {
   const router = useRouter();
   const params = useSearchParams();
   const artistId = params.get("artistId");
@@ -28,6 +28,7 @@ export default function ArtistDetailsPage() {
     username: "",
     bio: "",
     password_hash: "",
+    confirm_password: "",
     email: "",
     phone: "",
     distribution_company: "",
@@ -134,15 +135,24 @@ export default function ArtistDetailsPage() {
 
         const getIdentifierUrl = (platform: string) => {
           const lower = platform.toLowerCase();
-          const item = identifiers.find((id: any) => {
+
+          // STRICT match for X/Twitter
+          const twitterMatch = identifiers.find((id: any) => {
             const name = (id.platformName || id.platform || "").toLowerCase();
-            return (
-              name.includes(lower) ||
-              (lower === "twitter" && name === "x") ||
-              (lower === "x" && name === "twitter")
-            );
+            return name === "twitter" || name === "x";
           });
-          return item?.url || "";
+
+          if (lower === "x" || lower === "twitter") {
+            return twitterMatch?.url || "";
+          }
+
+          // EXACT match for all other platforms
+          const exact = identifiers.find((id: any) => {
+            const name = (id.platformName || id.platform || "").toLowerCase();
+            return name === lower;
+          });
+
+          return exact?.url || "";
         };
 
         setFormData((prev: any) => ({
@@ -150,8 +160,10 @@ export default function ArtistDetailsPage() {
           artist_name: artist?.name || "",
           username: artist?.slug || "",
           bio: artist?.biography || "",
-          profile_photo: artist?.imageUrl || DEFAULT_PLACEHOLDER,
-          cover_photo: artist?.imageUrl || DEFAULT_PLACEHOLDER,
+          // profile_photo: artist?.imageUrl || DEFAULT_PLACEHOLDER,
+          // cover_photo: artist?.imageUrl || DEFAULT_PLACEHOLDER,
+          profile_photo: artist?.imageUrl ? getImageUrl(artist.imageUrl) : getImageUrl(DEFAULT_PROFILE_IMAGE),
+          cover_photo: artist?.imageUrl ? getImageUrl(artist.imageUrl) : getImageUrl(DEFAULT_PROFILE_IMAGE),
           socials: socialsDedup,
           ...Object.fromEntries(
             socialFields.map((s) => [s, getIdentifierUrl(s) || ""])
@@ -166,8 +178,10 @@ export default function ArtistDetailsPage() {
             .map((g: string) => g.charAt(0).toUpperCase() + g.slice(1).toLowerCase()) || [];
         setGenreInput([...new Set(genresArray)].join(", "));
 
-        setProfilePreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
-        setCoverPreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
+        // setProfilePreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
+        // setCoverPreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
+        setProfilePreview(artist?.imageUrl ? getImageUrl(artist.imageUrl) : getImageUrl(DEFAULT_PROFILE_IMAGE));
+        setCoverPreview(artist?.imageUrl ? getImageUrl(artist.imageUrl) : getImageUrl(DEFAULT_PROFILE_IMAGE));
       } catch (err) {
         console.error(err);
         toast.error("Failed to load artist details");
@@ -230,6 +244,9 @@ export default function ArtistDetailsPage() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (!formData.acceptTerms) return toast.error("Please accept terms");
+    if (!isLoggedIn && formData.password_hash !== formData.confirm_password) {
+      return toast.error("Passwords do not match");
+    }
     if (!artistId) return toast.error("Artist not selected");
 
     setLoading(true);
@@ -380,7 +397,7 @@ export default function ArtistDetailsPage() {
             </label>
             <div className="w-60 h-40 rounded-xl overflow-hidden bg-[#2d2838] relative group mx-auto">
               <img
-                src={profilePreview || DEFAULT_PLACEHOLDER}
+                src={profilePreview || getImageUrl(DEFAULT_PROFILE_IMAGE)}
                 alt="Profile Preview"
                 className="object-cover w-full h-full"
               />
@@ -524,6 +541,21 @@ export default function ArtistDetailsPage() {
                 />
               </div>
             )}
+
+            {!isLoggedIn && (
+              <div className="md:col-span-2">
+                <label className="block mb-2 text-sm font-semibold text-gray-300">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  name="confirm_password"
+                  value={(formData as any).confirm_password || ""}
+                  onChange={handleChange}
+                  className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -637,5 +669,13 @@ export default function ArtistDetailsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ArtistDetailsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#1a1625] text-white p-8 flex items-center justify-center">Loading...</div>}>
+      <ArtistDetailsContent />
+    </Suspense>
   );
 }
