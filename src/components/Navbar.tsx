@@ -2,7 +2,6 @@
 
 // import { useAuth } from '@/context/AuthContext';
 import {
-    FaHome,
     FaCompass,
     FaHeadphones,
     FaUsers,
@@ -15,6 +14,7 @@ import { MdOutlineDynamicFeed } from "react-icons/md";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import BaseText from "./BaseText/BaseText";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
 
 const Navbar = () => {
@@ -53,7 +53,7 @@ const Navbar = () => {
                     } p-3`}
                 >
                     <div className={`relative w-8 h-8`}>
-                        <img
+                        <Image
                             src={getLogoUrl()}
                             alt="SoundSpire Logo"
                             width={32}
@@ -61,15 +61,20 @@ const Navbar = () => {
                             className="object-contain"
                         />
                     </div>
-                    <span
-                        className={` text-white font-bold text-xl whitespace-nowrap overflow-hidden	min-w-0 transition-[opacity_transform] duration-300 ${
+                    <BaseText
+                        wrapper="span"
+                        textColor="#ffffff"
+                        fontWeight={700}
+                        fontSize="normal"
+                        fontName="inter"
+                        className={`whitespace-nowrap overflow-hidden	min-w-0 transition-[opacity_transform] duration-300 ${
                             isExpanded
                                 ? "translate-x-0 opacity-1"
                                 : "-translate-x-3 opacity-0"
                         }`}
                     >
                         SoundSpire
-                    </span>
+                    </BaseText>
                 </Link>
 
                 {/* Divider */}
@@ -92,19 +97,22 @@ const Navbar = () => {
                                     isExpanded ? "mr-4" : ""
                                 }`}
                             />
-                            <span
+                            <BaseText
+                                wrapper="span"
                                 className={`whitespace-nowrap overflow-hidden will-change-[opacity] transition-opacity duration-300 ${
                                     isExpanded ? "opacity-1" : "opacity-0"
                                 }`}
-                                // To stagger opacity across children.
+                                textColor="inherit"
                                 style={{
                                     transitionDelay: `${
                                         index * baseTransitionDelay
                                     }ms`,
                                 }}
+                                fontSize="very small"
+                                fontName="inter"
                             >
                                 {item.label}
-                            </span>
+                            </BaseText>
                         </Link>
                     ))}
                 </div>
