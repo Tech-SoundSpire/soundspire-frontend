@@ -8,13 +8,14 @@ import BaseText from "../BaseText/BaseText";
 export default function NotificationContent() {
     return (
         <div className="flex items-center w-full mt-10">
-            <Image
-                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                alt="Avatar"
-                className="w-12 h-12 rounded-full object-cover mr-5"
-                width={100}
-                height={100}
-            />
+            <div className="relative w-12 h-12 rounded-full object-cover mr-5">
+                <Image
+                    src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                    alt="Avatar"
+                    fill
+                    objectFit="cover"
+                />
+            </div>
             <BaseText fontSize="normal">
                 Aditya Rikhari posted a new photo.
             </BaseText>

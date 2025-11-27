@@ -240,17 +240,16 @@ export default function CompleteProfilePage() {
                     {/* Profile Picture Upload */}
                     <div className="flex flex-col items-center mb-6">
                         <div className="relative group">
-                            <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-600 border-3 border-orange-400 shadow-lg shadow-orange-400/20">
+                            <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-600 border-3 border-orange-400 shadow-lg shadow-orange-400/20">
                                 <Image
-                                    width={200}
-                                    height={200}
+                                    fill
                                     src={
                                         preview ||
                                         form.profile_picture_url ||
                                         getImageUrl(DEFAULT_PROFILE_IMAGE)
                                     }
                                     alt="Profile Preview"
-                                    className="object-cover w-full h-full"
+                                    objectFit="cover"
                                 />
                             </div>
                             <input

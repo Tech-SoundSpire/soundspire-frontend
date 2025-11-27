@@ -15,6 +15,9 @@ import {
     DEFAULT_PROFILE_IMAGE,
 } from "@/utils/userProfileImageUtils";
 import ExploreCarousel from "@/components/ExploreCarousel";
+import BaseHeading from "@/components/BaseHeading/BaseHeading";
+import Image from "next/image";
+import BaseText from "@/components/BaseText/BaseText";
 
 interface Review {
     review_id: string;
@@ -154,9 +157,14 @@ export default function ExplorePage() {
                 {/* Suggested Artists */}
                 <section className="mb-12">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-white">
+                        <BaseHeading
+                            headingLevel="h2"
+                            fontSize="large"
+                            fontWeight={700}
+                            textColor="#ffffff"
+                        >
                             SUGGESTED ARTISTS
-                        </h2>
+                        </BaseHeading>
                         <div className="flex space-x-2">
                             <button className="p-2 rounded-full bg-[#2d2838] text-white hover:bg-purple-700">
                                 <FaChevronLeft />
@@ -177,17 +185,27 @@ export default function ExplorePage() {
                                     key={artist.artist_id}
                                     className="flex-shrink-0 text-center"
                                 >
-                                    <img
-                                        src={
-                                            artist.profile_picture_url ||
-                                            getImageUrl(DEFAULT_PROFILE_IMAGE)
-                                        }
-                                        alt={artist.artist_name}
-                                        className="w-24 h-24 rounded-full object-cover mb-2"
-                                    />
-                                    <p className="text-white text-sm font-medium max-w-24 truncate">
+                                    <div className="w-24 h-24 rounded-full mb-2 relative">
+                                        <Image
+                                            src={
+                                                artist.profile_picture_url ||
+                                                getImageUrl(
+                                                    DEFAULT_PROFILE_IMAGE
+                                                )
+                                            }
+                                            alt={artist.artist_name}
+                                            objectFit="cover"
+                                            fill
+                                        />
+                                    </div>
+                                    <BaseText
+                                        textColor="#ffffff"
+                                        fontSize="small"
+                                        fontWeight={500}
+                                        className="max-w-24 truncate"
+                                    >
                                         {artist.artist_name}
-                                    </p>
+                                    </BaseText>
                                 </div>
                             ))}
                         </div>
@@ -197,9 +215,14 @@ export default function ExplorePage() {
                 {/* Reviews */}
                 <section className="mb-12">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-white">
+                        <BaseHeading
+                            headingLevel="h2"
+                            fontSize="large"
+                            fontWeight={700}
+                            textColor="#ffffff"
+                        >
                             REVIEWS
-                        </h2>
+                        </BaseHeading>
                         <a href="#" className="text-gray-400 hover:text-white">
                             See All
                         </a>
@@ -215,37 +238,58 @@ export default function ExplorePage() {
                                     key={review.review_id}
                                     className="bg-[#2d2838] rounded-lg overflow-hidden"
                                 >
-                                    <img
-                                        src={
-                                            review.image_urls &&
-                                            review.image_urls.length > 0
-                                                ? review.image_urls[0]
-                                                : getImageUrl(
-                                                      DEFAULT_PROFILE_IMAGE
-                                                  )
-                                        }
-                                        alt={review.title}
-                                        className="w-full h-48 object-cover"
-                                    />
+                                    <div className="relative w-full h-48">
+                                        <Image
+                                            fill
+                                            objectFit="cover"
+                                            src={
+                                                review.image_urls &&
+                                                review.image_urls.length > 0
+                                                    ? review.image_urls[0]
+                                                    : getImageUrl(
+                                                          DEFAULT_PROFILE_IMAGE
+                                                      )
+                                            }
+                                            alt={review.title}
+                                        />
+                                    </div>
                                     <div className="p-4">
-                                        <h3 className="text-white font-bold mb-2">
+                                        <BaseHeading
+                                            headingLevel="h3"
+                                            textColor="#ffffff"
+                                            fontWeight={700}
+                                            className="mb-2"
+                                            fontSize="large"
+                                        >
                                             {review.title}
-                                        </h3>
+                                        </BaseHeading>
                                         {review.artist?.artist_name && (
-                                            <p className="text-purple-400 text-sm mb-2">
+                                            <BaseText
+                                                textColor="#c084fc"
+                                                fontSize="small"
+                                                className="mb-2"
+                                            >
                                                 by {review.artist.artist_name}
-                                            </p>
+                                            </BaseText>
                                         )}
-                                        <p className="text-gray-400 text-sm mb-4">
+                                        <BaseText
+                                            textColor="#9ca3af"
+                                            fontSize="small"
+                                            className="mb-4"
+                                        >
                                             {review.text_content.length > 100
                                                 ? `${review.text_content.substring(
                                                       0,
                                                       100
                                                   )}...`
                                                 : review.text_content}
-                                        </p>
+                                        </BaseText>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-gray-400 text-sm">
+                                            <BaseText
+                                                wrapper="span"
+                                                fontSize="small"
+                                                textColor="#9ca3af"
+                                            >
                                                 {review.user?.full_name ||
                                                     review.user?.username ||
                                                     "Unknown User"}
@@ -253,7 +297,7 @@ export default function ExplorePage() {
                                                 {new Date(
                                                     review.created_at
                                                 ).toLocaleDateString()}
-                                            </span>
+                                            </BaseText>
                                             <button
                                                 className="px-4 py-1 bg-[#ff4d4d] text-white rounded-full text-sm"
                                                 onClick={() =>
@@ -275,9 +319,14 @@ export default function ExplorePage() {
                 {/* Discover by Genre */}
                 <section>
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-white">
+                        <BaseHeading
+                            headingLevel="h2"
+                            fontSize="large"
+                            fontWeight={700}
+                            textColor="#ffffff"
+                        >
                             DISCOVER BY GENRE
-                        </h2>
+                        </BaseHeading>
                         <a href="#" className="text-gray-400 hover:text-white">
                             See More
                         </a>
@@ -294,15 +343,25 @@ export default function ExplorePage() {
                                     className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#2d2838] cursor-pointer hover:scale-105 transition-transform duration-200"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                    <img
-                                        src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                                        alt={genre.name}
-                                        className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
-                                    />
+                                    <div className="absolute inset-0 w-full h-full mix-blend-overlay">
+                                        <Image
+                                            src={getImageUrl(
+                                                DEFAULT_PROFILE_IMAGE
+                                            )}
+                                            alt={genre.name}
+                                            fill
+                                            objectFit="cover"
+                                        />
+                                    </div>
                                     <div className="absolute bottom-4 left-4">
-                                        <h3 className="text-white text-xl font-bold">
+                                        <BaseHeading
+                                            headingLevel="h3"
+                                            textColor="#ffffff"
+                                            fontSize="large"
+                                            fontWeight={700}
+                                        >
                                             {genre.name}
-                                        </h3>
+                                        </BaseHeading>
                                     </div>
                                 </div>
                             ))}

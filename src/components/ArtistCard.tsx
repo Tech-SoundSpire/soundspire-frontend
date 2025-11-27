@@ -12,10 +12,12 @@ const ArtistCard = ({ name, imageUrl, genre }: ArtistCardProps) => {
     return (
         <div className="group cursor-pointer">
             <div className="relative w-32 h-32 rounded-full overflow-hidden group-hover:ring-2 ring-primary">
-                <img
+                <Image
+                    fill
                     src={imageUrl}
                     alt={name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    className="transition-transform duration-300 group-hover:scale-110"
+                    objectFit="cover"
                 />
             </div>
             <div className="mt-2 text-center">

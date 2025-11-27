@@ -3,7 +3,7 @@ import { fontKey, getFontClass } from "@/utils/getFontClass";
 export interface BaseHeadingProps {
     children: React.ReactNode;
     textColor?: string;
-    fontSize?: fontSizeKeys;
+    fontSize?: fontSizeKeys | "inherit";
     className?: string;
     style?: React.CSSProperties;
     fontStyle?: "italic" | "normal";
@@ -18,7 +18,7 @@ const BaseHeading = ({
     children,
     textColor = "#f0f0f0",
     className = "",
-    fontSize = "heading",
+    fontSize = "inherit",
     fontStyle = "normal",
     style,
     fontWeight = 700,
@@ -29,7 +29,8 @@ const BaseHeading = ({
     fontName = "arial",
 }: BaseHeadingProps) => {
     const HeadingType = headingLevel;
-    const fontSizeClass = getFontSize(fontSize);
+    const fontSizeVariable =
+        fontSize === "inherit" ? "inherit" : getFontSize(fontSize);
     const fontClass = getFontClass(fontName);
     return (
         <HeadingType
@@ -39,7 +40,7 @@ const BaseHeading = ({
                     color: textColor,
                     fontWeight,
                     fontStyle,
-                    fontSize: fontSizeClass,
+                    fontSize: fontSizeVariable,
                     textAlign,
                     "--selection-bg": textSelectionBackgroundColor,
                     "--selection-color": textSelectionColor,

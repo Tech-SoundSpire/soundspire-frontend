@@ -7,7 +7,11 @@ const fontSizes = {
     normal: "var(--normal-text)",
     small: "var(--small-text)",
 };
-export type fontSizeKeys = keyof typeof fontSizes;
+export type fontSizeKeys = keyof typeof fontSizes | (string & {});
 export function getFontSize(size: fontSizeKeys) {
-    return fontSizes[size];
+    if (size in fontSizes) {
+        return fontSizes[size as keyof typeof fontSizes];
+    }
+
+    return size;
 }

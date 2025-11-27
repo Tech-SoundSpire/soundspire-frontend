@@ -12,6 +12,7 @@ import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
+import BaseText from "@/components/BaseText/BaseText";
 
 const fields = [
     {
@@ -249,9 +250,15 @@ export default function SignupPage() {
             {/* Right Side: Signup Form */}
             <div className="bg-white text-black flex flex-col justify-center items-center w-full md:w-1/2 p-8">
                 <div className="w-full max-w-md space-y-4">
-                    <h1 className="text-2xl mb-4 self-start">
+                    <BaseHeading
+                        headingLevel="h2"
+                        fontSize="large"
+                        className="mb-4 self-start"
+                        textColor="black"
+                        textAlign="left"
+                    >
                         {loading ? "Processing..." : "Sign Up"}
-                    </h1>
+                    </BaseHeading>
 
                     {fields.map((field) => (
                         <div key={field.name} className="flex flex-col">
@@ -275,9 +282,13 @@ export default function SignupPage() {
                                 className="w-full px-4 py-2 rounded-md border border-blue-400/75 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
                             />
                             {formErrors[field.name] && (
-                                <p className="text-sm text-red-500 mt-1">
+                                <BaseText
+                                    textColor="#ef4444"
+                                    fontSize="small"
+                                    className="mt-1"
+                                >
                                     {formErrors[field.name]}
-                                </p>
+                                </BaseText>
                             )}
                         </div>
                     ))}
@@ -301,7 +312,14 @@ export default function SignupPage() {
                             : "Continue with Google"}
                     </button>
 
-                    <h4 className="text-center text-sm mt-4">
+                    <BaseHeading
+                        headingLevel="h4"
+                        fontSize="small"
+                        textAlign="center"
+                        textColor="black"
+                        className="mt-4"
+                        fontWeight={400}
+                    >
                         Already have an account?{" "}
                         <Link
                             href="/login"
@@ -309,9 +327,14 @@ export default function SignupPage() {
                         >
                             Login
                         </Link>
-                    </h4>
+                    </BaseHeading>
 
-                    <div className="mt-4 text-center text-xs text-gray-400">
+                    <BaseText
+                        textAlign="center"
+                        fontSize="very small"
+                        textColor="#9ca3af"
+                        className="mt-4"
+                    >
                         By continuing, you agree to SoundSpire&apos;s{" "}
                         <a href="#" className="text-primary hover:underline">
                             Terms of Service
@@ -321,7 +344,7 @@ export default function SignupPage() {
                             Privacy Policy
                         </a>
                         .
-                    </div>
+                    </BaseText>
                 </div>
             </div>
         </div>

@@ -80,17 +80,18 @@ export default function Comment({
     return (
         <div className="post-comment flex flex-col py-2">
             <div className="flex items-center">
-                <Image
-                    src={
-                        comment.user?.profile_picture_url
-                            ? getImageUrl(comment.user.profile_picture_url)
-                            : getImageUrl(DEFAULT_PROFILE_IMAGE)
-                    }
-                    alt="Avatar"
-                    className="w-12 h-12 rounded-full object-cover mr-5"
-                    width={100}
-                    height={100}
-                />
+                <div className="w-12 h-12 rounded-full mr-5">
+                    <Image
+                        src={
+                            comment.user?.profile_picture_url
+                                ? getImageUrl(comment.user.profile_picture_url)
+                                : getImageUrl(DEFAULT_PROFILE_IMAGE)
+                        }
+                        alt="Avatar"
+                        fill
+                        objectFit="cover"
+                    />
+                </div>
                 <div>
                     <BaseText wrapper="span" fontWeight={600} fontSize="small">
                         {comment.user?.username || "Unknown User"}

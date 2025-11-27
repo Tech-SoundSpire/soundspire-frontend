@@ -15,6 +15,7 @@ import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRou
 import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
+import Image from "next/image";
 
 // --- TYPE DEFINITIONS ---
 interface Language {
@@ -125,10 +126,15 @@ const LanguageSelection: React.FC<SelectionProps<Language>> = ({
     return (
         <div className="space-y-6">
             <div className="text-left">
-                <BaseHeading fontSize="large" fontWeight={700} className="mb-2">
+                <BaseHeading
+                    fontSize="large"
+                    fontWeight={700}
+                    className="mb-2"
+                    textAlign="left"
+                >
                     Choose Your Languages
                 </BaseHeading>
-                <BaseText textColor="#fb923c" fontWeight={500}>
+                <BaseText textColor="#fb923c" fontWeight={500} textAlign="left">
                     Choose upto 5 Languages
                 </BaseText>
             </div>
@@ -211,7 +217,7 @@ const GenreSelection: React.FC<SelectionProps<Genre>> = ({
                     headingLevel="h2"
                     className="text-3xl font-bold mb-2"
                 >
-                    Choose Your Favourite Genre
+                    Choose Your Favorite Genre
                 </BaseHeading>
                 <BaseText textColor="#fb923c" fontWeight={500}>
                     Choose upto 5 Genres
@@ -232,11 +238,14 @@ const GenreSelection: React.FC<SelectionProps<Genre>> = ({
                             }`}
                         >
                             <div className="relative aspect-square rounded-2xl overflow-hidden">
-                                <img
-                                    src={genre.img}
-                                    alt={genre.name}
-                                    className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-75"
-                                />
+                                <div className="relative w-full h-full transition-all duration-300 group-hover:brightness-75">
+                                    <Image
+                                        fill
+                                        src={genre.img}
+                                        alt={genre.name}
+                                        objectFit="cover"
+                                    />
+                                </div>
                                 <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
                                     <BaseHeading
                                         headingLevel="h3"

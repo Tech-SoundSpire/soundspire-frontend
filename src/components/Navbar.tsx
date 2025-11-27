@@ -56,9 +56,8 @@ const Navbar = () => {
                         <Image
                             src={getLogoUrl()}
                             alt="SoundSpire Logo"
-                            width={32}
-                            height={32}
-                            className="object-contain"
+                            fill
+                            objectFit="contain"
                         />
                     </div>
                     <BaseText

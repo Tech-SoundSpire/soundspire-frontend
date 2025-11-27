@@ -19,6 +19,7 @@ import {
     DEFAULT_PROFILE_IMAGE,
 } from "@/utils/userProfileImageUtils";
 import BaseText from "@/components/BaseText/BaseText";
+import Image from "next/image";
 
 const songs = [
     {
@@ -113,11 +114,14 @@ export default function MyMusicPage() {
                             Now Playing
                         </BaseText>
                         <div className="flex items-center gap-2">
-                            <img
-                                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                                alt="Lana del rey"
-                                className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover"
-                            />
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full relative">
+                                <Image
+                                    fill
+                                    src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                                    alt="Lana del rey"
+                                    objectFit="cover"
+                                />
+                            </div>
                             <BaseText
                                 wrapper="span"
                                 fontSize="large"

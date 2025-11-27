@@ -12,7 +12,7 @@ export interface BaseTextProps {
         | "footer";
     children: React.ReactNode;
     className?: string;
-    fontSize?: fontSizeKeys;
+    fontSize?: fontSizeKeys | "inherit";
     textColor?: string;
     fontWeight?: number | string;
     dateTime?: string;
@@ -29,7 +29,7 @@ const BaseText = ({
     wrapper = "p",
     children,
     className = "",
-    fontSize = "normal",
+    fontSize = "inherit",
     textColor = "inherit",
     fontWeight = "inherit",
     dateTime,
@@ -43,7 +43,8 @@ const BaseText = ({
     id,
 }: BaseTextProps) => {
     const TextWrapper = wrapper;
-    const fontSizeVariable = getFontSize(fontSize);
+    const fontSizeVariable =
+        fontSize === "inherit" ? "inherit" : getFontSize(fontSize);
     const fontClass = getFontClass(fontName);
     return (
         <TextWrapper

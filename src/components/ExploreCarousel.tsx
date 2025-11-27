@@ -58,17 +58,20 @@ const ExploreCarousel = ({ items }: ExploreCarouselProps) => {
                         >
                             {items[currentIndex].description}
                         </BaseText>
-                        <div className="text-2xl font-bold text-white">
+                        <BaseText
+                            fontSize="normal"
+                            fontWeight={700}
+                            textColor="#ffffff"
+                        >
                             {items[currentIndex].price}
-                        </div>
+                        </BaseText>
                     </div>
-                    <div className="m-auto">
+                    <div className="relative m-auto w-64 h-64 transform rotate-[-5deg]">
                         <Image
                             src={items[currentIndex].image}
                             alt="Featured Album"
-                            className="w-64 h-64 object-cover transform rotate-[-5deg]"
-                            width={256}
-                            height={256}
+                            objectFit="cover"
+                            fill
                         ></Image>
                     </div>
                 </div>

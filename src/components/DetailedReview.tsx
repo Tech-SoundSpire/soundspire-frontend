@@ -6,6 +6,7 @@ import {
 } from "@/utils/userProfileImageUtils";
 import BaseText from "./BaseText/BaseText";
 import BaseHeading from "./BaseHeading/BaseHeading";
+import Image from "next/image";
 
 interface Review {
     review_id: string;
@@ -73,15 +74,17 @@ export default function DetailedReview({
         <div className="w-full max-w-4xl mx-auto mb-12">
             <div className="bg-[#231b32] rounded-lg shadow-lg overflow-hidden">
                 {/* Image at the top */}
-                <div className="w-full flex justify-center bg-[#2d2838] p-8">
-                    <img
+                <div className="relative w-full flex justify-center bg-[#2d2838] p-8">
+                    <Image
+                        fill
                         src={
                             review.image_urls && review.image_urls.length > 0
                                 ? review.image_urls[0]
                                 : getImageUrl(DEFAULT_PROFILE_IMAGE)
                         }
                         alt={review.title}
-                        className="rounded-lg w-full max-w-md object-cover"
+                        className="rounded-lg max-w-md"
+                        objectFit="cover"
                     />
                 </div>
                 {/* Content below the image */}
@@ -105,17 +108,29 @@ export default function DetailedReview({
                         {review.content_type}
                     </BaseText>
 
-                    <div className="text-sm text-gray-400 mb-4">
+                    <BaseText
+                        fontSize="small"
+                        textColor="#9ca3af"
+                        className="mb-4"
+                    >
                         {review.artist_name || "Unknown Artist"}
-                    </div>
-                    <div className="text-gray-200 whitespace-pre-line mb-4">
+                    </BaseText>
+                    <BaseText
+                        fontSize="normal"
+                        textColor="#e5e7eb"
+                        className="whitespace-pre-line mb-4"
+                    >
                         {review.text_content}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-4">
+                    </BaseText>
+                    <BaseText
+                        fontSize="very small"
+                        textColor="#9ca3af"
+                        className="mt-4"
+                    >
                         {review.created_at
                             ? new Date(review.created_at).toLocaleDateString()
                             : ""}
-                    </div>
+                    </BaseText>
                 </div>
             </div>
 

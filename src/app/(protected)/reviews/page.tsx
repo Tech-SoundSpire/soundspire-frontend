@@ -112,7 +112,7 @@ export default function ReviewsPage() {
                                     headingLevel="h3"
                                     fontWeight={600}
                                     textColor="#ffffff"
-                                    fontSize="normal"
+                                    fontSize="large"
                                     className="mb-1"
                                     textAlign="left"
                                 >

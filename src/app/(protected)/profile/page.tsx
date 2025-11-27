@@ -317,7 +317,7 @@ export default function ProfilePage() {
                     <div className="flex justify-between items-center mb-8">
                         <BaseHeading
                             headingLevel="h1"
-                            fontSize="large"
+                            fontSize="sub heading"
                             fontWeight={700}
                             textColor="#ffffff"
                         >
@@ -371,7 +371,7 @@ export default function ProfilePage() {
                         <div className="flex flex-col md:flex-row items-start gap-8">
                             <div className="w-full md:w-auto flex flex-col items-center">
                                 <div
-                                    className={`w-28 h-28 rounded-full overflow-hidden mb-4 ${
+                                    className={`relative w-28 h-28 rounded-full overflow-hidden mb-4 ${
                                         isEditing
                                             ? "cursor-pointer relative"
                                             : ""
@@ -397,13 +397,14 @@ export default function ProfilePage() {
                                                 : getDefaultProfileImageUrl()
                                         }
                                         alt="Profile picture"
-                                        width={112}
-                                        height={112}
+                                        fill
                                         className="object-cover"
                                     />
                                     {isEditing && (
                                         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity duration-200">
-                                            <span>Change</span>
+                                            <BaseText wrapper="span">
+                                                Change
+                                            </BaseText>
                                         </div>
                                     )}
                                     <input
@@ -642,6 +643,7 @@ export default function ProfilePage() {
                             fontSize="large"
                             fontWeight={700}
                             textColor="#ffffff"
+                            textAlign="left"
                             className="mb-8"
                         >
                             My Subscriptions
@@ -688,17 +690,13 @@ export default function ProfilePage() {
                     <div>
                         <div className="flex items-center gap-2 mb-4">
                             <BaseHeading
-                                fontSize="normal"
+                                fontSize="large"
                                 fontWeight={700}
                                 textColor="#ffffff"
                                 className="text-2xl font-bold text-white"
                             >
                                 Link your{" "}
-                                <BaseText
-                                    wrapper="span"
-                                    fontSize="normal"
-                                    textColor="#1DB954"
-                                >
+                                <BaseText wrapper="span" textColor="#1DB954">
                                     SPOTIFY
                                 </BaseText>
                                 !
@@ -724,286 +722,4 @@ export default function ProfilePage() {
             </main>
         </div>
     );
-<<<<<<< HEAD
 }
-=======
-  }
-
-  return (
-    <div className="min-h-screen bg-[#1a1625]">
-  <Navbar />
-  <main className="ml-16 px-8 py-6">
-    <div className="max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold text-white">Profile</h1>
-        <div className="flex space-x-4">
-          {isEditing ? (
-            <>
-              <button onClick={handleCancelEdit} className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors duration-200" disabled={isLoading}>Cancel</button>
-              <button onClick={handleSave} className="px-6 py-2 bg-[#ff5733] hover:bg-[#e64a2e] text-white rounded-md transition-colors duration-200 flex items-center" disabled={isLoading || isValidatingUsername}>
-                {isLoading ? 'Saving...' : isValidatingUsername ? 'Validating...' : 'Save Edits'}
-              </button>
-            </>
-          ) : (
-            <>
-              <button onClick={handleLogout} className="px-6 py-2 rounded-md bg-gray-600 text-white transition-colors duration-200 hover:bg-gray-700">Logout</button>
-              <button onClick={toggleEdit} className="px-6 py-2 bg-[#ff5733] hover:bg-[#e64a2e] text-white rounded-md transition-colors duration-200 flex items-center">Edit Profile</button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Profile Image with Username and Full Name */}
-      <div className="mb-12">
-        <div className="flex flex-col md:flex-row items-start gap-8">
-          <div className="w-full md:w-auto flex flex-col items-center">
-            <div
-              className={`w-28 h-28 rounded-full overflow-hidden mb-4 ${isEditing ? 'cursor-pointer relative' : ''}`}
-              onClick={handleImageClick}
-            >
-              <img
-                src={isEditing
-                  ? (editableProfile.profileImage
-                      ? getImageUrl(editableProfile.profileImage)
-                      : (profile.profileImage ? getImageUrl(profile.profileImage) : getDefaultProfileImageUrl()))
-                  : (profile.profileImage ? getImageUrl(profile.profileImage) : getDefaultProfileImageUrl())}
-                alt="Profile picture"
-                width={112}
-                height={112}
-                className="object-cover"
-              />
-              {isEditing && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity duration-200">
-                  <span>Change</span>
-                </div>
-              )}
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageChange}
-              />
-            </div>
-
-            {/* Full Name and Username below profile image */}
-            <div className="w-full max-w-xs">
-              {/* Full Name (non-editable) */}
-              <div className="mb-4">
-                <label className="block text-gray-400 mb-1">Full Name</label>
-                <div className="px-4 py-2 bg-[#1a1625] text-white border border-gray-800 rounded-md">
-                  {profile.fullName}
-                </div>
-              </div>
-
-              {/* Username (editable) */}
-              <div className="mb-4">
-                <label className="block text-gray-400 mb-1">Username</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="userName"
-                    value={editableProfile.userName}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 bg-[#2a2435] text-white border border-gray-700 rounded-md"
-                    placeholder="Username"
-                  />
-                ) : (
-                  <div className="px-4 py-2 bg-[#1a1625] text-white border border-gray-800 rounded-md">
-                    @{profile.userName}
-                  </div>
-                )}
-                {usernameError && <p className="text-red-500 text-sm mt-1">{usernameError}</p>}
-              </div>
-            </div>
-          </div>
-
-          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-gray-400 mb-2">Gender</label>
-              {isEditing ? (
-                <select
-                  name="gender"
-                  value={editableProfile.gender}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-md bg-[#2a2435] text-white border border-gray-700"
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                  {/* <option value="primary">primary</option> */}
-                </select>
-              ) : (
-                <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800">
-                  {profile.gender || 'Other'}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-gray-400 mb-2">Email Address</label>
-              <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800">
-                {profile.email || 'Not provided'}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-gray-400 mb-2">Phone Number</label>
-              <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800">
-                {profile.phoneNumber || 'Not provided'}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-gray-400 mb-2">DOB</label>
-              {isEditing ? (
-                <input
-                  type="date"
-                  name="dob"
-                  value={editableProfile.dob}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-md bg-[#2a2435] text-white border border-gray-700"
-                />
-              ) : (
-                <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800">
-                  {profile.dob
-                    ? new Date(profile.dob).toLocaleDateString('en-GB', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                      })
-                    : 'Not provided'}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-gray-400 mb-2">City</label>
-              {isEditing ? (
-                <select
-                  name="city"
-                  value={editableProfile.city}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-md bg-[#2a2435] text-white border border-gray-700"
-                >
-                  {editableCities.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800 flex justify-between items-center">
-                  {profile.city || 'Not provided'}
-                  <svg
-                    className="w-5 h-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-gray-400 mb-2">Country</label>
-              {isEditing ? (
-                <select
-                  name="country"
-                  value={editableProfile.country}
-                  onChange={(e) => {
-                    const newCountry = e.target.value;
-                    setEditableProfile((prev) => {
-                      const countryData = countriesWithCities.find((c) => c.name === newCountry);
-                      const defaultCity = countryData && countryData.cities.length > 0 ? countryData.cities[0] : '';
-                      return {
-                        ...prev,
-                        country: newCountry,
-                        city: defaultCity,
-                      };
-                    });
-                  }}
-                  className="w-full px-4 py-3 rounded-md bg-[#2a2435] text-white border border-gray-700"
-                >
-                  {countries.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800 flex justify-between items-center">
-                  {profile.country || 'Not provided'}
-                  <svg
-                    className="w-5 h-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Subscriptions from File B */}
-      <hr className="border-gray-800 my-8" />
-      <div className="mb-12">
-        <h2 className="text-3xl font-bold text-white mb-8">My Subscriptions</h2>
-        {profile.subscriptions.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-            {profile.subscriptions.map((subscription, index) => (
-              <div key={index} className="flex flex-col items-center">
-                <div className="w-24 h-24 rounded-full overflow-hidden mb-2">
-                  <img
-                    src={subscription.image ? getImageUrl(subscription.image) : getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                    alt={subscription.name}
-                    width={96}
-                    height={96}
-                    className="object-cover"
-                  />
-                </div>
-                <p className="text-white text-center">{subscription.name}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-400">No subscriptions found.</p>
-        )}
-      </div>
-
-      {/* Spotify Integration from File B */}
-      <hr className="border-gray-800 my-8" />
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-2xl font-bold text-white">Link your</h2>
-          <span className="text-2xl font-bold text-[#1DB954]">SPOTIFY</span>
-          <h2 className="text-2xl font-bold text-white">!</h2>
-        </div>
-        <button
-          onClick={syncSpotify}
-          className={`px-6 py-2 ${profile.spotifyLinked ? 'bg-[#1DB954]' : 'bg-[#ff5733] hover:bg-[#e64a2e]'} text-white rounded-md transition-colors duration-200`}
-          disabled={isLoading || profile.spotifyLinked}
-        >
-          {isLoading ? 'Connecting...' : profile.spotifyLinked ? 'Connected' : 'Sync Now'}
-        </button>
-      </div>
-    </div>
-  </main>
-</div>
-  );
-}
->>>>>>> 017e526d4eef198c5afe2d273f7e6dc3c81831b4
