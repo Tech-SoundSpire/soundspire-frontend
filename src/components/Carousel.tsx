@@ -8,14 +8,15 @@ interface CarouselProps {
 
 const Carousel = ({ images }: CarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-
+  const [paused, setPaused] = useState(false);
   useEffect(() => {
+    if (paused) return;
     const timer = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
     }, 1500);
 
     return () => clearInterval(timer);
-  }, [images.length]);
+  }, [images.length, paused]);
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -26,7 +27,7 @@ const Carousel = ({ images }: CarouselProps) => {
   };
 
   return (
-    <div className="relative w-full h-[400px] overflow-hidden rounded-lg">
+    <div className="relative w-full h-[400px] overflow-hidden rounded-lg" onMouseEnter={()=> setPaused(true)}  onMouseLeave={()=> setPaused(false)}>
       {/* Images */}
       <div
         className="flex transition-transform duration-500 ease-in-out h-full"

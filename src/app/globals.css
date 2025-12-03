@@ -2,143 +2,199 @@
 @tailwind components;
 @tailwind utilities;
 
-@import 'react-toastify/dist/ReactToastify.css';
+@import "react-toastify/dist/ReactToastify.css";
 
 /* Custom scrollbar for webkit browsers */
+html,
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-  transition: background 0.2s ease;
+    background: #888;
+    border-radius: 4px;
+    transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+    background: #555;
 }
 
 ::-webkit-scrollbar-button,
 ::-webkit-scrollbar-button:single-button {
-  display: none;
-  width: 0;
-  height: 0;
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 /* Firefox scrollbar */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: #888 transparent;
+    scrollbar-width: thin;
+    scrollbar-color: #888 transparent;
+    box-sizing: border-box;
 }
 
 /* Custom scrollbar for music table only */
 .music-table-scrollbar::-webkit-scrollbar {
-  width: 10px;
+    width: 10px;
 }
 
 .music-table-scrollbar::-webkit-scrollbar-track {
-  background: rgba(26, 22, 37, 0.1);
-  border-radius: 5px;
+    background: rgba(26, 22, 37, 0.1);
+    border-radius: 5px;
 }
 
 .music-table-scrollbar::-webkit-scrollbar-thumb {
-  background: #ff4e50;
-  border-radius: 5px;
-  transition: all 0.2s ease;
+    background: #ff4e50;
+    border-radius: 5px;
+    transition: all 0.2s ease;
 }
 
 .music-table-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #ff6b6d;
+    background: #ff6b6d;
 }
 
 .music-table-scrollbar::-webkit-scrollbar-thumb:active {
-  background: #e63946;
+    background: #e63946;
 }
 
 /* Firefox scrollbar for music table */
 .music-table-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #ff4e50 rgba(26, 22, 37, 0.1);
+    scrollbar-width: thin;
+    scrollbar-color: #ff4e50 rgba(26, 22, 37, 0.1);
 }
 
 /* Custom styles */
 .line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-  }
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 0 0% 3.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 0 0% 3.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 0 0% 3.9%;
+        --primary: 0 0% 9%;
+        --primary-foreground: 0 0% 98%;
+        --secondary: 0 0% 96.1%;
+        --secondary-foreground: 0 0% 9%;
+        --muted: 0 0% 96.1%;
+        --muted-foreground: 0 0% 45.1%;
+        --accent: 0 0% 96.1%;
+        --accent-foreground: 0 0% 9%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 0 0% 89.8%;
+        --input: 0 0% 89.8%;
+        --ring: 0 0% 3.9%;
+        --chart-1: 12 76% 61%;
+        --chart-2: 173 58% 39%;
+        --chart-3: 197 37% 24%;
+        --chart-4: 43 74% 66%;
+        --chart-5: 27 87% 67%;
+        --radius: 0.5rem;
+        --normal-text: clamp(1rem, 0.4vw + 0.5rem, 2rem);
+        --small-text: clamp(0.7rem, 0.1vw + 0.7rem, 1.2rem);
+        --very-small-text: clamp(0.4rem, 0.3vw + 0.4rem, 1rem);
+        --sub-heading: clamp(1.3rem, 1.2vw + 1rem, 4rem);
+        --large-text: clamp(1.3rem, 0.8vw + 0.5rem, 2.5rem);
+        --heading: clamp(2rem, 2vw + 1rem, 4rem);
+        --big-heading: clamp(3rem, 3vw + 1rem, 7rem);
+    }
+    .dark {
+        --background: 0 0% 3.9%;
+        --foreground: 0 0% 98%;
+        --card: 0 0% 3.9%;
+        --card-foreground: 0 0% 98%;
+        --popover: 0 0% 3.9%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 0 0% 98%;
+        --primary-foreground: 0 0% 9%;
+        --secondary: 0 0% 14.9%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 0 0% 14.9%;
+        --muted-foreground: 0 0% 63.9%;
+        --accent: 0 0% 14.9%;
+        --accent-foreground: 0 0% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 0 0% 14.9%;
+        --input: 0 0% 14.9%;
+        --ring: 0 0% 83.1%;
+        --chart-1: 220 70% 50%;
+        --chart-2: 160 60% 45%;
+        --chart-3: 30 80% 55%;
+        --chart-4: 280 65% 60%;
+        --chart-5: 340 75% 55%;
+    }
+    .text {
+        position: relative;
+        margin: 0;
+        padding: 0;
+    }
+    .heading {
+        position: relative;
+        margin: 0;
+        padding: 0;
+    }
+    .heading::selection {
+        background-color: var(--selection-bg, #3297fd);
+        color: var(--selection-color, #ffffff);
+    }
+    .heading::-moz-selection {
+        background-color: var(--selection-bg, #3297fd);
+        color: var(--selection-color, #ffffff);
+    }
+    .text::selection {
+        background-color: var(--selection-bg, #3297fd);
+        color: var(--selection-color, #ffffff);
+    }
+    .text::-moz-selection {
+        background-color: var(--selection-bg, #3297fd);
+        color: var(--selection-color, #ffffff);
+    }
+    .carousel {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        border-radius: var(--radius);
+    }
+    /* Allows Children to determine size */
+    .carousel > * {
+        flex: 0 0 auto;
+    }
+    .carousel button {
+        z-index: 1000;
+    }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+    * {
+        @apply border-border;
+    }
 
-  body {
-    @apply bg-background text-foreground;
-  }
+    body {
+        @apply bg-background text-foreground;
+    }
 }
 
 /* -------------------------------
@@ -147,36 +203,36 @@
 
 /* WebKit Browsers (Chrome, Edge, Safari) */
 .artist-scrollbar::-webkit-scrollbar {
-  width: 10px;
+    width: 10px;
 }
 
 /* ✅ Hide scrollbar arrows for Chrome/Edge completely */
 .artist-scrollbar::-webkit-scrollbar-button,
 .artist-scrollbar::-webkit-scrollbar-button:single-button {
-  display: none;
-  width: 0;
-  height: 0;
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .artist-scrollbar::-webkit-scrollbar-track {
-  background: rgba(26, 22, 37, 0.2);
-  border-radius: 6px;
+    background: rgba(26, 22, 37, 0.2);
+    border-radius: 6px;
 }
 
 .artist-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #fa6400;
-  border-radius: 6px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-  transition: background-color 0.2s ease;
+    background-color: #fa6400;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    transition: background-color 0.2s ease;
 }
 
 .artist-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #ff8c40;
+    background-color: #ff8c40;
 }
 
 /* Firefox Support */
 .artist-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #fa6400 rgba(26, 22, 37, 0.2);
+    scrollbar-width: thin;
+    scrollbar-color: #fa6400 rgba(26, 22, 37, 0.2);
 }
