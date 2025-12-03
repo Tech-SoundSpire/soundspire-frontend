@@ -1,7 +1,6 @@
 "use client";
 
-import { getImageUrl, getLogoUrl } from "@/utils/userProfileImageUtils";
-import Image from "next/image";
+import { getLogoUrl } from "@/utils/userProfileImageUtils";
 import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
 import BaseText from "@/components/BaseText/BaseText";
 
@@ -21,11 +20,12 @@ export default function RootLayout({
                     {/* Logo */}
                     <div className="flex items-center">
                         <div className="w-28 h-28 mr-3 relative">
-                            <Image
-                                fill
+                            <img
                                 src={getLogoUrl()}
                                 alt="SoundSpire Logo"
-                                objectFit="contain"
+                                width={100}
+                                height={100}
+                                className="mr-3 object-contain"
                             />
                         </div>
                         <BaseText

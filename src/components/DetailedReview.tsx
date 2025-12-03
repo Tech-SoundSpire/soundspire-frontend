@@ -6,7 +6,6 @@ import {
 } from "@/utils/userProfileImageUtils";
 import BaseText from "./BaseText/BaseText";
 import BaseHeading from "./BaseHeading/BaseHeading";
-import Image from "next/image";
 
 interface Review {
     review_id: string;
@@ -75,16 +74,14 @@ export default function DetailedReview({
             <div className="bg-[#231b32] rounded-lg shadow-lg overflow-hidden">
                 {/* Image at the top */}
                 <div className="relative w-full flex justify-center bg-[#2d2838] p-8">
-                    <Image
-                        fill
+                    <img
                         src={
                             review.image_urls && review.image_urls.length > 0
                                 ? review.image_urls[0]
                                 : getImageUrl(DEFAULT_PROFILE_IMAGE)
                         }
                         alt={review.title}
-                        className="rounded-lg max-w-md"
-                        objectFit="cover"
+                        className="rounded-lg w-full max-w-md object-cover"
                     />
                 </div>
                 {/* Content below the image */}

@@ -7,7 +7,7 @@ import {
     DEFAULT_PROFILE_IMAGE,
     getLogoUrl,
 } from "@/utils/userProfileImageUtils";
-import Image from "next/image";
+
 import { FaYoutube, FaInstagram, FaFacebook, FaTiktok } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import BaseText from "@/components/BaseText/BaseText";
@@ -90,12 +90,12 @@ export default function ArtistDashboard() {
             <header className="w-full bg-[#1a1625]/90 backdrop-blur-md py-4 px-8 flex items-center justify-between fixed top-0 left-0 z-50">
                 {/* Left: Logo */}
                 <div className="flex items-center gap-2">
-                    <Image
+                    <img
                         src={getLogoUrl()}
                         alt="SoundSpire Logo"
                         width={32}
                         height={32}
-                        objectFit="contain"
+                        className="object-contain"
                     />
                 </div>
 
@@ -297,11 +297,10 @@ export default function ArtistDashboard() {
                             Artist Profile
                         </BaseHeading>
                         <div className="w-48 h-48 rounded-xl overflow-hidden relative">
-                            <Image
+                            <img
                                 src={profile_image}
-                                alt="Artist profile"
-                                objectFit="cover"
-                                fill
+                                alt="Artist"
+                                className="w-full h-full object-cover"
                             />
                         </div>
                     </div>
@@ -324,12 +323,11 @@ export default function ArtistDashboard() {
                                     className="bg-[#221c2f] border border-gray-700 rounded-xl p-6 shadow-lg hover:shadow-xl transition"
                                 >
                                     {/* Artist Review image */}
-                                    <div className="w-28 h-28 mx-auto rounded-xl overflow-hidden mb-4">
-                                        <Image
+                                    <div className="w-48 h-48 rounded-xl overflow-hidden">
+                                        <img
                                             src={profile_image}
-                                            alt="Artist"
-                                            objectFit="cover"
-                                            fill
+                                            alt="Artist profile"
+                                            className="w-full h-full object-cover"
                                         />
                                     </div>
 

@@ -8,7 +8,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRoute";
 import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
-import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
@@ -208,7 +207,7 @@ export default function SignupPage() {
             {/* Left Side */}
             <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
                 <div>
-                    <Image
+                    <img
                         src={getLogoUrl()}
                         alt="SoundSpire logo"
                         width={200}

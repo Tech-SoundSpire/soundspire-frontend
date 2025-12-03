@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import CarouselBase from "./CarouselBase";
 import BaseText from "./BaseText/BaseText";
-import Image from "next/image";
+
 import BaseHeading from "./BaseHeading/BaseHeading";
 
 type ExploreItem = {
@@ -66,13 +66,12 @@ const ExploreCarousel = ({ items }: ExploreCarouselProps) => {
                             {items[currentIndex].price}
                         </BaseText>
                     </div>
-                    <div className="relative m-auto w-64 h-64 transform rotate-[-5deg]">
-                        <Image
+                    <div className="m-auto">
+                        <img
                             src={items[currentIndex].image}
                             alt="Featured Album"
-                            objectFit="cover"
-                            fill
-                        ></Image>
+                            className="w-64 h-64  transform rotate-[-5deg] object-cover"
+                        ></img>
                     </div>
                 </div>
             </CarouselBase>

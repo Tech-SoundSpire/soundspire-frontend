@@ -7,7 +7,6 @@ import {
 } from "react-icons/fa6";
 import { useState } from "react";
 import Comment from "@/components/Posts/PostComment";
-import Image from "next/image";
 import { CommentProps, PostProps } from "@/lib/types";
 import MediaCarousel from "@/components/Posts/PostCarousel";
 import {
@@ -78,18 +77,17 @@ export default function Post(props: { post: PostProps; user_id: string }) {
     return (
         <div className="post rounded-xl bg-white w-[80%] mb-10" id="me">
             <div className="post-header flex items-center p-5">
-                <div className="w-12 h-12 rounded-full mr-3 relative">
-                    <Image
-                        src={
-                            post.artist.profile_picture_url
-                                ? getImageUrl(post.artist.profile_picture_url)
-                                : getImageUrl(DEFAULT_PROFILE_IMAGE)
-                        }
-                        alt={`Avatar`}
-                        objectFit="cover"
-                        fill
-                    />
-                </div>
+                <img
+                    src={
+                        post.artist.profile_picture_url
+                            ? getImageUrl(post.artist.profile_picture_url)
+                            : getImageUrl(DEFAULT_PROFILE_IMAGE)
+                    }
+                    alt={`Avatar`}
+                    className="w-12 h-12 rounded-full object-cover mr-3"
+                    width={100}
+                    height={100}
+                />
                 <BaseText wrapper="span" fontWeight={700} fontName="inter">
                     {post.artist.artist_name}
                 </BaseText>
@@ -178,7 +176,7 @@ export default function Post(props: { post: PostProps; user_id: string }) {
             <div className="post-comments-preview p-4">
                 {showComments ? (
                     <div className="post-comment flex items-center py-2">
-                        <Image
+                        <img
                             src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
                             alt={`Avatar`}
                             className="w-12 h-12 rounded-full object-cover mr-5"

@@ -3,7 +3,6 @@
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { countriesWithCities } from "@/lib/locationData";
 import { toast } from "react-toastify";
@@ -378,7 +377,7 @@ export default function ProfilePage() {
                                     }`}
                                     onClick={handleImageClick}
                                 >
-                                    <Image
+                                    <img
                                         src={
                                             isEditing
                                                 ? editableProfile.profileImage
@@ -397,7 +396,8 @@ export default function ProfilePage() {
                                                 : getDefaultProfileImageUrl()
                                         }
                                         alt="Profile picture"
-                                        fill
+                                        width={112}
+                                        height={112}
                                         className="object-cover"
                                     />
                                     {isEditing && (
@@ -657,10 +657,15 @@ export default function ProfilePage() {
                                             className="flex flex-col items-center"
                                         >
                                             <div className="w-24 h-24 rounded-full overflow-hidden mb-2">
-                                                <Image
+                                                <img
                                                     src={
-                                                        subscription.image ||
-                                                        "/default-community.jpg"
+                                                        subscription.image
+                                                            ? getImageUrl(
+                                                                  subscription.image
+                                                              )
+                                                            : getImageUrl(
+                                                                  DEFAULT_PROFILE_IMAGE
+                                                              )
                                                     }
                                                     alt={subscription.name}
                                                     width={96}

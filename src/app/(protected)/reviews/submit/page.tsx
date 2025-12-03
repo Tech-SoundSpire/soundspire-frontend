@@ -6,7 +6,6 @@ import { validateFile } from "@/utils/fileUtils";
 import { toast } from "react-hot-toast";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
-import Image from "next/image";
 
 interface ReviewFormData {
     title: string;
@@ -352,14 +351,11 @@ export default function SubmitReviewPage() {
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Preview
                                 </label>
-                                <div className="relative w-full max-w-md h-48 rounded-md">
-                                    <Image
-                                        fill
-                                        src={imagePreview}
-                                        alt="Preview"
-                                        objectFit="cover"
-                                    />
-                                </div>
+                                <img
+                                    src={imagePreview}
+                                    alt="Preview"
+                                    className="w-full max-w-md h-48 object-cover rounded-md"
+                                />
                             </div>
                         )}
                     </div>

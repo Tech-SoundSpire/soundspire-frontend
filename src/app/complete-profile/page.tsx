@@ -12,7 +12,6 @@ import {
 import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRoute";
 import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
-import Image from "next/image";
 import BaseText from "@/components/BaseText/BaseText";
 
 interface FormData {
@@ -241,15 +240,14 @@ export default function CompleteProfilePage() {
                     <div className="flex flex-col items-center mb-6">
                         <div className="relative group">
                             <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-600 border-3 border-orange-400 shadow-lg shadow-orange-400/20">
-                                <Image
-                                    fill
+                                <img
                                     src={
                                         preview ||
                                         form.profile_picture_url ||
                                         getImageUrl(DEFAULT_PROFILE_IMAGE)
                                     }
                                     alt="Profile Preview"
-                                    objectFit="cover"
+                                    className="object-cover w-full h-full"
                                 />
                             </div>
                             <input

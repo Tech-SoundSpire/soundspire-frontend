@@ -8,7 +8,6 @@ import {
 import ImageCarousel from "@/components/ImageCarousel";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
-import Image from "next/image";
 interface Review {
     review_id: string;
     user_id: string;
@@ -86,7 +85,7 @@ export default function ReviewsPage() {
                         key={review.review_id}
                         className="flex flex-col bg-[#231b32] rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative"
                     >
-                        <Image
+                        <img
                             src={
                                 review.image_urls &&
                                 review.image_urls.length > 0
@@ -94,10 +93,9 @@ export default function ReviewsPage() {
                                     : getImageUrl(DEFAULT_PROFILE_IMAGE)
                             }
                             alt={review.title}
-                            width={500}
-                            height={500}
                             className="w-full h-56 object-cover"
                         />
+
                         <BaseText
                             wrapper="span"
                             fontSize="very small"

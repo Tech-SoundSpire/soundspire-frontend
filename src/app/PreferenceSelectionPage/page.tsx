@@ -15,7 +15,6 @@ import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRou
 import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
-import Image from "next/image";
 
 // --- TYPE DEFINITIONS ---
 interface Language {
@@ -238,14 +237,11 @@ const GenreSelection: React.FC<SelectionProps<Genre>> = ({
                             }`}
                         >
                             <div className="relative aspect-square rounded-2xl overflow-hidden">
-                                <div className="relative w-full h-full transition-all duration-300 group-hover:brightness-75">
-                                    <Image
-                                        fill
-                                        src={genre.img}
-                                        alt={genre.name}
-                                        objectFit="cover"
-                                    />
-                                </div>
+                                <img
+                                    src={genre.img}
+                                    alt={genre.name}
+                                    className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-75"
+                                />
                                 <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
                                     <BaseHeading
                                         headingLevel="h3"

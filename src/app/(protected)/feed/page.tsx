@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import Post from "@/components/Posts/Post";
 import { PostProps, CommentProps } from "@/lib/types";
-import Image from "next/image";
+
 import {
     getImageUrl,
     DEFAULT_PROFILE_IMAGE,
@@ -103,14 +103,13 @@ export default function Page() {
                     </div>
 
                     <div className="flex items-center p-2 text-white">
-                        <div className="w-12 h-12 rounded-full relative mr-3">
-                            <Image
-                                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                                alt={`Avatar`}
-                                objectFit="cover"
-                                fill
-                            />
-                        </div>
+                        <img
+                            src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                            alt={`Avatar`}
+                            className="w-12 h-12 rounded-full object-cover mr-3"
+                            width={100}
+                            height={100}
+                        />
                         <BaseHeading
                             headingLevel="h3"
                             fontWeight={500}
@@ -120,13 +119,13 @@ export default function Page() {
                         </BaseHeading>
                     </div>
                     <div className="flex items-center p-2 text-white">
-                        <div className="w-12 h-12 rounded-full mr-3 relative">
-                            <Image
-                                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                                alt={`Avatar`}
-                                fill
-                            />
-                        </div>
+                        <img
+                            src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                            alt={`Avatar`}
+                            className="w-12 h-12 rounded-full object-cover mr-3"
+                            width={100}
+                            height={100}
+                        />
                         <BaseHeading
                             headingLevel="h3"
                             fontWeight={500}
@@ -136,13 +135,13 @@ export default function Page() {
                         </BaseHeading>
                     </div>
                     <div className="flex items-center p-2 text-white">
-                        <div className="w-12 h-12 rounded-full mr-3 relative">
-                            <Image
-                                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                                alt={`Avatar`}
-                                fill
-                            />
-                        </div>
+                        <img
+                            src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                            alt={`Avatar`}
+                            className="w-12 h-12 rounded-full object-cover mr-3"
+                            width={100}
+                            height={100}
+                        />
                         <BaseHeading
                             headingLevel="h3"
                             fontWeight={500}
@@ -152,13 +151,13 @@ export default function Page() {
                         </BaseHeading>
                     </div>
                     <div className="flex items-center p-2 text-white">
-                        <div className="w-12 h-12 rounded-full mr-3 relative">
-                            <Image
-                                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                                alt={`Avatar`}
-                                fill
-                            />
-                        </div>
+                        <img
+                            src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                            alt={`Avatar`}
+                            className="w-12 h-12 rounded-full object-cover mr-3"
+                            width={100}
+                            height={100}
+                        />
                         <BaseHeading
                             headingLevel="h3"
                             fontWeight={500}
@@ -168,14 +167,13 @@ export default function Page() {
                         </BaseHeading>
                     </div>
                     <div className="flex items-center p-2 text-white">
-                        <div className="w-12 h-12 rounded-full mr-3 relative">
-                            <Image
-                                src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                                alt={`Avatar`}
-                                objectFit="contain"
-                                fill
-                            />
-                        </div>
+                        <img
+                            src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                            alt={`Avatar`}
+                            className="w-12 h-12 rounded-full object-cover mr-3"
+                            width={100}
+                            height={100}
+                        />
                         <BaseHeading
                             headingLevel="h3"
                             fontWeight={500}

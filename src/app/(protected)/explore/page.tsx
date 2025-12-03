@@ -16,7 +16,7 @@ import {
 } from "@/utils/userProfileImageUtils";
 import ExploreCarousel from "@/components/ExploreCarousel";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
-import Image from "next/image";
+
 import BaseText from "@/components/BaseText/BaseText";
 
 interface Review {
@@ -185,19 +185,14 @@ export default function ExplorePage() {
                                     key={artist.artist_id}
                                     className="flex-shrink-0 text-center"
                                 >
-                                    <div className="w-24 h-24 rounded-full mb-2 relative">
-                                        <Image
-                                            src={
-                                                artist.profile_picture_url ||
-                                                getImageUrl(
-                                                    DEFAULT_PROFILE_IMAGE
-                                                )
-                                            }
-                                            alt={artist.artist_name}
-                                            objectFit="cover"
-                                            fill
-                                        />
-                                    </div>
+                                    <img
+                                        src={
+                                            artist.profile_picture_url ||
+                                            getImageUrl(DEFAULT_PROFILE_IMAGE)
+                                        }
+                                        alt={artist.artist_name}
+                                        className="w-24 h-24 rounded-full object-cover mb-2"
+                                    />
                                     <BaseText
                                         textColor="#ffffff"
                                         fontSize="small"
@@ -238,21 +233,18 @@ export default function ExplorePage() {
                                     key={review.review_id}
                                     className="bg-[#2d2838] rounded-lg overflow-hidden"
                                 >
-                                    <div className="relative w-full h-48">
-                                        <Image
-                                            fill
-                                            objectFit="cover"
-                                            src={
-                                                review.image_urls &&
-                                                review.image_urls.length > 0
-                                                    ? review.image_urls[0]
-                                                    : getImageUrl(
-                                                          DEFAULT_PROFILE_IMAGE
-                                                      )
-                                            }
-                                            alt={review.title}
-                                        />
-                                    </div>
+                                    <img
+                                        src={
+                                            review.image_urls &&
+                                            review.image_urls.length > 0
+                                                ? review.image_urls[0]
+                                                : getImageUrl(
+                                                      DEFAULT_PROFILE_IMAGE
+                                                  )
+                                        }
+                                        alt={review.title}
+                                        className="w-full h-48 object-cover"
+                                    />
                                     <div className="p-4">
                                         <BaseHeading
                                             headingLevel="h3"
@@ -343,16 +335,11 @@ export default function ExplorePage() {
                                     className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#2d2838] cursor-pointer hover:scale-105 transition-transform duration-200"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                    <div className="absolute inset-0 w-full h-full mix-blend-overlay">
-                                        <Image
-                                            src={getImageUrl(
-                                                DEFAULT_PROFILE_IMAGE
-                                            )}
-                                            alt={genre.name}
-                                            fill
-                                            objectFit="cover"
-                                        />
-                                    </div>
+                                    <img
+                                        src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                                        alt={genre.name}
+                                        className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
+                                    />
                                     <div className="absolute bottom-4 left-4">
                                         <BaseHeading
                                             headingLevel="h3"

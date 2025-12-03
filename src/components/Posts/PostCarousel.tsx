@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import Image from "next/image";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
@@ -28,11 +27,12 @@ export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
             >
                 {mediaUrls.map((url, index) => (
                     <div key={index} className="min-w-full">
-                        <Image
+                        <img
                             src={url}
                             alt={`Post Image ${index + 1}`}
                             className="w-full h-auto object-contain"
-                            fill
+                            width={1000}
+                            height={1000}
                             loading="lazy"
                         />
                     </div>

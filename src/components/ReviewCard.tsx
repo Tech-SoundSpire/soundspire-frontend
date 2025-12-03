@@ -1,4 +1,3 @@
-import Image from "next/image";
 import BaseHeading from "./BaseHeading/BaseHeading";
 import BaseText from "./BaseText/BaseText";
 
@@ -20,8 +19,7 @@ const ReviewCard = ({
     return (
         <div className="bg-[#231b32] rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative">
             <div className="relative aspect-square">
-                <Image
-                    fill
+                <img
                     src={coverImage}
                     alt={`${albumName} by ${artistName}`}
                     className="w-full h-full object-cover"

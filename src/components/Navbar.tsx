@@ -12,7 +12,7 @@ import {
 } from "react-icons/fa";
 import { MdOutlineDynamicFeed } from "react-icons/md";
 import Link from "next/link";
-import Image from "next/image";
+
 import { useState } from "react";
 import BaseText from "./BaseText/BaseText";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
@@ -53,11 +53,12 @@ const Navbar = () => {
                     } p-3`}
                 >
                     <div className={`relative w-8 h-8`}>
-                        <Image
+                        <img
                             src={getLogoUrl()}
                             alt="SoundSpire Logo"
-                            fill
-                            objectFit="contain"
+                            width={32}
+                            height={32}
+                            className="object-contain"
                         />
                     </div>
                     <BaseText
