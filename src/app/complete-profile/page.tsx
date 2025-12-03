@@ -13,6 +13,7 @@ import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRou
 import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
+import { sanitizeURL } from "@/utils/sanitizeURL";
 
 interface FormData {
     full_name: string;
@@ -222,7 +223,11 @@ export default function CompleteProfilePage() {
             setLoading(false);
         }
     };
-
+    const rawProfileImage =
+        preview ||
+        form.profile_picture_url ||
+        getImageUrl(DEFAULT_PROFILE_IMAGE);
+    const safeProfileImage = sanitizeURL(rawProfileImage);
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4">
             <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-700 backdrop-blur-sm">
@@ -241,11 +246,7 @@ export default function CompleteProfilePage() {
                         <div className="relative group">
                             <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-600 border-3 border-orange-400 shadow-lg shadow-orange-400/20">
                                 <img
-                                    src={
-                                        preview ||
-                                        form.profile_picture_url ||
-                                        getImageUrl(DEFAULT_PROFILE_IMAGE)
-                                    }
+                                    src={safeProfileImage}
                                     alt="Profile Preview"
                                     className="object-cover w-full h-full"
                                 />

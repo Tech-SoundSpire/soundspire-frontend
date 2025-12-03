@@ -12,6 +12,7 @@ import {
 } from "@/utils/userProfileImageUtils";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
+import { sanitizeURL } from "@/utils/sanitizeURL";
 
 // const DEFAULT_PLACEHOLDER = "https://soundspirewebsiteassets.s3.amazonaws.com/images/placeholder.jpg";
 const DEFAULT_PLACEHOLDER = getImageUrl(DEFAULT_PROFILE_IMAGE);
@@ -212,7 +213,7 @@ function ArtistDetailsContent() {
                 // setProfilePreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
                 // setCoverPreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
                 setProfilePreview(
-                    artist?.imageUrl
+                    artist.imageUrl
                         ? getImageUrl(artist.imageUrl)
                         : getImageUrl(DEFAULT_PROFILE_IMAGE)
                 );
@@ -381,7 +382,11 @@ function ArtistDetailsContent() {
     };
 
     const handleBack = () => router.back();
-
+    const rawImageUrlProfilePreview =
+        profilePreview || getImageUrl(DEFAULT_PROFILE_IMAGE);
+    const safeImageProfilePreview = sanitizeURL(rawImageUrlProfilePreview);
+    const rawImageUrlCoverPreview = coverPreview || DEFAULT_PLACEHOLDER;
+    const safeImageUrlCoverPreview = sanitizeURL(rawImageUrlCoverPreview);
     if (!mounted) return null;
 
     return (
@@ -460,10 +465,7 @@ function ArtistDetailsContent() {
                         </label>
                         <div className="w-60 h-40 rounded-xl overflow-hidden bg-[#2d2838] relative group mx-auto">
                             <img
-                                src={
-                                    profilePreview ||
-                                    getImageUrl(DEFAULT_PROFILE_IMAGE)
-                                }
+                                src={safeImageProfilePreview}
                                 alt="Profile Preview"
                                 className="object-cover w-full h-full"
                             />
@@ -485,7 +487,7 @@ function ArtistDetailsContent() {
                         </label>
                         <div className="w-60 h-40 rounded-xl overflow-hidden bg-[#2d2838] relative group mx-auto">
                             <img
-                                src={coverPreview || DEFAULT_PLACEHOLDER}
+                                src={safeImageUrlCoverPreview}
                                 alt="Cover Preview"
                                 className="object-cover w-full h-full"
                             />
