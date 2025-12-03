@@ -247,7 +247,11 @@ function ArtistDetailsContent() {
         if (file.size > 5 * 1024 * 1024) return toast.error("File too large");
         if (!file.type.startsWith("image/"))
             return toast.error("Invalid image");
-
+        if (file.type === "image/svg+xml") {
+            return toast.error(
+                "SVG images are not allowed for security reasons. Please upload a PNG, JPG or similar format."
+            );
+        }
         if (type === "profile") {
             setSelectedProfileFile(file);
             setProfilePreview(URL.createObjectURL(file));
