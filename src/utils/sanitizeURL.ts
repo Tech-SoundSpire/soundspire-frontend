@@ -9,24 +9,27 @@ export function sanitizeURL(
     try {
         const parsedURL = new URL(url);
         if (parsedURL.protocol === "http:" || parsedURL.protocol === "https:") {
-            return url;
+            return parsedURL.href;
         }
         if (parsedURL.protocol === "blob:") {
             const blobPattern = /^blob:(https?:\/\/[^/]+)\/[a-fA-F0-9\-]+$/;
-            if (blobPattern.test(url)) {
-                return url;
+            const match = url.match(blobPattern);
+            if (match) {
+                return match[0];
             }
             return undefined;
         }
         if (parsedURL.protocol === "data:") {
-            if (
-                url.startsWith("data:image/png") ||
-                url.startsWith("data:image/jpeg") ||
-                url.startsWith("data:image/jpg") ||
-                url.startsWith("data:image/gif") ||
-                url.startsWith("data:image/webp")
-            ) {
-                return url;
+            const safeMimeTypes = [
+                "data:image/png",
+                "data:image/jpeg",
+                "data:image/jpg",
+                "data:image/gif",
+                "data:image/webp",
+            ];
+
+            if (safeMimeTypes.some((type) => parsedURL.href.startsWith(type))) {
+                return parsedURL.href;
             }
         }
     } catch (e) {
