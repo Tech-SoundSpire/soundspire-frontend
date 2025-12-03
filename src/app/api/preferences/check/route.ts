@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectionTestingAndHelper } from "@/utils/temp";
+import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import UserPreferences from "@/models/UserPreferences";
 
 export async function GET(request: NextRequest) {

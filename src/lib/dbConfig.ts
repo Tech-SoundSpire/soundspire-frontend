@@ -3,7 +3,7 @@ import sequelize from "./sequelize";
 
 let cachedConnection: any = null;
 
-// Create the establishConnection function that your temp.ts is looking for
+// Create the establishConnection function that dbConnection.ts uses
 export const establishConnection = async () => {
     try {
         if (cachedConnection) {

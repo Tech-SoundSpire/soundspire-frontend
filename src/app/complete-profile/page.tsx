@@ -184,6 +184,13 @@ export default function CompleteProfilePage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Prevent submission if not authenticated
+        if (!user) {
+            toast.error("Please log in to continue");
+            router.replace("/login");
+            return;
+        }
+
         const newErrors: Partial<FormData> = {
             full_name: validateFullName(form.full_name),
             phone_number: validatePhoneNumber(form.phone_number),
@@ -223,6 +230,33 @@ export default function CompleteProfilePage() {
             setLoading(false);
         }
     };
+
+    // Show loading screen while checking authentication
+    if (authLoading || profileLoading || preferencesLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-400 border-t-transparent mx-auto mb-4"></div>
+                    <p className="text-white text-xl">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Don't render form if user is not authenticated (will redirect)
+    if (!user) {
+        return null;
+    }
+
+    // Don't render form if user is an artist (will redirect)
+    if (user.role === "artist") {
+        return null;
+    }
+
+    // Don't render form if profile is already complete (will redirect)
+    if (isProfileComplete) {
+        return null;
+    }
     const rawProfileImage =
         preview ||
         form.profile_picture_url ||
