@@ -8,9 +8,15 @@ export function sanitizeURL(
 
     try {
         const parsedURL = new URL(url);
-        const allowedProtocols = ["http:", "https:", "blob:"];
-        if (allowedProtocols.includes(parsedURL.protocol)) {
+        if (parsedURL.protocol === "http:" || parsedURL.protocol === "https:") {
             return url;
+        }
+        if (parsedURL.protocol === "blob:") {
+            const blobPattern = /^blob:(https?:\/\/[^/]+)\/[a-fA-F0-9\-]+$/;
+            if (blobPattern.test(url)) {
+                return url;
+            }
+            return undefined;
         }
         if (parsedURL.protocol === "data:") {
             if (
@@ -18,8 +24,7 @@ export function sanitizeURL(
                 url.startsWith("data:image/jpeg") ||
                 url.startsWith("data:image/jpg") ||
                 url.startsWith("data:image/gif") ||
-                url.startsWith("data:image/webp") ||
-                url.startsWith("data:image/svg+xml")
+                url.startsWith("data:image/webp")
             ) {
                 return url;
             }
