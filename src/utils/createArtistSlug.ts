@@ -1,5 +1,6 @@
 import Artist from "@/models/Artist";
-import { nanoid } from "nanoid";
+import { customAlphabet } from "nanoid";
+const generateNumericId = customAlphabet("0123456789", 10);
 export async function createArtistSlug(name: string): Promise<string> {
     const formattedName = name
         .toLowerCase()
@@ -10,15 +11,15 @@ export async function createArtistSlug(name: string): Promise<string> {
     if (!existing) {
         return formattedName;
     }
-    const slugFourCharacter = `${formattedName}-${nanoid(4)}`;
+    const slugFourCharacter = `${formattedName}-${generateNumericId(4)}`;
     existing = await Artist.findOne({ where: { slug: slugFourCharacter } });
     if (!existing) {
         return slugFourCharacter;
     }
-    const slugSevenCharacter = `${formattedName}-${nanoid(7)}`;
+    const slugSevenCharacter = `${formattedName}-${generateNumericId(7)}`;
     existing = await Artist.findOne({ where: { slug: slugSevenCharacter } });
     if (!existing) {
         return slugSevenCharacter;
     }
-    return `${formattedName}-${nanoid(10)}`;
+    return `${formattedName}-${generateNumericId(10)}`;
 }

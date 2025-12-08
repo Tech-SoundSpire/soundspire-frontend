@@ -1,7 +1,7 @@
 import Artist from "@/models/Artist";
 import Community from "@/models/Community";
 import Social from "@/models/Social";
-import { connectionTestingAndHelper } from "@/utils/temp";
+import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { NextRequest, NextResponse } from "next/server";
 export async function GET(
     request: NextRequest,
