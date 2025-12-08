@@ -1,41 +1,18 @@
-import { NextResponse, NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
-import { connectionTestingAndHelper } from "@/utils/temp";
 import Artist from "@/models/Artist";
 import Community from "@/models/Community";
 import Social from "@/models/Social";
-
-interface DecodedToken {
-    id: string;
-}
-
-export async function GET(req: NextRequest) {
+import { connectionTestingAndHelper } from "@/utils/temp";
+import { NextRequest, NextResponse } from "next/server";
+export async function GET(
+    request: NextRequest,
+    { params }: { params: Promise<{ slug: string }> }
+) {
     try {
         await connectionTestingAndHelper();
-
-        const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
-        if (!token) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
-
-        const decoded = jwt.verify(
-            token,
-            process.env.JWT_SECRET!
-        ) as DecodedToken;
-        if (!decoded?.id) {
-            return NextResponse.json(
-                { error: "Invalid token" },
-                { status: 401 }
-            );
-        }
+        const { slug } = await params;
 
         const artist = await Artist.findOne({
-            where: { user_id: decoded.id },
+            where: { slug },
             include: [
                 {
                     model: Community,
@@ -55,16 +32,13 @@ export async function GET(req: NextRequest) {
                 },
             ],
         });
-
         if (!artist) {
             return NextResponse.json(
                 { error: "Artist not found" },
                 { status: 404 }
             );
         }
-
         const artistData = artist.get({ plain: true }) as any;
-
         return NextResponse.json({
             artist: {
                 artist_id: artist.artist_id,
@@ -77,13 +51,14 @@ export async function GET(req: NextRequest) {
                 community: artistData.Communities?.length
                     ? artistData.Communities[0]
                     : null,
-                slug: artist.slug,
             },
         });
     } catch (err) {
-        console.error("Error fetching artist dashboard:", err);
+        console.error("Error fetching artist profile: ", err);
         return NextResponse.json(
-            { error: "Failed to load artist data" },
+            {
+                error: "Failed to load artist data",
+            },
             { status: 500 }
         );
     }

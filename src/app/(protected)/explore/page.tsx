@@ -18,6 +18,9 @@ import ExploreCarousel from "@/components/ExploreCarousel";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 
 import BaseText from "@/components/BaseText/BaseText";
+import Link from "next/link";
+
+import { ArtistAttributes } from "@/models/Artist";
 
 interface Review {
     review_id: string;
@@ -39,18 +42,19 @@ interface Review {
     };
 }
 
-interface Artist {
-    artist_id: string;
-    artist_name: string;
-    profile_picture_url: string;
-    bio: string;
-}
-
 interface Genre {
     genre_id: string;
     name: string;
 }
-
+type Artist = Pick<
+    ArtistAttributes,
+    | "artist_name"
+    | "bio"
+    | "cover_photo_url"
+    | "profile_picture_url"
+    | "slug"
+    | "artist_id"
+>;
 const carouselItems = [
     {
         title: "INDIE FOLK MUSIC COLLECTION",
@@ -181,9 +185,10 @@ export default function ExplorePage() {
                     ) : (
                         <div className="flex gap-6 overflow-x-auto pb-4">
                             {artists.map((artist) => (
-                                <div
+                                <Link
                                     key={artist.artist_id}
                                     className="flex-shrink-0 text-center"
+                                    href={`/community/${artist.slug}/`}
                                 >
                                     <img
                                         src={
@@ -201,7 +206,7 @@ export default function ExplorePage() {
                                     >
                                         {artist.artist_name}
                                     </BaseText>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     )}

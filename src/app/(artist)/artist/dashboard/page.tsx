@@ -21,7 +21,7 @@ interface CommunityData {
     subscription_interval: string;
 }
 
-interface ArtistData {
+export interface ArtistData {
     artist_id: string;
     artist_name: string;
     bio: string;
