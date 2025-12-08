@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import bcryptjs from "bcryptjs";
 import { cookies } from "next/headers";
-import { connectionTestingAndHelper } from "@/utils/temp";
+import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import Artist from "@/models/Artist";
 import { User } from "@/models";
 import Genres from "@/models/Genres";
