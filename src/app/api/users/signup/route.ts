@@ -1,4 +1,4 @@
-import { connectionTestingAndHelper } from "@/utils/temp";
+import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { User } from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
