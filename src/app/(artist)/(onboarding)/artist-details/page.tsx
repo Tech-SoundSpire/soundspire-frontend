@@ -427,6 +427,11 @@ function ArtistDetailsContent() {
                                 name={field.name}
                                 value={(formData as any)[field.name]}
                                 onChange={handleChange}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !loading) {
+                                        e.preventDefault();
+                                    }
+                                }}
                                 className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                             />
                         </div>
@@ -443,6 +448,11 @@ function ArtistDetailsContent() {
                         rows={4}
                         value={formData.bio}
                         onChange={handleChange}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && e.ctrlKey && !loading) {
+                                e.preventDefault();
+                            }
+                        }}
                         className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                     />
                 </div>
@@ -456,6 +466,11 @@ function ArtistDetailsContent() {
                         type="text"
                         value={genreInput}
                         onChange={(e) => setGenreInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !loading) {
+                                e.preventDefault();
+                            }
+                        }}
                         placeholder="e.g. Hip Hop, Pop"
                         className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                     />
@@ -518,6 +533,11 @@ function ArtistDetailsContent() {
                             placeholder="Add new social platform (e.g. TikTok)"
                             value={newSocial}
                             onChange={(e) => setNewSocial(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" && !loading) {
+                                    e.preventDefault();
+                                }
+                            }}
                             className="flex-1 p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                         />
                         <button
@@ -564,6 +584,11 @@ function ArtistDetailsContent() {
                                     name={platform}
                                     value={formData[platform] || ""}
                                     onChange={handleChange}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" && !loading) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     placeholder={`Enter ${platform.replace(
                                         "_",
                                         " "
@@ -624,6 +649,11 @@ function ArtistDetailsContent() {
                                     name={field}
                                     value={(formData as any)[field]}
                                     onChange={handleChange}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" && !loading) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                                 />
                             </div>
@@ -642,6 +672,11 @@ function ArtistDetailsContent() {
                                         (formData as any).password_hash || ""
                                     }
                                     onChange={handleChange}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" && !loading) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                                 />
                             </div>
@@ -659,6 +694,11 @@ function ArtistDetailsContent() {
                                         (formData as any).confirm_password || ""
                                     }
                                     onChange={handleChange}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" && !loading) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                                 />
                             </div>
@@ -689,6 +729,11 @@ function ArtistDetailsContent() {
                         placeholder="Community Name"
                         value={formData.community_name || ""}
                         onChange={handleChange}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !loading) {
+                                e.preventDefault();
+                            }
+                        }}
                         className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                     />
 
@@ -697,6 +742,11 @@ function ArtistDetailsContent() {
                         placeholder="Describe your community (optional)"
                         value={formData.community_description || ""}
                         onChange={handleChange}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && e.ctrlKey && !loading) {
+                                e.preventDefault();
+                            }
+                        }}
                         rows={3}
                         className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                     />

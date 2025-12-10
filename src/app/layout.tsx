@@ -15,6 +15,9 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
+            <head>
+                    <link rel="icon" href="/api/images/assets/ss_logo.png" />
+            </head>
             <body className={`antialiased min-h-screen bg-[#1a1625]`}>
                 <AuthProvider>
                     <Toaster position="top-center" reverseOrder={false} />

@@ -218,6 +218,11 @@ function LoginPageInner() {
                                             [name]: e.target.value,
                                         }))
                                     }
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" && !buttonDisabled && !loading) {
+                                            onLogin();
+                                        }
+                                    }}
                                     className="w-full px-4 py-3 rounded-lg border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                 />
                             </div>
