@@ -51,6 +51,7 @@ export async function GET(
                 community: artistData.Communities?.length
                     ? artistData.Communities[0]
                     : null,
+                slug,
             },
         });
     } catch (err) {

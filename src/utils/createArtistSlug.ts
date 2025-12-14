@@ -1,25 +1,44 @@
 import Artist from "@/models/Artist";
 import { customAlphabet } from "nanoid";
-const generateNumericId = customAlphabet("0123456789", 10);
+const generateNumericId = customAlphabet("0123456789", 20);
+type strategy = { tries: number; length: number };
+const checkSlugAvailability = async (slug: string) => {
+    const count = await Artist.count({ where: { slug } });
+    return count === 0;
+};
 export async function createArtistSlug(name: string): Promise<string> {
-    const formattedName = name
+    let formattedName = name
         .toLowerCase()
         .trim()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
-    let existing = await Artist.findOne({ where: { slug: formattedName } });
-    if (!existing) {
+    // If name is only special characters
+    if (!formattedName) {
+        formattedName = "artist";
+    }
+    // Checks if name is unique
+    if (await checkSlugAvailability(formattedName)) {
         return formattedName;
     }
-    const slugFourCharacter = `${formattedName}-${generateNumericId(4)}`;
-    existing = await Artist.findOne({ where: { slug: slugFourCharacter } });
-    if (!existing) {
-        return slugFourCharacter;
+
+    const strategies: strategy[] = [
+        { length: 4, tries: 3 },
+        { length: 7, tries: 3 },
+    ];
+    // Trying different strategies, 3 tries to minimize bad luck
+    for (const strat of strategies) {
+        for (let i = 0; i < strat.tries; i++) {
+            const slug = `${formattedName}-${generateNumericId(strat.length)}`;
+            if (await checkSlugAvailability(slug)) {
+                return slug;
+            }
+        }
     }
-    const slugSevenCharacter = `${formattedName}-${generateNumericId(7)}`;
-    existing = await Artist.findOne({ where: { slug: slugSevenCharacter } });
-    if (!existing) {
-        return slugSevenCharacter;
+    // Final try, recursive retry if failed, very very unlikely
+    const finalCandidate = `${formattedName}-${generateNumericId(10)}`;
+    if (await checkSlugAvailability(finalCandidate)) {
+        return finalCandidate;
+    } else {
+        return createArtistSlug(name);
     }
-    return `${formattedName}-${generateNumericId(10)}`;
 }

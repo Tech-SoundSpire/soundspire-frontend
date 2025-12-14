@@ -10,10 +10,17 @@ import {
 } from "@/utils/userProfileImageUtils";
 import { useAuth } from "@/context/AuthContext";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
-
+import { communitySubscriptionData } from "@/types/communitySubscription";
+import toast from "react-hot-toast";
+type community = communitySubscriptionData & {
+    Community: { name: string; description: string };
+};
 export default function Page() {
     const [posts, setPosts] = useState<PostProps[]>([]);
     const { user } = useAuth();
+    const [subscriptions, setSubscriptions] = useState<community[] | null>(
+        null
+    );
 
     useEffect(() => {
         fetch("/api/posts")
@@ -53,7 +60,23 @@ export default function Page() {
                 setPosts(updatedPosts);
             });
     }, []);
+    useEffect(() => {
+        if (!user) return;
+        (async () => {
+            try {
+                const res = await fetch(
+                    `/api/community/subscribe?user_id=${user.id}`
+                );
+                if (!res.ok)
+                    throw new Error("Error fetching subscription data");
+                const json = await res.json();
 
+                setSubscriptions(json.subscriptions);
+            } catch (err: any) {
+                toast.error(err.message || "Error fetching subscription data");
+            }
+        })();
+    }, [user]);
     const userId = user?.id || "33333333-3333-3333-3333-333333333333";
 
     //console.log(posts)
@@ -101,87 +124,31 @@ export default function Page() {
                             My Subscriptions
                         </BaseHeading>
                     </div>
-
-                    <div className="flex items-center p-2 text-white">
-                        <img
-                            src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                            alt={`Avatar`}
-                            className="w-12 h-12 rounded-full object-cover mr-3"
-                            width={100}
-                            height={100}
-                        />
-                        <BaseHeading
-                            headingLevel="h3"
-                            fontWeight={500}
-                            fontSize="large"
-                        >
-                            ArtistName
-                        </BaseHeading>
-                    </div>
-                    <div className="flex items-center p-2 text-white">
-                        <img
-                            src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                            alt={`Avatar`}
-                            className="w-12 h-12 rounded-full object-cover mr-3"
-                            width={100}
-                            height={100}
-                        />
-                        <BaseHeading
-                            headingLevel="h3"
-                            fontWeight={500}
-                            fontSize="large"
-                        >
-                            ArtistName
-                        </BaseHeading>
-                    </div>
-                    <div className="flex items-center p-2 text-white">
-                        <img
-                            src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                            alt={`Avatar`}
-                            className="w-12 h-12 rounded-full object-cover mr-3"
-                            width={100}
-                            height={100}
-                        />
-                        <BaseHeading
-                            headingLevel="h3"
-                            fontWeight={500}
-                            fontSize="large"
-                        >
-                            ArtistName
-                        </BaseHeading>
-                    </div>
-                    <div className="flex items-center p-2 text-white">
-                        <img
-                            src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                            alt={`Avatar`}
-                            className="w-12 h-12 rounded-full object-cover mr-3"
-                            width={100}
-                            height={100}
-                        />
-                        <BaseHeading
-                            headingLevel="h3"
-                            fontWeight={500}
-                            fontSize="large"
-                        >
-                            ArtistName
-                        </BaseHeading>
-                    </div>
-                    <div className="flex items-center p-2 text-white">
-                        <img
-                            src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                            alt={`Avatar`}
-                            className="w-12 h-12 rounded-full object-cover mr-3"
-                            width={100}
-                            height={100}
-                        />
-                        <BaseHeading
-                            headingLevel="h3"
-                            fontWeight={500}
-                            fontSize="large"
-                        >
-                            ArtistName
-                        </BaseHeading>
-                    </div>
+                    {subscriptions ? (
+                        subscriptions.map((element) => (
+                            <div
+                                className="flex items-center p-2 text-white"
+                                key={element.community_id}
+                            >
+                                <img
+                                    src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                                    alt={`Avatar`}
+                                    className="w-12 h-12 rounded-full object-cover mr-3"
+                                    width={100}
+                                    height={100}
+                                />
+                                <BaseHeading
+                                    headingLevel="h3"
+                                    fontWeight={500}
+                                    fontSize="large"
+                                >
+                                    {element.Community.name}
+                                </BaseHeading>
+                            </div>
+                        ))
+                    ) : (
+                        <div>loading subscriptions...</div>
+                    )}
                 </div>
             </div>
         </>

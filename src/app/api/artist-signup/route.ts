@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
-        const slug = await createArtistSlug(artist_name);
+
         const cookieStore = await cookies();
         const existingToken = cookieStore.get("token")?.value;
         let userId: string | null = null;
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
-
+        const slug = await createArtistSlug(artist_name);
         const artist = await Artist.create({
             user_id: userId,
             artist_name,
