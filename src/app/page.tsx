@@ -278,6 +278,11 @@ export default function SignupPage() {
                                         [field.name]: e.target.value,
                                     }))
                                 }
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !buttonDisabled && !loading) {
+                                        onSignup();
+                                    }
+                                }}
                                 className="w-full px-4 py-2 rounded-md border border-blue-400/75 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
                             />
                             {formErrors[field.name] && (
