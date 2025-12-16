@@ -6,6 +6,9 @@ import { Toaster } from "react-hot-toast";
 export const metadata: Metadata = {
     title: "SoundSpire",
     description: "The Superfandom platform",
+    icons: {
+        icon: "/api/images/assets/ss_logo.png",
+    },
 };
 
 export default function RootLayout({
@@ -15,9 +18,6 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-            <head>
-                    <link rel="icon" href="/api/images/assets/ss_logo.png" />
-            </head>
             <body className={`antialiased min-h-screen bg-[#1a1625]`}>
                 <AuthProvider>
                     <Toaster position="top-center" reverseOrder={false} />

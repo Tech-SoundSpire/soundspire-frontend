@@ -12,6 +12,7 @@ import { FaYoutube, FaInstagram, FaFacebook, FaTiktok } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import BaseText from "@/components/BaseText/BaseText";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
+import { useAuth } from "@/context/AuthContext";
 
 interface CommunityData {
     community_id: string;
@@ -35,6 +36,7 @@ const default_image_link = getImageUrl(DEFAULT_PROFILE_IMAGE);
 
 export default function ArtistDashboard() {
     const router = useRouter();
+    const { logout } = useAuth();
     const [artist, setArtist] = useState<ArtistData | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -53,6 +55,17 @@ export default function ArtistDashboard() {
             }
         })();
     }, [router]);
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            toast.success("Logged out successfully");
+            router.push("/artist-onboarding");
+        } catch (error) {
+            console.error("Logout failed:", error);
+            toast.error("Failed to logout");
+        }
+    };
 
     if (loading) {
         return (
@@ -115,6 +128,12 @@ export default function ArtistDashboard() {
                     </button>
                     <button className="hover:text-[#FA6400] transition">
                         Suggestions
+                    </button>
+                    <button 
+                        onClick={handleLogout}
+                        className="px-6 py-2 bg-[#FA6400] hover:bg-[#e55a00] text-white font-bold rounded-lg transition-colors duration-200 shadow-lg"
+                    >
+                        Logout
                     </button>
                 </nav>
 

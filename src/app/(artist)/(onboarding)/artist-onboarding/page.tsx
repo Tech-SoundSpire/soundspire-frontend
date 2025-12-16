@@ -46,14 +46,21 @@ export default function ArtistOnboardingPage() {
         // Add navigation logic for other roles as needed
     };
 
+    const handleArtistLogin = () => {
+        router.push("/artist/login");
+    };
+
     return (
         <div className="min-h-screen bg-[#1a1625] text-white relative overflow-hidden">
-            {/* Top Right Arrow */}
-            {/* <div className="absolute top-4 right-4 z-20">
-        <button className="w-[50px] h-[50px] bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors duration-200">
-          <FaArrowRight className="text-black text-xl" />
-        </button>
-      </div> */}
+            {/* Artist Login Button - Top Right */}
+            <div className="absolute top-4 right-4 z-20">
+                <button
+                    onClick={handleArtistLogin}
+                    className="px-6 py-2 bg-[#FA6400] hover:bg-[#e55a00] text-white font-bold rounded-lg transition-colors duration-200 shadow-lg"
+                >
+                    Artist Login
+                </button>
+            </div>
 
             {/* Welcome Message */}
             <div className="text-center mb-8">
