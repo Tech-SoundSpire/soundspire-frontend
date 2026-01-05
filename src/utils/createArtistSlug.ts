@@ -10,7 +10,7 @@ export async function createArtistSlug(name: string): Promise<string> {
     let formattedName = name
         .toLowerCase()
         .trim()
-        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/[^a-z0-9-]+/g, "-")
         .replace(/^-+/, "")
         .replace(/-+$/, "");
     // If name is only special characters
