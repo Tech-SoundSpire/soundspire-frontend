@@ -2,6 +2,46 @@ import Community from "@/models/Community";
 import CommunitySubscription from "@/models/CommunitySubscription";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { NextRequest, NextResponse } from "next/server";
+export async function DELETE(request: NextRequest) {
+    try {
+        await connectionTestingAndHelper();
+        const searchParams = request.nextUrl.searchParams;
+        const community_id = searchParams.get("community_id");
+        const user_id = searchParams.get("user_id");
+        if (!user_id || !community_id) {
+            return NextResponse.json(
+                {
+                    status: "ERROR",
+                    message: "Ids weren't provided",
+                    subscribed: true,
+                },
+                { status: 400 }
+            );
+        }
+        const subscription = await CommunitySubscription.findOne({
+            where: { user_id, community_id },
+        });
+        if (!subscription) {
+            return NextResponse.json({
+                status: "WARNING",
+                message: "Subscription doesn't exist, check ids",
+                subscribed: false,
+            });
+        }
+        await subscription.destroy();
+        return NextResponse.json({
+            status: "SUCCESS",
+            message: "Subscription successfully deleted",
+            subscribed: false,
+        });
+    } catch (err) {
+        console.error("Error fetching subscription data: ", err);
+        if (err instanceof Error) {
+            return NextResponse.json({ error: err.message }, { status: 500 });
+        }
+        return NextResponse.json({ error: "Unknown Error" }, { status: 500 });
+    }
+}
 export async function GET(request: NextRequest) {
     try {
         await connectionTestingAndHelper();
@@ -10,7 +50,11 @@ export async function GET(request: NextRequest) {
         const user_id = searchParams.get("user_id");
         if (!user_id) {
             return NextResponse.json(
-                { error: "Ids not found!!!!" },
+                {
+                    status: "ERROR",
+                    message: "Ids weren't provided",
+                    subscribed: false,
+                },
                 { status: 400 }
             );
         }
@@ -22,7 +66,7 @@ export async function GET(request: NextRequest) {
             if (communitySubscription) {
                 return NextResponse.json(
                     {
-                        status: "Success",
+                        status: "SUCCESS",
                         message: "Subscription found",
                         subscribed: true,
                     },
@@ -31,7 +75,7 @@ export async function GET(request: NextRequest) {
             }
             return NextResponse.json(
                 {
-                    status: "Success",
+                    status: "SUCCESS",
                     message: "Subscription not found",
                     subscribed: false,
                 },
@@ -44,15 +88,20 @@ export async function GET(request: NextRequest) {
             include: [
                 {
                     model: Community,
-                    attributes: ["name", "description"],
+                    as: "community",
+                    attributes: ["community_id", "name", "description"],
                 },
             ],
         });
+        const subscribedCommunities = allSubscriptions.map((element) => ({
+            id: element.community_id,
+            name: element.community?.name,
+            description: element.community?.description,
+        }));
         return NextResponse.json(
             {
-                status: "Success",
-                count: allSubscriptions.length,
-                subscriptions: allSubscriptions,
+                status: "SUCCESS",
+                communities: subscribedCommunities,
             },
             { status: 200 }
         );

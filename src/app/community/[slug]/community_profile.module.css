@@ -1,0 +1,46 @@
+.subscribe-banner {
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+}
+.subscribe-banner::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: 100%;
+    height: 150%;
+    background-color: #0000006e;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    mask-image: linear-gradient(to top, black 0%, black 80%, transparent 100%);
+}
+.button {
+    padding: 1rem;
+    border-radius: var(--radius);
+    transition: transform 0.3s ease-out, background-color 0.3s ease-out;
+}
+.button.subscribe {
+    background-color: #ff4e27;
+}
+.button.subscribe:not(:disabled):hover {
+    background-color: #ba3a1d;
+    transform: scale(1.05);
+}
+.button.subscribe:disabled {
+    background-color: #6e2211;
+}
+.button.unsubscribe {
+    background-color: #f0f0f0;
+}
+.button.unsubscribe:not(:disabled):hover {
+    background-color: #aeaeae;
+    transform: scale(1.05);
+}
+.button.unsubscribe:disabled {
+    background-color: #5e5e5e;
+}

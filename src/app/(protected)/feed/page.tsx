@@ -10,11 +10,8 @@ import {
 } from "@/utils/userProfileImageUtils";
 import { useAuth } from "@/context/AuthContext";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
-import { communitySubscriptionData } from "@/types/communitySubscription";
 import toast from "react-hot-toast";
-type community = communitySubscriptionData & {
-    Community: { name: string; description: string };
-};
+type community = { id: string; name: string; description: string };
 export default function Page() {
     const [posts, setPosts] = useState<PostProps[]>([]);
     const { user } = useAuth();
@@ -71,7 +68,7 @@ export default function Page() {
                     throw new Error("Error fetching subscription data");
                 const json = await res.json();
 
-                setSubscriptions(json.subscriptions);
+                setSubscriptions(json.communities);
             } catch (err: any) {
                 toast.error(err.message || "Error fetching subscription data");
             }
@@ -128,7 +125,7 @@ export default function Page() {
                         subscriptions.map((element) => (
                             <div
                                 className="flex items-center p-2 text-white"
-                                key={element.community_id}
+                                key={element.id}
                             >
                                 <img
                                     src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
@@ -142,7 +139,7 @@ export default function Page() {
                                     fontWeight={500}
                                     fontSize="large"
                                 >
-                                    {element.Community.name}
+                                    {element.name}
                                 </BaseHeading>
                             </div>
                         ))

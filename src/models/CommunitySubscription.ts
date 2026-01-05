@@ -1,5 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../lib/dbConfig";
+import Community from "./Community";
 
 // Interface for attributes
 interface CommunitySubscriptionAttributes {
@@ -38,6 +39,8 @@ class CommunitySubscription
     public auto_renew!: boolean;
     public created_at!: Date;
     public updated_at!: Date;
+
+    public community?: Community;
 }
 
 CommunitySubscription.init(
@@ -111,6 +114,9 @@ CommunitySubscription.init(
 
 // ✅ Define associations directly
 // CommunitySubscription.belongsTo(User, { foreignKey: 'user_id' });
-// CommunitySubscription.belongsTo(Community, { foreignKey: 'community_id' });
+CommunitySubscription.belongsTo(Community, {
+    foreignKey: "community_id",
+    as: "community",
+});
 
 export default CommunitySubscription;
