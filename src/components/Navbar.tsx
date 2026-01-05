@@ -36,7 +36,7 @@ const Navbar = () => {
     const baseTransitionDelay = 35;
     return (
         <nav
-            className={`fixed left-0 top-0 h-full bg-black transition-all duration-300 z-50 ${
+            className={`fixed left-0 top-0 h-full bg-black transition-all duration-300 z-[1000] ${
                 isExpanded ? "w-64" : "w-16"
             }`}
             onMouseEnter={() => setIsExpanded(true)}

@@ -22,7 +22,7 @@ interface CommunityData {
     subscription_interval: string;
 }
 
-interface ArtistData {
+export interface ArtistData {
     artist_id: string;
     artist_name: string;
     bio: string;
@@ -223,7 +223,7 @@ export default function ArtistDashboard() {
                             return (
                                 <a
                                     key={i}
-                                    href={s.url}
+                                    href={`/${s.url}`}
                                     target="_blank"
                                     className="text-white hover:text-[#FA6400] transition text-3xl"
                                 >
