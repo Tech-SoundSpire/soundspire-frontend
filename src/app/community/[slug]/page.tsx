@@ -492,7 +492,7 @@ export default function ArtistCommunityProfile() {
                 >
                     <BaseText
                         wrapper="span"
-                        textColor={alreadySubscribed ? "#191919" : "#f0f0f0"}
+                        textColor={"#f0f0f0"}
                         fontName="inter"
                         fontSize="normal"
                     >

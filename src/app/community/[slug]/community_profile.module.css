@@ -35,12 +35,12 @@
     background-color: #6e2211;
 }
 .button.unsubscribe {
-    background-color: #f0f0f0;
+    background-color: #1b1b1b;
 }
 .button.unsubscribe:not(:disabled):hover {
-    background-color: #aeaeae;
+    background-color: #3c3c3c;
     transform: scale(1.05);
 }
 .button.unsubscribe:disabled {
-    background-color: #5e5e5e;
+    background-color: #080808;
 }
