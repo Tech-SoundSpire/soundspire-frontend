@@ -6,13 +6,34 @@ const checkSlugAvailability = async (slug: string) => {
     const count = await Artist.count({ where: { slug } });
     return count === 0;
 };
+function createBaseSlug(name: string) {
+    const lower = name.toLowerCase().trim();
+    let result = "";
+    let lastCharWasDash = false;
+
+    for (let i = 0; i < lower.length; i++) {
+        const char = lower[i];
+        const code = char.charCodeAt(0);
+        const isAlphaNumeric =
+            (code >= 97 && code <= 122) || (code >= 48 && code <= 57);
+        if (isAlphaNumeric) {
+            result += char;
+            lastCharWasDash = false;
+        } else {
+            if (!lastCharWasDash && result.length > 0) {
+                result += "-";
+                lastCharWasDash = true;
+            }
+        }
+    }
+    if (result.endsWith("-")) {
+        result = result.slice(0, -1);
+    }
+    return result;
+}
 export async function createArtistSlug(name: string): Promise<string> {
-    let formattedName = name
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9-]+/g, "-")
-        .replace(/^-+/, "")
-        .replace(/-+$/, "");
+    let formattedName = createBaseSlug(name);
+
     // If name is only special characters
     if (!formattedName) {
         formattedName = "artist";
