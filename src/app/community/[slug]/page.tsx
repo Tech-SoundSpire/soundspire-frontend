@@ -200,7 +200,19 @@ export default function ArtistCommunityProfile() {
                                 Artist Forum
                             </BaseText>
                         </button>
-                        <button className="hover:text-[#FA6400] transition">
+                        <button 
+                            onClick={() => {
+                                if (!alreadySubscribed) {
+                                    toast.error('Subscribe to access All Chat');
+                                    return;
+                                }
+                                if (artist?.community?.community_id) {
+                                    window.location.href = `/community/${artist.community.community_id}/all-chat`;
+                                }
+                            }}
+                            className={`transition ${alreadySubscribed ? 'hover:text-[#FA6400]' : 'opacity-50 cursor-not-allowed'}`}
+                            disabled={!alreadySubscribed}
+                        >
                             <BaseText
                                 wrapper="span"
                                 textColor="inherit"
@@ -209,7 +221,19 @@ export default function ArtistCommunityProfile() {
                                 All Chat
                             </BaseText>
                         </button>
-                        <button className="hover:text-[#FA6400] transition">
+                        <button 
+                            onClick={() => {
+                                if (!alreadySubscribed) {
+                                    toast.error('Subscribe to access Fan Art');
+                                    return;
+                                }
+                                if (artist?.community?.community_id) {
+                                    window.location.href = `/community/${artist.community.community_id}/fan-art`;
+                                }
+                            }}
+                            className={`transition ${alreadySubscribed ? 'hover:text-[#FA6400]' : 'opacity-50 cursor-not-allowed'}`}
+                            disabled={!alreadySubscribed}
+                        >
                             <BaseText
                                 wrapper="span"
                                 textColor="inherit"

@@ -27,13 +27,14 @@ export default function FanArtPage() {
   const { user } = useAuth();
   const params = useParams();
   const router = useRouter();
-  const communityId = params.communityId as string;
+  const slug = params.slug as string;
   
   const [posts, setPosts] = useState<FanArtPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [forumId, setForumId] = useState<string | null>(null);
+  const [communityId, setCommunityId] = useState<string | null>(null);
   
   // Upload form state
   const [title, setTitle] = useState('');
@@ -42,10 +43,10 @@ export default function FanArtPage() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   
   useEffect(() => {
-    if (user) {
-      fetchForum();
+    if (user && slug) {
+      fetchCommunityAndForum();
     }
-  }, [user]);
+  }, [user, slug]);
   
   useEffect(() => {
     if (forumId) {
@@ -54,9 +55,29 @@ export default function FanArtPage() {
     }
   }, [forumId]);
   
-  const fetchForum = async () => {
+  const fetchCommunityAndForum = async () => {
     try {
-      const res = await fetch(`/api/communities/${communityId}/forums`);
+      // First, get artist data using slug
+      const artistRes = await fetch(`/api/community/${slug}`);
+      if (!artistRes.ok) {
+        toast.error('Artist not found');
+        router.push('/artist/dashboard');
+        return;
+      }
+      
+      const artistData = await artistRes.json();
+      const commId = artistData.artist?.community?.community_id;
+      
+      if (!commId) {
+        toast.error('No community found');
+        router.push('/artist/dashboard');
+        return;
+      }
+      
+      setCommunityId(commId);
+      
+      // Now fetch forums using community_id
+      const res = await fetch(`/api/communities/${commId}/forums`);
       if (res.ok) {
         const data = await res.json();
         const fanArtForum = data.forums.find((f: any) => f.forum_type === 'fan_art');

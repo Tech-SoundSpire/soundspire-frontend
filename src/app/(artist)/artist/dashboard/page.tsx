@@ -28,6 +28,7 @@ export interface ArtistData {
     bio: string;
     profile_picture_url: string;
     cover_photo_url: string;
+    slug: string;
     socials?: { platform: string; url: string }[];
     community?: CommunityData | null;
 }
@@ -121,16 +122,16 @@ export default function ArtistDashboard() {
                         Artist Forum
                     </button>
                     <button 
-                        onClick={() => artist?.community?.community_id && router.push(`/community/${artist.community.community_id}/all-chat`)}
-                        className={`hover:text-[#FA6400] transition ${!artist?.community?.community_id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        disabled={!artist?.community?.community_id}
+                        onClick={() => artist?.slug && artist?.community && router.push(`/community/${artist.slug}/all-chat`)}
+                        className={`hover:text-[#FA6400] transition ${!artist?.slug || !artist?.community ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={!artist?.slug || !artist?.community}
                     >
                         All Chat
                     </button>
                     <button 
-                        onClick={() => artist?.community?.community_id && router.push(`/community/${artist.community.community_id}/fan-art`)}
-                        className={`hover:text-[#FA6400] transition ${!artist?.community?.community_id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        disabled={!artist?.community?.community_id}
+                        onClick={() => artist?.slug && artist?.community && router.push(`/community/${artist.slug}/fan-art`)}
+                        className={`hover:text-[#FA6400] transition ${!artist?.slug || !artist?.community ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={!artist?.slug || !artist?.community}
                     >
                         Fan Art
                     </button>

@@ -6,6 +6,8 @@ import Like from '@/models/Like';
 import { getDataFromToken } from '@/utils/getDataFromToken';
 import CommunitySubscription from '@/models/CommunitySubscription';
 import { Op } from 'sequelize';
+import Community from '@/models/Community';
+import Artist from '@/models/Artist';
 
 // GET - List fan art posts
 export async function GET(
@@ -29,22 +31,41 @@ export async function GET(
       return NextResponse.json({ error: 'Forum not found' }, { status: 404 });
     }
 
-    const subscription = await CommunitySubscription.findOne({
+    // Get community
+    const community = await Community.findByPk(forum.community_id);
+    if (!community) {
+      return NextResponse.json({ error: 'Community not found' }, { status: 404 });
+    }
+
+    // Check if user is the artist who owns this community
+    const artist = await Artist.findOne({
       where: {
-        user_id: userId,
-        community_id: forum.community_id,
-        is_active: true,
-        end_date: {
-          [Op.gte]: new Date()
-        }
+        artist_id: community.artist_id,
+        user_id: userId
       }
     });
 
-    if (!subscription) {
-      return NextResponse.json(
-        { error: 'Active subscription required' },
-        { status: 403 }
-      );
+    const isOwner = !!artist;
+
+    // If not the owner, verify subscription
+    if (!isOwner) {
+      const subscription = await CommunitySubscription.findOne({
+        where: {
+          user_id: userId,
+          community_id: forum.community_id,
+          is_active: true,
+          end_date: {
+            [Op.gte]: new Date()
+          }
+        }
+      });
+
+      if (!subscription) {
+        return NextResponse.json(
+          { error: 'Active subscription required' },
+          { status: 403 }
+        );
+      }
     }
 
     // Fetch fan art posts (only image posts)
@@ -133,22 +154,41 @@ export async function POST(
       return NextResponse.json({ error: 'Forum not found' }, { status: 404 });
     }
 
-    const subscription = await CommunitySubscription.findOne({
+    // Get community
+    const community = await Community.findByPk(forum.community_id);
+    if (!community) {
+      return NextResponse.json({ error: 'Community not found' }, { status: 404 });
+    }
+
+    // Check if user is the artist who owns this community
+    const artist = await Artist.findOne({
       where: {
-        user_id: userId,
-        community_id: forum.community_id,
-        is_active: true,
-        end_date: {
-          [Op.gte]: new Date()
-        }
+        artist_id: community.artist_id,
+        user_id: userId
       }
     });
 
-    if (!subscription) {
-      return NextResponse.json(
-        { error: 'Active subscription required' },
-        { status: 403 }
-      );
+    const isOwner = !!artist;
+
+    // If not the owner, verify subscription
+    if (!isOwner) {
+      const subscription = await CommunitySubscription.findOne({
+        where: {
+          user_id: userId,
+          community_id: forum.community_id,
+          is_active: true,
+          end_date: {
+            [Op.gte]: new Date()
+          }
+        }
+      });
+
+      if (!subscription) {
+        return NextResponse.json(
+          { error: 'Active subscription required' },
+          { status: 403 }
+        );
+      }
     }
 
     // Validate image URLs

@@ -25,47 +25,68 @@ export default function AllChatPage() {
   const { user } = useAuth();
   const params = useParams();
   const router = useRouter();
-  const communityId = params.communityId as string;
+  const slug = params.slug as string;
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [forumId, setForumId] = useState<string | null>(null);
+  const [communityId, setCommunityId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   
   const channelRef = useRef<RealtimeChannel | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Fetch forum ID
+  // Fetch community ID from slug first, then forum ID
   useEffect(() => {
-    async function fetchForum() {
+    async function fetchCommunityAndForum() {
       try {
-        const res = await fetch(`/api/communities/${communityId}/forums`);
-        if (res.ok) {
-          const data = await res.json();
-          const chatForum = data.forums.find((f: any) => f.forum_type === 'all_chat');
+        // First, get artist data using slug
+        const artistRes = await fetch(`/api/community/${slug}`);
+        if (!artistRes.ok) {
+          toast.error('Artist not found');
+          router.push('/artist/dashboard');
+          return;
+        }
+        
+        const artistData = await artistRes.json();
+        const commId = artistData.artist?.community?.community_id;
+        
+        if (!commId) {
+          toast.error('No community found');
+          router.push('/artist/dashboard');
+          return;
+        }
+        
+        setCommunityId(commId);
+        
+        // Now fetch forums using community_id
+        const forumsRes = await fetch(`/api/communities/${commId}/forums`);
+        if (forumsRes.ok) {
+          const forumsData = await forumsRes.json();
+          const chatForum = forumsData.forums.find((f: any) => f.forum_type === 'all_chat');
           if (chatForum) {
             setForumId(chatForum.forum_id);
           } else {
             toast.error('Chat forum not found');
-            router.push(`/artist/dashboard`);
+            router.push('/artist/dashboard');
           }
         } else {
           toast.error('Failed to load forum');
-          router.push(`/artist/dashboard`);
+          router.push('/artist/dashboard');
         }
       } catch (error) {
         console.error('Error fetching forum:', error);
         toast.error('Failed to load chat');
-        router.push(`/artist/dashboard`);
+        router.push('/artist/dashboard');
       }
     }
     
-    if (user) {
-      fetchForum();
+    if (user && slug) {
+      fetchCommunityAndForum();
     }
-  }, [communityId, router, user]);
+  }, [slug, router, user]);
   
   // Initialize Supabase Realtime
   useEffect(() => {

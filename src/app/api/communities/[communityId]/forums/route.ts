@@ -3,6 +3,8 @@ import Forum from '@/models/Forum';
 import { getDataFromToken } from '@/utils/getDataFromToken';
 import { Op } from 'sequelize';
 import CommunitySubscription from '@/models/CommunitySubscription';
+import Community from '@/models/Community';
+import Artist from '@/models/Artist';
 
 export async function GET(
   request: NextRequest,
@@ -16,23 +18,41 @@ export async function GET(
 
     const { communityId } = await params;
 
-    // Verify active subscription
-    const subscription = await CommunitySubscription.findOne({
+    // Check if community exists
+    const community = await Community.findByPk(communityId);
+    if (!community) {
+      return NextResponse.json({ error: 'Community not found' }, { status: 404 });
+    }
+
+    // Check if user is the artist who owns this community
+    const artist = await Artist.findOne({
       where: {
-        user_id: userId,
-        community_id: communityId,
-        is_active: true,
-        end_date: {
-          [Op.gte]: new Date()
-        }
+        artist_id: community.artist_id,
+        user_id: userId
       }
     });
 
-    if (!subscription) {
-      return NextResponse.json(
-        { error: 'Active subscription required to access community forums' },
-        { status: 403 }
-      );
+    const isOwner = !!artist;
+
+    // If not the owner, verify active subscription
+    if (!isOwner) {
+      const subscription = await CommunitySubscription.findOne({
+        where: {
+          user_id: userId,
+          community_id: communityId,
+          is_active: true,
+          end_date: {
+            [Op.gte]: new Date()
+          }
+        }
+      });
+
+      if (!subscription) {
+        return NextResponse.json(
+          { error: 'Active subscription required to access community forums' },
+          { status: 403 }
+        );
+      }
     }
 
     // Get all forums for this community
