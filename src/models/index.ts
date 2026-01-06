@@ -11,6 +11,8 @@ import { User } from "./User";
 import UserPreferences from "./UserPreferences";
 import Genres from "./Genres";
 import Languages from "./Languages";
+import Forum from "./Forum";
+import ForumPost from "./ForumPost";
 
 import { defineAssociations } from "./associations";
 
@@ -27,6 +29,8 @@ const models = {
   UserPreferences,
   Genres,
   Languages,
+  Forum,
+  ForumPost,
 };
 
 // Define a type for the models map

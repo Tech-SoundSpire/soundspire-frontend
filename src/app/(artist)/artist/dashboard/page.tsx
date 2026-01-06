@@ -120,10 +120,18 @@ export default function ArtistDashboard() {
                     <button className="hover:text-[#FA6400] transition">
                         Artist Forum
                     </button>
-                    <button className="hover:text-[#FA6400] transition">
+                    <button 
+                        onClick={() => artist?.community?.community_id && router.push(`/community/${artist.community.community_id}/all-chat`)}
+                        className={`hover:text-[#FA6400] transition ${!artist?.community?.community_id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={!artist?.community?.community_id}
+                    >
                         All Chat
                     </button>
-                    <button className="hover:text-[#FA6400] transition">
+                    <button 
+                        onClick={() => artist?.community?.community_id && router.push(`/community/${artist.community.community_id}/fan-art`)}
+                        className={`hover:text-[#FA6400] transition ${!artist?.community?.community_id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={!artist?.community?.community_id}
+                    >
                         Fan Art
                     </button>
                     <button className="hover:text-[#FA6400] transition">
