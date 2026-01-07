@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useParams, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { FaHeart, FaRegHeart, FaTimes } from 'react-icons/fa';
+import { getImageUrl } from '@/utils/userProfileImageUtils';
 import { supabase } from '@/lib/supabaseClient';
 
 interface FanArtPost {
@@ -35,6 +36,7 @@ export default function FanArtPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [forumId, setForumId] = useState<string | null>(null);
   const [communityId, setCommunityId] = useState<string | null>(null);
+  const [isArtist, setIsArtist] = useState(false);
   
   // Upload form state
   const [title, setTitle] = useState('');
@@ -57,24 +59,35 @@ export default function FanArtPage() {
   
   const fetchCommunityAndForum = async () => {
     try {
-      // First, get artist data using slug
+      // slug could be either the actual slug OR a UUID (community_id)
+      // Try fetching as slug first
       const artistRes = await fetch(`/api/community/${slug}`);
-      if (!artistRes.ok) {
-        toast.error('Artist not found');
-        router.push('/artist/dashboard');
-        return;
+      
+      let commId: string | null = null;
+      
+      if (artistRes.ok) {
+        // It's a slug
+        const artistData = await artistRes.json();
+        commId = artistData.artist?.community?.community_id;
+      } else if (slug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        // It's a UUID, use it directly as community_id
+        commId = slug;
       }
       
-      const artistData = await artistRes.json();
-      const commId = artistData.artist?.community?.community_id;
-      
       if (!commId) {
-        toast.error('No community found');
-        router.push('/artist/dashboard');
+        toast.error('Community not found');
+        router.push('/feed');
         return;
       }
       
       setCommunityId(commId);
+      
+      // Check if current user is the artist
+      const artistCheckRes = await fetch(`/api/artist/me`);
+      if (artistCheckRes.ok) {
+        const artistData = await artistCheckRes.json();
+        setIsArtist(artistData.artist?.community?.community_id === commId);
+      }
       
       // Now fetch forums using community_id
       const res = await fetch(`/api/communities/${commId}/forums`);
@@ -127,12 +140,13 @@ export default function FanArtPage() {
         async (payload: any) => {
           // Only handle image posts
           if (payload.new.media_type === 'image') {
-            // Fetch user details
-            const { data: userData } = await supabase
-              .from('users')
-              .select('user_id, username, full_name, profile_picture_url')
-              .eq('user_id', payload.new.user_id)
-              .single();
+            console.log('New fan art received:', payload.new);
+            
+            // Fetch user details via API route (bypasses RLS)
+            const userRes = await fetch(`/api/users/${payload.new.user_id}`);
+            const { user: userData } = userRes.ok ? await userRes.json() : { user: null };
+            
+            console.log('User data fetched:', userData);
             
             const newPost: FanArtPost = {
               ...payload.new,
@@ -225,9 +239,8 @@ export default function FanArtPage() {
           throw new Error('Failed to upload to S3');
         }
         
-        // 3. Construct public URL
-        const publicUrl = `https://soundspirewebsiteassets.s3.ap-south-1.amazonaws.com/${key}`;
-        uploadedUrls.push(publicUrl);
+        // 3. Store just the S3 key (not full URL)
+        uploadedUrls.push(key);
       }
       
       // 4. Create fan art post
@@ -245,10 +258,9 @@ export default function FanArtPage() {
         throw new Error('Failed to create post');
       }
       
-      const { post } = await createRes.json();
-      
-      // Add to posts list
-      setPosts(prev => [post, ...prev]);
+      // Don't manually add - Realtime will handle it
+      // const { post } = await createRes.json();
+      // setPosts(prev => [post, ...prev]);
       
       // Reset form
       setTitle('');
@@ -317,7 +329,7 @@ export default function FanArtPage() {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => router.push(`/artist/dashboard`)}
+              onClick={() => router.push(isArtist ? '/artist/dashboard' : `/community/${slug}`)}
               className="px-4 py-2 text-gray-400 hover:text-white transition"
             >
               ← Back
@@ -354,10 +366,10 @@ export default function FanArtPage() {
                 {/* Image */}
                 <div className="relative aspect-square bg-gray-900">
                   <img
-                    src={post.media_urls[0]}
+                    src={getImageUrl(post.media_urls[0])}
                     alt={post.title}
                     className="w-full h-full object-cover cursor-pointer"
-                    onClick={() => window.open(post.media_urls[0], '_blank')}
+                    onClick={() => window.open(getImageUrl(post.media_urls[0]), '_blank')}
                   />
                   {post.is_pinned && (
                     <div className="absolute top-3 right-3 bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold">
@@ -385,13 +397,13 @@ export default function FanArtPage() {
                   {/* User Info */}
                   <div className="flex items-center gap-2 mb-3">
                     <img
-                      src={post.user.profile_picture_url || '/images/placeholder.jpg'}
-                      alt={post.user.username}
+                      src={getImageUrl(post.user?.profile_picture_url || 'images/placeholder.jpg')}
+                      alt={post.user?.username || 'User'}
                       className="w-8 h-8 rounded-full object-cover"
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-semibold truncate">
-                        {post.user.full_name || post.user.username}
+                        {post.user?.full_name || post.user?.username || 'Unknown User'}
                       </p>
                       <p className="text-gray-500 text-xs">
                         {new Date(post.created_at).toLocaleDateString()}

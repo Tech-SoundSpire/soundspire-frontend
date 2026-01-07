@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import ForumPost from '@/models/ForumPost';
-import Forum from '@/models/Forum';
-import { User } from '@/models/User';
+import { ForumPost, Forum, User, CommunitySubscription, Community, Artist } from '@/models';
 import { getDataFromToken } from '@/utils/getDataFromToken';
 import { Op } from 'sequelize';
-import CommunitySubscription from '@/models/CommunitySubscription';
-import Community from '@/models/Community';
-import Artist from '@/models/Artist';
 
 export async function GET(
   request: NextRequest,

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { getImageUrl } from '@/utils/userProfileImageUtils';
 
 interface Message {
   forum_post_id: string;
@@ -13,7 +14,7 @@ interface Message {
   media_urls: string[];
   is_pinned: boolean;
   created_at: string;
-  users?: {
+  user?: {
     user_id: string;
     username: string;
     full_name: string;
@@ -34,6 +35,7 @@ export default function AllChatPage() {
   const [communityId, setCommunityId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const [isArtist, setIsArtist] = useState(false);
   
   const channelRef = useRef<RealtimeChannel | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -42,24 +44,35 @@ export default function AllChatPage() {
   useEffect(() => {
     async function fetchCommunityAndForum() {
       try {
-        // First, get artist data using slug
+        // slug could be either the actual slug OR a UUID (community_id)
+        // Try fetching as slug first
         const artistRes = await fetch(`/api/community/${slug}`);
-        if (!artistRes.ok) {
-          toast.error('Artist not found');
-          router.push('/artist/dashboard');
-          return;
+        
+        let commId: string | null = null;
+        
+        if (artistRes.ok) {
+          // It's a slug
+          const artistData = await artistRes.json();
+          commId = artistData.artist?.community?.community_id;
+        } else if (slug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+          // It's a UUID, use it directly as community_id
+          commId = slug;
         }
         
-        const artistData = await artistRes.json();
-        const commId = artistData.artist?.community?.community_id;
-        
         if (!commId) {
-          toast.error('No community found');
-          router.push('/artist/dashboard');
+          toast.error('Community not found');
+          router.push('/feed');
           return;
         }
         
         setCommunityId(commId);
+        
+        // Check if current user is the artist
+        const artistCheckRes = await fetch(`/api/artist/me`);
+        if (artistCheckRes.ok) {
+          const artistData = await artistCheckRes.json();
+          setIsArtist(artistData.artist?.community?.community_id === commId);
+        }
         
         // Now fetch forums using community_id
         const forumsRes = await fetch(`/api/communities/${commId}/forums`);
@@ -69,17 +82,20 @@ export default function AllChatPage() {
           if (chatForum) {
             setForumId(chatForum.forum_id);
           } else {
-            toast.error('Chat forum not found');
-            router.push('/artist/dashboard');
+            setLoading(false);
+            toast.error('Chat forum not found. Please contact admin.');
+            router.push('/feed');
           }
         } else {
+          setLoading(false);
           toast.error('Failed to load forum');
-          router.push('/artist/dashboard');
+          router.push('/feed');
         }
       } catch (error) {
         console.error('Error fetching forum:', error);
+        setLoading(false);
         toast.error('Failed to load chat');
-        router.push('/artist/dashboard');
+        router.push(`/community/${slug}`);
       }
     }
     
@@ -92,6 +108,14 @@ export default function AllChatPage() {
   useEffect(() => {
     if (!user || !forumId) return;
     
+    // Test Supabase connection
+    console.log('🔵 Testing Supabase connection:', {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      forumId,
+      userId: user.id
+    });
+
     // Fetch initial messages
     fetchMessages();
     
@@ -117,16 +141,13 @@ export default function AllChatPage() {
         async (payload) => {
           console.log('New message received:', payload.new);
           
-          // Fetch user details for the new message
-          const { data: userData } = await supabase
-            .from('users')
-            .select('user_id, username, full_name, profile_picture_url')
-            .eq('user_id', payload.new.user_id)
-            .single();
+          // Fetch user details via API route (bypasses RLS)
+          const userRes = await fetch(`/api/users/${payload.new.user_id}`);
+          const { user: userData } = userRes.ok ? await userRes.json() : { user: null };
           
           const newMessage: Message = {
             ...payload.new as any,
-            users: userData || undefined
+            user: userData || undefined
           };
           
           setMessages(prev => [...prev, newMessage]);
@@ -227,6 +248,14 @@ export default function AllChatPage() {
     if (!inputMessage.trim() || !forumId || !user) return;
     
     try {
+      console.log('🔵 Attempting to send message:', {
+        forumId,
+        userId: user.id,
+        content: inputMessage.substring(0, 20) + '...',
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      });
+
       // Insert via Supabase - Realtime will auto-broadcast
       const { data, error } = await supabase
         .from('forum_posts')
@@ -240,13 +269,24 @@ export default function AllChatPage() {
         .select()
         .single();
       
-      if (error) throw error;
-      
+      if (error) {
+        console.error('🔴 Supabase insert error:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+
+      console.log('✅ Message sent successfully:', data);
       setInputMessage('');
     } catch (error: any) {
       console.error('Error sending message:', error);
       
-      if (error.message?.includes('policy')) {
+      if (error.code === '42501') {
+        toast.error('Permission denied. Check Supabase RLS policies.');
+      } else if (error.message?.includes('policy')) {
         toast.error('You need an active subscription to send messages');
       } else {
         toast.error('Failed to send message');
@@ -301,7 +341,7 @@ export default function AllChatPage() {
           </div>
         </div>
         <button
-          onClick={() => router.push(`/artist/dashboard`)}
+          onClick={() => router.push(isArtist ? '/artist/dashboard' : `/community/${slug}`)}
           className="text-gray-400 hover:text-white transition"
         >
           ← Back
@@ -325,14 +365,14 @@ export default function AllChatPage() {
               <div className="text-yellow-500 text-xs flex-shrink-0">📌</div>
             )}
             <img
-              src={msg.users?.profile_picture_url || '/images/placeholder.jpg'}
-              alt={msg.users?.username || 'User'}
+              src={getImageUrl(msg.user?.profile_picture_url || 'images/placeholder.jpg')}
+              alt={msg.user?.username || 'User'}
               className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-white font-semibold">
-                  {msg.users?.full_name || msg.users?.username || 'Unknown User'}
+                  {msg.user?.full_name || msg.user?.username || 'Unknown User'}
                 </span>
                 <span className="text-gray-500 text-xs">
                   {new Date(msg.created_at).toLocaleTimeString()}

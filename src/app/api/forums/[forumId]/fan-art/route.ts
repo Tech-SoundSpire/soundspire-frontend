@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import ForumPost from '@/models/ForumPost';
-import Forum from '@/models/Forum';
-import { User } from '@/models/User';
-import Like from '@/models/Like';
+import { ForumPost, Forum, User, Like, CommunitySubscription, Community, Artist } from '@/models';
 import { getDataFromToken } from '@/utils/getDataFromToken';
-import CommunitySubscription from '@/models/CommunitySubscription';
 import { Op } from 'sequelize';
-import Community from '@/models/Community';
-import Artist from '@/models/Artist';
 
 // GET - List fan art posts
 export async function GET(

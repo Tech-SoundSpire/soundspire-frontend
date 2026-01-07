@@ -117,15 +117,20 @@ export default function ArtistCommunityProfile() {
     const subscribe = async () => {
         if (!artist.community) return;
         setSavingSubscription(true);
+        
+        const now = new Date();
+        const endDate = new Date(now);
+        endDate.setMonth(endDate.getMonth() + 1); // Add 1 month
+        
         const post: communitySubscriptionData = {
             auto_renew: true,
             community_id: artist.community.community_id,
-            created_at: new Date().toISOString(),
-            end_date: new Date().toISOString(),
+            created_at: now.toISOString(),
+            end_date: endDate.toISOString(),
             is_active: true,
             payment_id: null,
-            start_date: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+            start_date: now.toISOString(),
+            updated_at: now.toISOString(),
             user_id: user.id,
         };
         try {
@@ -206,8 +211,8 @@ export default function ArtistCommunityProfile() {
                                     toast.error('Subscribe to access All Chat');
                                     return;
                                 }
-                                if (artist?.community?.community_id) {
-                                    window.location.href = `/community/${artist.community.community_id}/all-chat`;
+                                if (artist?.slug) {
+                                    window.location.href = `/community/${artist.slug}/all-chat`;
                                 }
                             }}
                             className={`transition ${alreadySubscribed ? 'hover:text-[#FA6400]' : 'opacity-50 cursor-not-allowed'}`}
@@ -227,8 +232,8 @@ export default function ArtistCommunityProfile() {
                                     toast.error('Subscribe to access Fan Art');
                                     return;
                                 }
-                                if (artist?.community?.community_id) {
-                                    window.location.href = `/community/${artist.community.community_id}/fan-art`;
+                                if (artist?.slug) {
+                                    window.location.href = `/community/${artist.slug}/fan-art`;
                                 }
                             }}
                             className={`transition ${alreadySubscribed ? 'hover:text-[#FA6400]' : 'opacity-50 cursor-not-allowed'}`}

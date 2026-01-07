@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Like from '@/models/Like';
+import { Like } from '@/models';
 import { getDataFromToken } from '@/utils/getDataFromToken';
 
 export async function POST(

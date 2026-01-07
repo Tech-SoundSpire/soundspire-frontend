@@ -67,4 +67,20 @@ export async function initializeDatabase() {
 
 export { sequelize };
 export default models;
-export { User };
+
+// Named exports for convenience
+export { 
+  User,
+  Post,
+  Comment,
+  Like,
+  Community,
+  CommunitySubscription,
+  Artist,
+  Review,
+  UserPreferences,
+  Genres,
+  Languages,
+  Forum,
+  ForumPost
+};

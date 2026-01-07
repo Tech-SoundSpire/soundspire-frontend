@@ -1,4 +1,4 @@
-import { Model, DataTypes } from 'sequelize';
+import { Model, DataTypes, Optional } from 'sequelize';
 import { sequelize } from '@/lib/dbConfig';
 
 interface ForumAttributes {
@@ -11,7 +11,9 @@ interface ForumAttributes {
   updated_at: Date;
 }
 
-class Forum extends Model<ForumAttributes> implements ForumAttributes {
+interface ForumCreationAttributes extends Optional<ForumAttributes, 'forum_id' | 'description' | 'created_at' | 'updated_at'> {}
+
+class Forum extends Model<ForumAttributes, ForumCreationAttributes> implements ForumAttributes {
   public forum_id!: string;
   public community_id!: string;
   public name!: string;

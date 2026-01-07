@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Forum from '@/models/Forum';
+import { Forum, CommunitySubscription, Community, Artist } from '@/models';
 import { getDataFromToken } from '@/utils/getDataFromToken';
 import { Op } from 'sequelize';
-import CommunitySubscription from '@/models/CommunitySubscription';
-import Community from '@/models/Community';
-import Artist from '@/models/Artist';
 
 export async function GET(
   request: NextRequest,
@@ -45,6 +42,14 @@ export async function GET(
             [Op.gte]: new Date()
           }
         }
+      });
+
+      console.log('Subscription check:', {
+        userId,
+        communityId,
+        subscription: subscription ? 'found' : 'not found',
+        isActive: subscription?.is_active,
+        endDate: subscription?.end_date
       });
 
       if (!subscription) {
