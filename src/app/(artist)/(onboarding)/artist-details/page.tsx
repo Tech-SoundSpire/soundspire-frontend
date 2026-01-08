@@ -108,7 +108,7 @@ function ArtistDetailsContent() {
 
                 const artistData = await artistRes.json();
                 const identifiersData = await identifiersRes.json();
-                const artist = artistData?.object;
+                const artist = artistData;
                 const identifiers = identifiersData?.items || [];
 
                 const mapPlatform = (p: string) => {
@@ -214,13 +214,13 @@ function ArtistDetailsContent() {
                 // setCoverPreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
                 setProfilePreview(
                     artist.imageUrl
-                        ? getImageUrl(artist.imageUrl)
-                        : getImageUrl(DEFAULT_PROFILE_IMAGE)
+                        ? getImageUrl(artist.imageUrl) ?? null
+                        : getImageUrl(DEFAULT_PROFILE_IMAGE) ?? null
                 );
                 setCoverPreview(
                     artist?.imageUrl
-                        ? getImageUrl(artist.imageUrl)
-                        : getImageUrl(DEFAULT_PROFILE_IMAGE)
+                        ? getImageUrl(artist.imageUrl) ?? null
+                        : getImageUrl(DEFAULT_PROFILE_IMAGE) ?? null
                 );
             } catch (err) {
                 console.error(err);

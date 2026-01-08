@@ -1,3 +1,4 @@
+import { cleanSoundchartsBio } from "@/utils/cleanSoundchartsBio";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -20,23 +21,34 @@ export async function GET(
     if (!appId || !apiKey) {
         console.error("❌ SoundCharts credentials missing - returning 500");
         console.error("Environment check:", {
-            SOUNDCHARTS_CLIENT_ID: process.env.SOUNDCHARTS_CLIENT_ID ? "set" : "not set",
-            SOUNDCHARTS_TOKEN: process.env.SOUNDCHARTS_TOKEN ? "set" : "not set",
+            SOUNDCHARTS_CLIENT_ID: process.env.SOUNDCHARTS_CLIENT_ID
+                ? "set"
+                : "not set",
+            SOUNDCHARTS_TOKEN: process.env.SOUNDCHARTS_TOKEN
+                ? "set"
+                : "not set",
         });
         return NextResponse.json(
             {
                 error: "SoundCharts API credentials not configured",
-                details: "Please check SOUNDCHARTS_CLIENT_ID and SOUNDCHARTS_TOKEN environment variables"
+                details:
+                    "Please check SOUNDCHARTS_CLIENT_ID and SOUNDCHARTS_TOKEN environment variables",
             },
             { status: 500 }
         );
     }
 
-    const apiUrl = `https://customer.api.soundcharts.com/api/v2.9/artist/${encodeURIComponent(uuid)}`;
+    const apiUrl = `https://customer.api.soundcharts.com/api/v2.9/artist/${encodeURIComponent(
+        uuid
+    )}`;
     console.log("API URL:", apiUrl);
     console.log("Request headers:", {
-        "x-app-id": appId.substring(0, 4) + "..." + appId.substring(appId.length - 4),
-        "x-api-key": apiKey.substring(0, 4) + "..." + apiKey.substring(apiKey.length - 4),
+        "x-app-id":
+            appId.substring(0, 4) + "..." + appId.substring(appId.length - 4),
+        "x-api-key":
+            apiKey.substring(0, 4) +
+            "..." +
+            apiKey.substring(apiKey.length - 4),
     });
 
     const startTime = Date.now();
@@ -61,8 +73,11 @@ export async function GET(
             console.error("Status:", response.status);
             console.error("Status text:", response.statusText);
             console.error("Response body:", text);
-            console.error("Response headers:", Object.fromEntries(response.headers.entries()));
-            
+            console.error(
+                "Response headers:",
+                Object.fromEntries(response.headers.entries())
+            );
+
             let errorMessage = `Soundcharts artist fetch failed: ${response.status}`;
             try {
                 const errorJson = JSON.parse(text);
@@ -71,35 +86,49 @@ export async function GET(
             } catch {
                 errorMessage += ` - ${text}`;
             }
-            
+
             throw new Error(errorMessage);
         }
 
         console.log("✅ Response OK, parsing JSON...");
         const data = await response.json();
-        console.log("✅ Successfully fetched artist data, name:", data?.name || "N/A");
-        return NextResponse.json(data);
+        const { object: artist_info } = data;
+        artist_info["biography"] = cleanSoundchartsBio(artist_info.biography);
+        console.log("This is artist info: ", artist_info);
+        console.log(
+            "✅ Successfully fetched artist data, name:",
+            artist_info.name || "N/A"
+        );
+        return NextResponse.json(artist_info);
     } catch (error: any) {
         const duration = Date.now() - startTime;
         console.error("❌ SoundCharts API error after", duration, "ms");
         console.error("Error type:", error?.constructor?.name || typeof error);
         console.error("Error message:", error?.message);
         console.error("Error stack:", error?.stack);
-        
+
         // Check for specific error types
-        if (error instanceof TypeError && error.message.includes('fetch')) {
-            console.error("Network error detected - check internet connection or API endpoint");
+        if (error instanceof TypeError && error.message.includes("fetch")) {
+            console.error(
+                "Network error detected - check internet connection or API endpoint"
+            );
         }
-        if (error?.code === 'ENOTFOUND' || error?.code === 'ECONNREFUSED') {
-            console.error("DNS/Connection error - API endpoint may be unreachable");
+        if (error?.code === "ENOTFOUND" || error?.code === "ECONNREFUSED") {
+            console.error(
+                "DNS/Connection error - API endpoint may be unreachable"
+            );
         }
-        if (error?.name === 'AbortError' || error?.message?.includes('timeout')) {
+        if (
+            error?.name === "AbortError" ||
+            error?.message?.includes("timeout")
+        ) {
             console.error("Request timeout - API may be slow or unresponsive");
         }
-        
+
         return NextResponse.json(
             {
-                error: error.message || "Failed to fetch artist from SoundCharts",
+                error:
+                    error.message || "Failed to fetch artist from SoundCharts",
                 details: error.message,
                 type: error?.constructor?.name || typeof error,
             },

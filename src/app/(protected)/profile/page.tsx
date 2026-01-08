@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { countriesWithCities } from "@/lib/locationData";
 import { toast } from "react-toastify";
+import styles from "./profile.module.css";
 import "react-toastify/dist/ReactToastify.css";
 import {
     getImageUrl,
@@ -14,11 +15,8 @@ import {
 } from "@/utils/userProfileImageUtils";
 import BaseText from "@/components/BaseText/BaseText";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
-
-interface Subscription {
-    name: string;
-    image: string | null;
-}
+import Link from "next/link";
+import { communityDataFromAPI } from "@/types/communityGetAllAPIData";
 
 interface ProfileData {
     fullName: string;
@@ -31,13 +29,13 @@ interface ProfileData {
     country: string;
     profileImage: string | null;
     spotifyLinked: boolean;
-    subscriptions: Subscription[];
 }
 
 export default function ProfilePage() {
     const { user, logout } = useAuth();
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubscriptionsLoading, setIsSubscriptionsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [usernameError, setUsernameError] = useState<string | null>(null);
@@ -54,9 +52,10 @@ export default function ProfilePage() {
         country: "United States",
         profileImage: null,
         spotifyLinked: false,
-        subscriptions: [],
     });
-
+    const [subscriptions, setSubscriptions] = useState<communityDataFromAPI[]>(
+        []
+    );
     const [editableProfile, setEditableProfile] = useState<ProfileData>({
         ...profile,
     });
@@ -66,13 +65,30 @@ export default function ProfilePage() {
             router.push("/login");
             return;
         }
-
+        const fetchSubscriptions = async () => {
+            try {
+                const res = await fetch(
+                    `/api/community/subscribe?user_id=${user.id}`
+                );
+                if (!res.ok)
+                    throw new Error(
+                        "Error trying to receive response from subscriptions"
+                    );
+                const subscriptionData = await res.json();
+                setSubscriptions(subscriptionData.communities);
+            } catch (err) {
+                toast.error("Failed to load subscriptions");
+                console.error(err);
+            } finally {
+                setIsSubscriptionsLoading(false);
+            }
+        };
         const fetchProfile = async () => {
             try {
-                setIsLoading(true);
                 const res = await fetch(
                     `/api/profile?email=${encodeURIComponent(user.email || "")}`
                 );
+
                 const data = await res.json();
 
                 if (data.error) throw new Error(data.error);
@@ -100,7 +116,6 @@ export default function ProfilePage() {
                     profileImage:
                         data.profile_picture_url || user.photoURL || null,
                     spotifyLinked: data.spotify_linked || false,
-                    subscriptions: data.subscriptions || [],
                 });
             } catch (err) {
                 toast.error("Failed to load profile data");
@@ -111,6 +126,7 @@ export default function ProfilePage() {
         };
 
         fetchProfile();
+        fetchSubscriptions();
     }, [user, router]);
 
     useEffect(() => {
@@ -648,40 +664,61 @@ export default function ProfilePage() {
                         >
                             My Subscriptions
                         </BaseHeading>
-                        {profile.subscriptions.length > 0 ? (
+                        {isSubscriptionsLoading ? (
+                            <BaseText
+                                wrapper="span"
+                                fontSize="small"
+                                textColor="#ffffff"
+                            >
+                                Loading subscriptions...
+                            </BaseText>
+                        ) : subscriptions.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-                                {profile.subscriptions.map(
-                                    (subscription, index) => (
+                                {subscriptions.map((subscription) => (
+                                    <Link
+                                        href={`/community/${subscription.artist_slug}`}
+                                        key={subscription.artist_slug}
+                                        className={`${styles["subscription"]}`}
+                                    >
                                         <div
-                                            key={index}
-                                            className="flex flex-col items-center"
+                                            className={`w-24 h-24 rounded-full overflow-hidden mb-2 ${styles.image}`}
                                         >
-                                            <div className="w-24 h-24 rounded-full overflow-hidden mb-2">
-                                                <img
-                                                    src={
-                                                        subscription.image
-                                                            ? getImageUrl(
-                                                                  subscription.image
-                                                              )
-                                                            : getImageUrl(
-                                                                  DEFAULT_PROFILE_IMAGE
-                                                              )
-                                                    }
-                                                    alt={subscription.name}
-                                                    width={96}
-                                                    height={96}
-                                                    className="object-cover"
-                                                />
-                                            </div>
+                                            <img
+                                                src={
+                                                    getImageUrl(
+                                                        subscription.artist_profile_picture_url
+                                                    ) ||
+                                                    getImageUrl(
+                                                        subscription.artist_cover_photo_url
+                                                    ) ||
+                                                    getImageUrl(
+                                                        DEFAULT_PROFILE_IMAGE
+                                                    )
+                                                }
+                                                alt={
+                                                    subscription.name ||
+                                                    undefined
+                                                }
+                                                width={96}
+                                                height={96}
+                                                className="object-cover"
+                                            />
+                                        </div>
+                                        <div className={styles.text}>
                                             <BaseText
+                                                wrapper="span"
                                                 textColor="#ffffff"
                                                 textAlign="center"
+                                                fontSize="normal"
                                             >
                                                 {subscription.name}
                                             </BaseText>
+                                            <div
+                                                className={styles.separator}
+                                            ></div>
                                         </div>
-                                    )
-                                )}
+                                    </Link>
+                                ))}
                             </div>
                         ) : (
                             <BaseText textColor="#9ca3af">

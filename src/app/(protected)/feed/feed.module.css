@@ -1,0 +1,32 @@
+.subscription {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 1rem;
+    color: #fff;
+    transition: background-color 0.3s ease-out;
+    border-radius: var(--radius);
+}
+
+.text {
+    position: relative;
+    overflow: hidden;
+    padding-bottom: calc(5px + 0.2rem);
+}
+.text .separator {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: calc(5px + 0.2rem);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-out;
+    background-color: #e64a2e;
+}
+.subscription:hover {
+    cursor: pointer;
+    background-color: #1a1625;
+}
+.subscription:hover .text .separator {
+    transform: translateX(0);
+}
