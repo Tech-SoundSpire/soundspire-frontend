@@ -17,6 +17,7 @@ import Navbar from "@/components/Navbar";
 import { FaFacebook, FaInstagram, FaTiktok, FaYoutube } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { IconType } from "react-icons/lib";
+import { cleanSoundchartsBio } from "@/utils/cleanSoundchartsBio";
 const default_image = getDefaultProfileImageUrl();
 export default function ArtistCommunityProfile() {
     const params = useParams();
@@ -346,7 +347,7 @@ export default function ArtistCommunityProfile() {
                                     textColor="#d1d5db"
                                     fontSize="normal"
                                 >
-                                    {artist.bio}
+                                    {cleanSoundchartsBio(artist.bio)}
                                 </BaseText>
                             ) : (
                                 <BaseText
