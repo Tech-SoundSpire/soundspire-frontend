@@ -108,7 +108,7 @@ function ArtistDetailsContent() {
 
                 const artistData = await artistRes.json();
                 const identifiersData = await identifiersRes.json();
-                const artist = artistData?.object;
+                const artist = artistData;
                 const identifiers = identifiersData?.items || [];
 
                 const mapPlatform = (p: string) => {

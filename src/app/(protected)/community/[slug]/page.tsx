@@ -62,7 +62,6 @@ export default function ArtistCommunityProfile() {
     if (!user)
         return (
             <>
-                <Navbar></Navbar>
                 <div>
                     <BaseHeading>User not found...</BaseHeading>
                 </div>
@@ -71,8 +70,10 @@ export default function ArtistCommunityProfile() {
     if (loading) {
         return (
             <>
-                <Navbar></Navbar>
-                <div>
+                <div className="w-full pl-[var(--navbar-collapsed)] h-dvh flex items-center justify-center flex-col gap-2">
+                    <div className="flex justify-center items-center w-32 h-32">
+                        <div className="animate-spin rounded-full h-full w-full border-b-2 border-purple-500"></div>
+                    </div>
                     <BaseHeading>Loading...</BaseHeading>
                 </div>
             </>
@@ -81,8 +82,6 @@ export default function ArtistCommunityProfile() {
     if (!artist) {
         return (
             <>
-                <Navbar></Navbar>
-
                 <div className="min-h-screen bg-[#1a1625] text-white flex flex-col items-center justify-center">
                     <BaseText>No artist data found.</BaseText>
                 </div>
@@ -117,15 +116,18 @@ export default function ArtistCommunityProfile() {
     const subscribe = async () => {
         if (!artist.community) return;
         setSavingSubscription(true);
+        const now = new Date();
+        const endDate = new Date(now);
+        endDate.setMonth(now.getMonth() + 1);
         const post: communitySubscriptionData = {
             auto_renew: true,
             community_id: artist.community.community_id,
-            created_at: new Date().toISOString(),
-            end_date: new Date().toISOString(),
+            created_at: now.toISOString(),
+            end_date: endDate.toISOString(),
             is_active: true,
             payment_id: null,
-            start_date: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+            start_date: now.toISOString(),
+            updated_at: now.toISOString(),
             user_id: user.id,
         };
         try {
@@ -176,7 +178,6 @@ export default function ArtistCommunityProfile() {
               }`;
     return (
         <>
-            <Navbar></Navbar>
             <div className="min-h-screen bg-[#1a1625] text-white flex flex-col">
                 {/* HEADER */}
                 <header className="w-full bg-[#1a1625]/90 backdrop-blur-md py-4 px-8 flex items-center justify-center fixed top-0 left-0 z-50">

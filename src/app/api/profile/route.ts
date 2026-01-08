@@ -53,28 +53,6 @@ export async function GET(request: Request) {
                 "profile_picture_url",
                 "spotify_linked",
             ],
-            include: [
-                {
-                    model: CommunitySubscription,
-                    as: "CommunitySubscriptions",
-                    required: false,
-                    include: [
-                        {
-                            model: Community,
-                            include: [
-                                {
-                                    model: Artist,
-                                    as: "Artist",
-                                    attributes: [
-                                        "artist_name",
-                                        "profile_picture_url",
-                                    ],
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ],
         });
 
         if (!user) {
@@ -86,15 +64,8 @@ export async function GET(request: Request) {
 
         const userData = user.toJSON() as UserWithSubscriptions;
 
-        const subscriptions =
-            userData.CommunitySubscriptions?.map((sub) => ({
-                name: sub.Community?.name || "Unknown",
-                image: sub.Community?.Artist?.profile_picture_url,
-            })) || [];
-
         return NextResponse.json({
             ...userData,
-            subscriptions,
         });
     } catch (error: unknown) {
         console.error("Profile fetch error:", error);

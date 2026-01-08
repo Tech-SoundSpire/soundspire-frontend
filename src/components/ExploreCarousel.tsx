@@ -8,7 +8,7 @@ type ExploreItem = {
     title: string;
     description: string;
     price: string;
-    image: string;
+    image?: string;
 };
 interface ExploreCarouselProps {
     items: ExploreItem[];

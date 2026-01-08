@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import Post from "@/components/Posts/Post";
 import { PostProps, CommentProps } from "@/lib/types";
-
+import styles from "./feed.module.css";
 import {
     getImageUrl,
     DEFAULT_PROFILE_IMAGE,
@@ -11,13 +11,15 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import toast from "react-hot-toast";
-type community = { id: string; name: string; description: string };
+import BaseText from "@/components/BaseText/BaseText";
+import Link from "next/link";
+import { type communityDataFromAPI } from "@/types/communityGetAllAPIData";
 export default function Page() {
     const [posts, setPosts] = useState<PostProps[]>([]);
     const { user } = useAuth();
-    const [subscriptions, setSubscriptions] = useState<community[] | null>(
-        null
-    );
+    const [subscriptions, setSubscriptions] = useState<
+        communityDataFromAPI[] | null
+    >(null);
 
     useEffect(() => {
         fetch("/api/posts")
@@ -122,27 +124,42 @@ export default function Page() {
                         </BaseHeading>
                     </div>
                     {subscriptions ? (
-                        subscriptions.map((element) => (
-                            <div
-                                className="flex items-center p-2 text-white"
-                                key={element.id}
-                            >
-                                <img
-                                    src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                                    alt={`Avatar`}
-                                    className="w-12 h-12 rounded-full object-cover mr-3"
-                                    width={100}
-                                    height={100}
-                                />
-                                <BaseHeading
-                                    headingLevel="h3"
-                                    fontWeight={500}
-                                    fontSize="large"
+                        <div className="flex items-start justify-center p-2 flex-col">
+                            {subscriptions.map((element) => (
+                                <Link
+                                    className={`${styles.subscription}`}
+                                    href={`/community/${element.artist_slug}`}
+                                    key={element.artist_slug}
                                 >
-                                    {element.name}
-                                </BaseHeading>
-                            </div>
-                        ))
+                                    <img
+                                        src={
+                                            getImageUrl(
+                                                element.artist_profile_picture_url
+                                            ) ||
+                                            getImageUrl(
+                                                element.artist_cover_photo_url
+                                            ) ||
+                                            getImageUrl(DEFAULT_PROFILE_IMAGE)
+                                        }
+                                        alt={`Avatar`}
+                                        className="w-12 h-12 rounded-full object-cover mr-3"
+                                        width={100}
+                                        height={100}
+                                    />
+                                    <div className={styles.text}>
+                                        <BaseText
+                                            wrapper="span"
+                                            fontWeight={500}
+                                            textColor="inherit"
+                                            fontSize="large"
+                                        >
+                                            {element.name}
+                                        </BaseText>
+                                        <div className={styles.separator}></div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
                     ) : (
                         <div>loading subscriptions...</div>
                     )}
