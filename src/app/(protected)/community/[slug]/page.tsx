@@ -13,7 +13,6 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { communitySubscriptionData } from "@/types/communitySubscription";
 import styles from "./community_profile.module.css";
-import Navbar from "@/components/Navbar";
 import { FaFacebook, FaInstagram, FaTiktok, FaYoutube } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { IconType } from "react-icons/lib";

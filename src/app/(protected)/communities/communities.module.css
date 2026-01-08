@@ -89,10 +89,7 @@
     display: grid;
     align-items: center;
     justify-items: start;
-    grid-template-columns: repeat(
-        auto-fit,
-        minmax(clamp(200px, 20vw + 1rem, 900px), 1fr)
-    );
+    grid-template-columns: repeat(4, 1fr);
     gap: 4rem;
     width: 100%;
 }
