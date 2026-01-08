@@ -36,9 +36,15 @@ export default function AllChatPage() {
   const [loading, setLoading] = useState(true);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [isArtist, setIsArtist] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  const [showOnlineList, setShowOnlineList] = useState(false);
+  const [onlineUserDetails, setOnlineUserDetails] = useState<Map<string, any>>(new Map());
   
   const channelRef = useRef<RealtimeChannel | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
+  const lastTypingBroadcastRef = useRef<number>(0);
+  const onlineListRef = useRef<HTMLDivElement>(null);
   
   // Fetch community ID from slug first, then forum ID
   useEffect(() => {
@@ -139,7 +145,7 @@ export default function AllChatPage() {
           filter: `forum_id=eq.${forumId}`
         },
         async (payload) => {
-          console.log('New message received:', payload.new);
+          // console.log('New message received:', payload.new);
           
           // Fetch user details via API route (bypasses RLS)
           const userRes = await fetch(`/api/users/${payload.new.user_id}`);
@@ -164,7 +170,7 @@ export default function AllChatPage() {
           filter: `forum_id=eq.${forumId}`
         },
         (payload) => {
-          console.log('Message updated:', payload.new);
+          // console.log('Message updated:', payload.new);
           
           setMessages(prev => prev.map(msg =>
             msg.forum_post_id === payload.new.forum_post_id
@@ -182,16 +188,53 @@ export default function AllChatPage() {
         const state = channel.presenceState();
         const users = new Set(Object.keys(state));
         setOnlineUsers(users);
+        
+        // Store user details from presence state
+        const details = new Map();
+        Object.entries(state).forEach(([userId, presences]: [string, any]) => {
+          if (presences && presences.length > 0) {
+            details.set(userId, presences[0]);
+          }
+        });
+        setOnlineUserDetails(details);
       })
-      .on('presence', { event: 'join' }, ({ key }) => {
-        console.log('User joined:', key);
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        // console.log('User joined:', key);
+        if (newPresences && newPresences.length > 0) {
+          setOnlineUserDetails(prev => new Map(prev).set(key, newPresences[0]));
+        }
       })
       .on('presence', { event: 'leave' }, ({ key }) => {
-        console.log('User left:', key);
+        // console.log('User left:', key);
+        setOnlineUserDetails(prev => {
+          const next = new Map(prev);
+          next.delete(key);
+          return next;
+        });
       })
       // Broadcast for typing indicators
       .on('broadcast', { event: 'typing' }, ({ payload }) => {
-        console.log('User typing:', payload.username);
+        const { userId, username } = payload;
+        if (userId === user.id) return; // Ignore own typing
+        
+        // console.log('User typing:', username);
+        
+        // Add to typing users
+        setTypingUsers(prev => new Set(prev).add(username));
+        
+        // Clear existing timeout for this user
+        if (typingTimeoutRef.current[userId]) {
+          clearTimeout(typingTimeoutRef.current[userId]);
+        }
+        
+        // Remove after 3 seconds of inactivity
+        typingTimeoutRef.current[userId] = setTimeout(() => {
+          setTypingUsers(prev => {
+            const next = new Set(prev);
+            next.delete(username);
+            return next;
+          });
+        }, 3000);
       })
       .subscribe((status) => {
         console.log('Subscription status:', status);
@@ -295,15 +338,20 @@ export default function AllChatPage() {
   };
   
   const handleTyping = () => {
-    if (!channelRef.current) return;
+    if (!channelRef.current || !user) return;
+    
+    // Throttle: only send typing indicator every 2 seconds
+    const now = Date.now();
+    if (now - lastTypingBroadcastRef.current < 2000) return;
+    lastTypingBroadcastRef.current = now;
     
     // Send typing indicator via broadcast
     channelRef.current.send({
       type: 'broadcast',
       event: 'typing',
       payload: { 
-        userId: user?.id,
-        username: user?.name 
+        userId: user.id,
+        username: user.name || 'Someone'
       }
     });
   };
@@ -311,6 +359,20 @@ export default function AllChatPage() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+  
+  // Close online list when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (onlineListRef.current && !onlineListRef.current.contains(event.target as Node)) {
+        setShowOnlineList(false);
+      }
+    };
+    
+    if (showOnlineList) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showOnlineList]);
   
   if (loading) {
     return (
@@ -334,9 +396,36 @@ export default function AllChatPage() {
               {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
             </p>
             {onlineUsers.size > 0 && (
-              <p className="text-gray-400 text-sm">
-                👥 {onlineUsers.size} online
-              </p>
+              <div className="relative" ref={onlineListRef}>
+                <button
+                  onClick={() => setShowOnlineList(!showOnlineList)}
+                  className="text-gray-400 text-sm hover:text-white transition cursor-pointer"
+                >
+                  👥 {onlineUsers.size} online
+                </button>
+                
+                {/* Online Users Dropdown */}
+                {showOnlineList && (
+                  <div className="absolute top-full left-0 mt-2 bg-[#1a1625] border border-gray-700 rounded-lg shadow-xl z-50 min-w-[200px] max-h-[300px] overflow-y-auto">
+                    <div className="p-3 border-b border-gray-700">
+                      <p className="text-white font-semibold text-sm">Online Now</p>
+                    </div>
+                    <div className="p-2">
+                      {Array.from(onlineUsers).map((userId) => {
+                        const userInfo = onlineUserDetails.get(userId);
+                        return (
+                          <div key={userId} className="flex items-center gap-2 p-2 hover:bg-[#2d2838] rounded transition">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-gray-300 text-sm">
+                              {userInfo?.username || 'User'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -398,6 +487,23 @@ export default function AllChatPage() {
             </div>
           </div>
         ))}
+        
+        {/* Typing Indicator */}
+        {typingUsers.size > 0 && (
+          <div className="flex items-center gap-3 text-gray-400 text-sm italic px-3 py-2 bg-[#2d2838]/50 rounded-lg w-fit">
+            <div className="flex gap-1 items-center">
+              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms', animationDuration: '1s' }}></span>
+              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '200ms', animationDuration: '1s' }}></span>
+              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '400ms', animationDuration: '1s' }}></span>
+            </div>
+            <span>
+              {Array.from(typingUsers).slice(0, 3).join(', ')} 
+              {typingUsers.size > 3 && ` and ${typingUsers.size - 3} others`}
+              {typingUsers.size === 1 ? ' is' : ' are'} typing...
+            </span>
+          </div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
       
