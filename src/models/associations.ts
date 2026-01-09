@@ -7,6 +7,9 @@ import Post from "./Post";
 import Comment from "./Comment";
 import Genres from "./Genres";
 import Social from "./Social";
+import Forum from "./Forum";
+import ForumPost from "./ForumPost";
+import Like from "./Like";
 
 export function defineAssociations() {
   User.hasMany(CommunitySubscription, {
@@ -122,5 +125,54 @@ export function defineAssociations() {
   });
   Social.belongsTo(Artist, {
     foreignKey: "artist_id"
+  });
+
+  // Forum and ForumPost associations
+  Community.hasMany(Forum, {
+    foreignKey: "community_id",
+    as: "forums",
+  });
+
+  Forum.belongsTo(Community, {
+    foreignKey: "community_id",
+    as: "community",
+  });
+
+  Forum.hasMany(ForumPost, {
+    foreignKey: "forum_id",
+    as: "posts",
+  });
+
+  ForumPost.belongsTo(Forum, {
+    foreignKey: "forum_id",
+    as: "forum",
+  });
+
+  ForumPost.belongsTo(User, {
+    foreignKey: "user_id",
+    as: "user",
+  });
+
+  User.hasMany(ForumPost, {
+    foreignKey: "user_id",
+    as: "forumPosts",
+  });
+
+  ForumPost.hasMany(Like, {
+    foreignKey: "forum_post_id",
+    as: "likes",
+  });
+
+  Like.belongsTo(ForumPost, {
+    foreignKey: "forum_post_id",
+  });
+
+  ForumPost.hasMany(Comment, {
+    foreignKey: "forum_post_id",
+    as: "comments",
+  });
+
+  Comment.belongsTo(ForumPost, {
+    foreignKey: "forum_post_id",
   });
 }
