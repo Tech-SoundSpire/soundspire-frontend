@@ -18,7 +18,15 @@ const useCheckPreferencesOnRoute = (): UseCheckPreferencesOnRouteReturn => {
 
   useEffect(() => {
     const checkPreferences = async () => {
-      if (authLoading || !user) return;
+      // If auth is still loading, wait
+      if (authLoading) return;
+      
+      // If no user, stop loading immediately
+      if (!user) {
+        setIsLoading(false);
+        setHasPreferences(false);
+        return;
+      }
 
       if (user.role === "artist") {
         setHasPreferences(true);

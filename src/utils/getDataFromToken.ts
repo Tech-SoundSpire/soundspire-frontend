@@ -12,7 +12,7 @@ export const getDataFromToken = (request: NextRequest) => {
 
     // decoding the token
    const decodedToken= jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
-   return decodedToken.id;
+   return decodedToken.id; // Return just the id string (original behavior)
 
   }catch(error: unknown){
     if(error instanceof Error)

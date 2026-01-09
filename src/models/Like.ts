@@ -44,6 +44,10 @@ Like.init(
       type: DataTypes.UUID,
       allowNull: true,
     },
+    forum_post_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
@@ -79,10 +83,11 @@ Like.init(
         const hasPost = !!this.post_id;
         const hasComment = !!this.comment_id;
         const hasReview = !!this.review_id;
-        const onlyOneTrue = [hasPost, hasComment, hasReview].filter(Boolean).length === 1;
+        const hasForumPost = !!this.forum_post_id;
+        const onlyOneTrue = [hasPost, hasComment, hasReview, hasForumPost].filter(Boolean).length === 1;
 
         if (!onlyOneTrue) {
-          throw new Error('Exactly one of post_id or comment_id or review_id must be set');
+          throw new Error('Exactly one of post_id, comment_id, review_id, or forum_post_id must be set');
         }
       },
     },
