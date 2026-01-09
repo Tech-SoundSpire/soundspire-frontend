@@ -18,7 +18,21 @@ const useCheckCompleteProfileOnRoute = (): UseCheckCompleteProfileReturn => {
 
     useEffect(() => {
         const checkProfile = async () => {
-            if (authLoading || !user?.email) return;
+            // If auth is still loading, wait
+            if (authLoading) return;
+            
+            // If no user, stop loading immediately
+            if (!user) {
+                setIsLoading(false);
+                setIsProfileComplete(false);
+                return;
+            }
+
+            if (!user.email) {
+                setIsLoading(false);
+                setIsProfileComplete(false);
+                return;
+            }
 
             if (user.role === "artist") {
                 setIsProfileComplete(true);

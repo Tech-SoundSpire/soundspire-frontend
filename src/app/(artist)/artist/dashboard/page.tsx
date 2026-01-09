@@ -28,6 +28,7 @@ export interface ArtistData {
     bio: string;
     profile_picture_url: string;
     cover_photo_url: string;
+    slug: string;
     socials?: { platform: string; url: string }[];
     community?: CommunityData | null;
 }
@@ -120,10 +121,18 @@ export default function ArtistDashboard() {
                     <button className="hover:text-[#FA6400] transition">
                         Artist Forum
                     </button>
-                    <button className="hover:text-[#FA6400] transition">
+                    <button 
+                        onClick={() => artist?.slug && artist?.community && router.push(`/community/${artist.slug}/all-chat`)}
+                        className={`hover:text-[#FA6400] transition ${!artist?.slug || !artist?.community ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={!artist?.slug || !artist?.community}
+                    >
                         All Chat
                     </button>
-                    <button className="hover:text-[#FA6400] transition">
+                    <button 
+                        onClick={() => artist?.slug && artist?.community && router.push(`/community/${artist.slug}/fan-art`)}
+                        className={`hover:text-[#FA6400] transition ${!artist?.slug || !artist?.community ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={!artist?.slug || !artist?.community}
+                    >
                         Fan Art
                     </button>
                     <button className="hover:text-[#FA6400] transition">

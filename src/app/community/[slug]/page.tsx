@@ -13,10 +13,10 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { communitySubscriptionData } from "@/types/communitySubscription";
 import styles from "./community_profile.module.css";
+import Navbar from "@/components/Navbar";
 import { FaFacebook, FaInstagram, FaTiktok, FaYoutube } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { IconType } from "react-icons/lib";
-import { cleanSoundchartsBio } from "@/utils/cleanSoundchartsBio";
 const default_image = getDefaultProfileImageUrl();
 export default function ArtistCommunityProfile() {
     const params = useParams();
@@ -62,6 +62,7 @@ export default function ArtistCommunityProfile() {
     if (!user)
         return (
             <>
+                <Navbar></Navbar>
                 <div>
                     <BaseHeading>User not found...</BaseHeading>
                 </div>
@@ -70,10 +71,8 @@ export default function ArtistCommunityProfile() {
     if (loading) {
         return (
             <>
-                <div className="w-full pl-[var(--navbar-collapsed)] h-dvh flex items-center justify-center flex-col gap-2">
-                    <div className="flex justify-center items-center w-32 h-32">
-                        <div className="animate-spin rounded-full h-full w-full border-b-2 border-purple-500"></div>
-                    </div>
+                <Navbar></Navbar>
+                <div>
                     <BaseHeading>Loading...</BaseHeading>
                 </div>
             </>
@@ -82,6 +81,8 @@ export default function ArtistCommunityProfile() {
     if (!artist) {
         return (
             <>
+                <Navbar></Navbar>
+
                 <div className="min-h-screen bg-[#1a1625] text-white flex flex-col items-center justify-center">
                     <BaseText>No artist data found.</BaseText>
                 </div>
@@ -116,9 +117,11 @@ export default function ArtistCommunityProfile() {
     const subscribe = async () => {
         if (!artist.community) return;
         setSavingSubscription(true);
+        
         const now = new Date();
         const endDate = new Date(now);
-        endDate.setMonth(now.getMonth() + 1);
+        endDate.setMonth(endDate.getMonth() + 1); // Add 1 month
+        
         const post: communitySubscriptionData = {
             auto_renew: true,
             community_id: artist.community.community_id,
@@ -178,6 +181,7 @@ export default function ArtistCommunityProfile() {
               }`;
     return (
         <>
+            <Navbar></Navbar>
             <div className="min-h-screen bg-[#1a1625] text-white flex flex-col">
                 {/* HEADER */}
                 <header className="w-full bg-[#1a1625]/90 backdrop-blur-md py-4 px-8 flex items-center justify-center fixed top-0 left-0 z-50">
@@ -201,7 +205,19 @@ export default function ArtistCommunityProfile() {
                                 Artist Forum
                             </BaseText>
                         </button>
-                        <button className="hover:text-[#FA6400] transition">
+                        <button 
+                            onClick={() => {
+                                if (!alreadySubscribed) {
+                                    toast.error('Subscribe to access All Chat');
+                                    return;
+                                }
+                                if (artist?.slug) {
+                                    window.location.href = `/community/${artist.slug}/all-chat`;
+                                }
+                            }}
+                            className={`transition ${alreadySubscribed ? 'hover:text-[#FA6400]' : 'opacity-50 cursor-not-allowed'}`}
+                            disabled={!alreadySubscribed}
+                        >
                             <BaseText
                                 wrapper="span"
                                 textColor="inherit"
@@ -210,7 +226,19 @@ export default function ArtistCommunityProfile() {
                                 All Chat
                             </BaseText>
                         </button>
-                        <button className="hover:text-[#FA6400] transition">
+                        <button 
+                            onClick={() => {
+                                if (!alreadySubscribed) {
+                                    toast.error('Subscribe to access Fan Art');
+                                    return;
+                                }
+                                if (artist?.slug) {
+                                    window.location.href = `/community/${artist.slug}/fan-art`;
+                                }
+                            }}
+                            className={`transition ${alreadySubscribed ? 'hover:text-[#FA6400]' : 'opacity-50 cursor-not-allowed'}`}
+                            disabled={!alreadySubscribed}
+                        >
                             <BaseText
                                 wrapper="span"
                                 textColor="inherit"
@@ -346,7 +374,7 @@ export default function ArtistCommunityProfile() {
                                     textColor="#d1d5db"
                                     fontSize="normal"
                                 >
-                                    {cleanSoundchartsBio(artist.bio)}
+                                    {artist.bio}
                                 </BaseText>
                             ) : (
                                 <BaseText
