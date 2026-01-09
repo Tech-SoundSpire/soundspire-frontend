@@ -91,6 +91,10 @@ module.exports = {
                     },
                 },
             },
+            width: {
+                "navbar-expanded": "var(--navbar-expanded)",
+                "navbar-collapsed": "var(--navbar-collapsed)",
+            },
             borderRadius: {
                 lg: "var(--radius)",
                 md: "calc(var(--radius) - 2px)",

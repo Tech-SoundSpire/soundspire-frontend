@@ -1,6 +1,7 @@
-import { DataTypes, Model, Optional } from "sequelize";
+import { DataTypes, Model, NonAttribute, Optional } from "sequelize";
 import { sequelize } from "../lib/dbConfig";
 import Community from "./Community";
+import Artist from "./Artist";
 
 // Interface for attributes
 interface CommunitySubscriptionAttributes {
@@ -40,7 +41,8 @@ class CommunitySubscription
     public created_at!: Date;
     public updated_at!: Date;
 
-    public community?: Community;
+    public community?: NonAttribute<Community>;
+    artist: any;
 }
 
 CommunitySubscription.init(

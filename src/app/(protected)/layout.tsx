@@ -42,23 +42,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         hasPreferences,
     ]);
 
-    // Show loading while checking preferences
+    // Show loading while checking auth
     if (isLoading || preferencesLoading || profileLoading) {
         return (
-            <>
-                <Navbar />
-                {children}
-            </>
+            <div className="min-h-screen bg-[#1a1625] flex items-center justify-center">
+                <div className="text-white">Loading...</div>
+            </div>
         );
     }
 
-    if (!user) {
-        return null; // Will redirect
-    }
-
-    // If user doesn't have preferences, they will be redirected by the hook
-    if (!isProfileComplete || !hasPreferences) {
-        return null; // Will redirect to preference selection
+    // Block rendering if not authenticated
+    if (!user || !isProfileComplete || !hasPreferences) {
+        return null;
     }
 
     return (

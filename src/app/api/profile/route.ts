@@ -39,43 +39,40 @@ export async function GET(request: Request) {
             );
         }
 
-        const user = await User.findOne({
-            where: { email },
-            attributes: [
-                "full_name",
-                "username",
-                "gender",
-                "email",
-                "mobile_number",
-                "date_of_birth",
-                "city",
-                "country",
-                "profile_picture_url",
-                "spotify_linked",
-            ],
-            include: [
+    const user = await User.findOne({
+      where: { email },
+      attributes: [
+        'full_name',
+        'username',
+        'gender',
+        'email',
+        'mobile_number',
+        'date_of_birth',
+        'city',
+        'country',
+        'profile_picture_url',
+        'spotify_linked',
+      ],
+      include: [
+        {
+          model: CommunitySubscription,
+          as: 'CommunitySubscriptions',
+          required: false,
+          include: [
+            {
+              model: Community,
+              include: [
                 {
-                    model: CommunitySubscription,
-                    as: "CommunitySubscriptions",
-                    required: false,
-                    include: [
-                        {
-                            model: Community,
-                            include: [
-                                {
-                                    model: Artist,
-                                    as: "Artist",
-                                    attributes: [
-                                        "artist_name",
-                                        "profile_picture_url",
-                                    ],
-                                },
-                            ],
-                        },
-                    ],
+                  model: Artist,
+                  as: "Artist",
+                  attributes: ['artist_name', 'profile_picture_url'],
                 },
-            ],
-        });
+              ],
+            },
+          ],
+        },
+      ],
+    });
 
         if (!user) {
             return NextResponse.json(
@@ -84,26 +81,22 @@ export async function GET(request: Request) {
             );
         }
 
-        const userData = user.toJSON() as UserWithSubscriptions;
+    const userData = user.toJSON() as UserWithSubscriptions;
 
-        const subscriptions =
-            userData.CommunitySubscriptions?.map((sub) => ({
-                name: sub.Community?.name || "Unknown",
-                image: sub.Community?.Artist?.profile_picture_url,
-            })) || [];
+    const subscriptions = userData.CommunitySubscriptions?.map((sub) => ({
+      name: sub.Community?.name || 'Unknown',
+      image: sub.Community?.Artist?.profile_picture_url || '/default-community.jpg',
+    })) || [];
 
-        return NextResponse.json({
-            ...userData,
-            subscriptions,
-        });
-    } catch (error: unknown) {
-        console.error("Profile fetch error:", error);
-        const errorMessage =
-            error instanceof Error
-                ? error.message
-                : "An unknown error occurred";
-        return NextResponse.json({ error: errorMessage }, { status: 500 });
-    }
+    return NextResponse.json({
+      ...userData,
+      subscriptions,
+    });
+  } catch (error: unknown) {
+    console.error('Profile fetch error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
 }
 
 export async function PUT(request: Request) {

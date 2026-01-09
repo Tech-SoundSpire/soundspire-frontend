@@ -29,7 +29,7 @@ const carouselImages = [
     getImageUrl(DEFAULT_PROFILE_IMAGE),
     getImageUrl(DEFAULT_PROFILE_IMAGE),
     getImageUrl(DEFAULT_PROFILE_IMAGE),
-];
+].filter((img): img is string => img !== "undefined");
 
 export default function ReviewsPage() {
     const [reviews, setReviews] = useState<Review[]>([]);

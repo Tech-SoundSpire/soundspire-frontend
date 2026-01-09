@@ -1,0 +1,27 @@
+.subscription {
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease-out;
+    flex-direction: column;
+}
+.text {
+    position: relative;
+    overflow: hidden;
+    padding-bottom: calc(5px + 0.2rem);
+}
+.separator {
+    width: 100%;
+    height: calc(5px + 0.2rem);
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-out;
+    background-color: #e64a2e;
+    will-change: transform;
+}
+.subscription:hover {
+    transform: scale(1.05);
+}
+.subscription:hover .text .separator {
+    transform: translateX(0);
+}

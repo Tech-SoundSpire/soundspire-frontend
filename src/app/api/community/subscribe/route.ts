@@ -1,5 +1,7 @@
+import Artist from "@/models/Artist";
 import Community from "@/models/Community";
 import CommunitySubscription from "@/models/CommunitySubscription";
+import { type communityDataFromAPI } from "@/types/communityGetAllAPIData";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { NextRequest, NextResponse } from "next/server";
 export async function DELETE(request: NextRequest) {
@@ -90,14 +92,34 @@ export async function GET(request: NextRequest) {
                     model: Community,
                     as: "community",
                     attributes: ["community_id", "name", "description"],
+                    include: [
+                        {
+                            model: Artist,
+                            as: "artist",
+                            attributes: [
+                                "artist_name",
+                                "profile_picture_url",
+                                "cover_photo_url",
+                                "slug",
+                            ],
+                        },
+                    ],
                 },
             ],
         });
-        const subscribedCommunities = allSubscriptions.map((element) => ({
-            id: element.community_id,
-            name: element.community?.name,
-            description: element.community?.description,
-        }));
+        const subscribedCommunities = allSubscriptions.map((element) => {
+            const community = element.community;
+            const artist = community?.artist;
+            return {
+                id: element.community_id,
+                name: community?.name,
+                description: community?.description,
+                artist_name: artist?.artist_name,
+                artist_profile_picture_url: artist?.profile_picture_url,
+                artist_cover_photo_url: artist?.cover_photo_url,
+                artist_slug: artist?.slug,
+            } satisfies communityDataFromAPI;
+        });
         return NextResponse.json(
             {
                 status: "SUCCESS",

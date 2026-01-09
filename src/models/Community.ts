@@ -1,5 +1,7 @@
-import { DataTypes, Model, Optional } from "sequelize";
+import { DataTypes, Model, NonAttribute, Optional } from "sequelize";
 import sequelize from "@/lib/sequelize";
+import CommunitySubscription from "./CommunitySubscription";
+import Artist from "./Artist";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface CommunityAttributes {
@@ -32,6 +34,7 @@ class Community
     public subscription_interval!: string;
     public created_at!: Date;
     public updated_at!: Date;
+    public artist?: NonAttribute<Artist>;
 }
 
 Community.init(
@@ -90,5 +93,8 @@ Community.init(
         ],
     }
 );
-
+Community.belongsTo(Artist, {
+    foreignKey: "artist_id",
+    as: "artist",
+});
 export default Community;
