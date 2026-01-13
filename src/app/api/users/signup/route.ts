@@ -1,42 +1,30 @@
+// app/api/auth/signup/route.ts (or wherever your signup API is)
+
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { User } from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import { sendEmail } from "@/utils/mailer";
 import jwt from "jsonwebtoken";
+import { getDefaultProfileImageUrl, getImageUrl } from "@/utils/userProfileImageUtils";
 
 export async function POST(request: NextRequest) {
   try {
     await connectionTestingAndHelper();
-    const reqBody = await request.json(); //getting all the parameter in the body we don't need middleware here
+    const reqBody = await request.json();
 
-    //things we need
-    const {
-      username,
-      email,
-      password_hash,
-    } = reqBody; //taking what is needed
+    const { username, email, password_hash, profileImage } = reqBody;
 
-    console.log(reqBody);
-
-    /***********Validation****************/
-
-    //getting the email from the database
-    console.log("🔍 Checking for existing user...");
-
+    // 1️⃣ Check if email already exists
     const existingUser = await User.findOne({ where: { email } });
-
-    //Checking if user already exists
     if (existingUser) {
       return NextResponse.json(
-        { error: "User already exists!",
-          redirect: "/login",
-         },
+        { error: "User already exists!", redirect: "/login" },
         { status: 400 }
       );
     }
 
-    // Check if username already exists
+    // 2️⃣ Check if username already exists
     const existingUsername = await User.findOne({ where: { username } });
     if (existingUsername) {
       return NextResponse.json(
@@ -45,17 +33,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-
-    //Hashing password
-    console.log("🔐 Hashing password...");
-
-    // const salt = await bcryptjs.genSalt(10);
+    // 3️⃣ Hash password
     const salt = 10;
     const hashedPassword = await bcryptjs.hash(password_hash, salt);
 
-    //Creating new User
-    console.log("🧑‍💻 Creating new user...");
-
+    // 4️⃣ Create new User with default profile image if not provided
     const newUser = await User.create({
       username,
       email,
@@ -63,47 +45,35 @@ export async function POST(request: NextRequest) {
       is_verified: false,
       is_artist: false,
       spotify_linked: false,
+      profileImage: profileImage ? getImageUrl(profileImage) : getDefaultProfileImageUrl(),
     });
 
-    //If password is authenticated creating the token
-    const tokenPayload = {
-      //token data created
-      username,
-      email,
-      password_hash: hashedPassword,
-    };
-    //creating the signed token
+    // 5️⃣ Create JWT token for verification
+    const tokenPayload = { username, email, password_hash: hashedPassword };
     const token = await jwt.sign(tokenPayload, process.env.JWT_SECRET!, {
       expiresIn: "20m",
     });
 
-    //verification Link
     const verificationUrl = `${process.env.DOMAIN}/verifyemail?token=${token}`;
 
-    //Sending verification email
-    console.log("📨 Sending verification email...");
-
+    // 6️⃣ Send verification email
     await sendEmail({
       email,
       emailType: "VERIFY",
-      // userId: newUser.user_id,
       link: verificationUrl,
     }).catch((err) => {
-      console.log("Email send failed!!", err);
+      console.log("Email send failed:", err);
     });
-    console.log("✅ Email sent!");
 
     return NextResponse.json({
       message: "Verification email sent. Please check your inbox.",
       success: true,
-      redirect: "/PreferenceSelectionPage", // Redirect to preference selection
+      redirect: "/PreferenceSelectionPage",
       userId: newUser.user_id,
     });
   } catch (error: unknown) {
-    if(error instanceof Error){
+    if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    // console.error("Signup error:", error);
-
   }
 }
