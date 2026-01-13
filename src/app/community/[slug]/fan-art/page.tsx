@@ -6,6 +6,25 @@ import toast from 'react-hot-toast';
 import { FaHeart, FaRegHeart, FaTimes } from 'react-icons/fa';
 import { getImageUrl } from '@/utils/userProfileImageUtils';
 import { supabase } from '@/lib/supabaseClient';
+import { useCommunityPresence } from '@/hooks/useCommunityPresence';
+import CommunityHeader from '@/components/CommunityHeader';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+
+interface Comment {
+  forum_post_id: string;
+  parent_post_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  reactions?: { [emoji: string]: string[] };
+  user?: {
+    user_id: string;
+    username: string;
+    full_name: string;
+    profile_picture_url: string;
+  };
+  replies?: Comment[];
+}
 
 interface FanArtPost {
   forum_post_id: string;
@@ -16,12 +35,24 @@ interface FanArtPost {
   likes_count: number;
   user_has_liked: boolean;
   created_at: string;
+  reactions?: { [emoji: string]: string[] };
+  comments?: Comment[];
+  commentCount?: number;
   user: {
     user_id: string;
     username: string;
     full_name: string;
     profile_picture_url: string;
   };
+}
+
+interface CommunityData {
+  artist_name: string;
+  community_name: string;
+  profile_picture_url: string;
+  subscriber_count: number;
+  online_count: number;
+  socials: Array<{ platform: string; url: string }>;
 }
 
 export default function FanArtPage() {
@@ -37,12 +68,21 @@ export default function FanArtPage() {
   const [forumId, setForumId] = useState<string | null>(null);
   const [communityId, setCommunityId] = useState<string | null>(null);
   const [isArtist, setIsArtist] = useState(false);
+  const [communityData, setCommunityData] = useState<CommunityData | null>(null);
+  
+  const { onlineUsers, onlineUserDetails, onlineCount } = useCommunityPresence(communityId);
   
   // Upload form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
+  const [showComments, setShowComments] = useState<Set<string>>(new Set());
+  const [commentText, setCommentText] = useState<{ [key: string]: string }>({});
+  const [replyingTo, setReplyingTo] = useState<{ postId: string; parentPostId: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   
   useEffect(() => {
     if (user && slug) {
@@ -64,10 +104,11 @@ export default function FanArtPage() {
       const artistRes = await fetch(`/api/community/${slug}`);
       
       let commId: string | null = null;
+      let artistData: any = null;
       
       if (artistRes.ok) {
-        // It's a slug
-        const artistData = await artistRes.json();
+        // Parse JSON once and store it
+        artistData = await artistRes.json();
         commId = artistData.artist?.community?.community_id;
       } else if (slug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
         // It's a UUID, use it directly as community_id
@@ -81,6 +122,40 @@ export default function FanArtPage() {
       }
       
       setCommunityId(commId);
+      
+      // Fetch community data for sidebar
+      if (artistData) {
+        // Fetch subscriber count for this specific community
+        const subsRes = await fetch(`/api/communities/${commId}/subscribers`);
+        let subscriberCount = 0;
+        if (subsRes.ok) {
+          const subsData = await subsRes.json();
+          subscriberCount = subsData.count || 0;
+        } else {
+          // Fallback: count from CommunitySubscription table
+          const allSubsRes = await fetch(`/api/community/subscribe`);
+          if (allSubsRes.ok) {
+            const allSubsData = await allSubsRes.json();
+            subscriberCount = allSubsData.communities?.filter((c: any) => c.id === commId).length || 0;
+          }
+        }
+        
+        // console.log('Community data:', {
+        //   artist_name: artistData.artist?.artist_name,
+        //   community_name: artistData.artist?.community?.name,
+        //   socials: artistData.artist?.socials,
+        //   subscriberCount
+        // });
+        
+        setCommunityData({
+          artist_name: artistData.artist?.artist_name || 'Community',
+          community_name: artistData.artist?.community?.name || artistData.artist?.artist_name || 'Community',
+          profile_picture_url: artistData.artist?.profile_picture_url || '',
+          subscriber_count: subscriberCount,
+          online_count: onlineCount,
+          socials: artistData.artist?.socials || []
+        });
+      }
       
       // Check if current user is the artist
       const artistCheckRes = await fetch(`/api/artist/me`);
@@ -113,7 +188,32 @@ export default function FanArtPage() {
       const res = await fetch(`/api/forums/${forumId}/fan-art?limit=20`);
       if (res.ok) {
         const data = await res.json();
-        setPosts(data.posts);
+        
+        // Fetch comment counts and reactions for each post
+        const postsWithCounts = await Promise.all(
+          data.posts.map(async (post: FanArtPost) => {
+            const { count } = await supabase
+              .from('forum_posts')
+              .select('*', { count: 'exact', head: true })
+              .eq('parent_post_id', post.forum_post_id);
+            
+            // Fetch reactions from Supabase
+            const { data: postData } = await supabase
+              .from('forum_posts')
+              .select('reactions')
+              .eq('forum_post_id', post.forum_post_id)
+              .single();
+            
+            return {
+              ...post,
+              reactions: postData?.reactions || {},
+              comments: [],
+              commentCount: count || 0
+            };
+          })
+        );
+        
+        setPosts(postsWithCounts);
       }
     } catch (error) {
       console.error('Error fetching fan art:', error);
@@ -126,7 +226,7 @@ export default function FanArtPage() {
   const subscribeToNewPosts = () => {
     if (!forumId || !user) return;
     
-    // Subscribe to new fan art posts (optional for real-time updates)
+    // Subscribe to new fan art posts, comments, and reactions
     const channel = supabase
       .channel(`fan-art:${forumId}`)
       .on(
@@ -138,26 +238,105 @@ export default function FanArtPage() {
           filter: `forum_id=eq.${forumId}`
         },
         async (payload: any) => {
-          // Only handle image posts
-          if (payload.new.media_type === 'image') {
-            console.log('New fan art received:', payload.new);
-            
-            // Fetch user details via API route (bypasses RLS)
-            const userRes = await fetch(`/api/users/${payload.new.user_id}`);
-            const { user: userData } = userRes.ok ? await userRes.json() : { user: null };
-            
-            console.log('User data fetched:', userData);
-            
-            const newPost: FanArtPost = {
-              ...payload.new,
-              user: userData,
+          const userRes = await fetch(`/api/users/${payload.new.user_id}`);
+          const { user: userData } = userRes.ok ? await userRes.json() : { user: null };
+          
+          const newPost = {
+            ...payload.new,
+            user: userData,
+            reactions: payload.new.reactions || {},
+            replies: []
+          };
+          
+          // If it's a top-level fan art post (image)
+          if (payload.new.media_type === 'image' && !payload.new.parent_post_id) {
+            setPosts(prev => [{
+              ...newPost,
               likes_count: 0,
-              user_has_liked: false
-            };
-            
-            setPosts(prev => [newPost, ...prev]);
+              user_has_liked: false,
+              comments: []
+            }, ...prev]);
             toast.success('New fan art posted!');
           }
+          // If it's a comment (has parent_post_id)
+          else if (payload.new.parent_post_id) {
+            setPosts(prev => prev.map(post => {
+              // Check if it's a direct comment on the post
+              if (post.forum_post_id === payload.new.parent_post_id) {
+                // Check if comment already exists (prevent duplicates)
+                const exists = post.comments?.some(c => c.forum_post_id === payload.new.forum_post_id);
+                if (exists) return post;
+                
+                return {
+                  ...post,
+                  comments: [...(post.comments || []), newPost],
+                  commentCount: (post.commentCount || 0) + 1
+                };
+              }
+              // Check if it's a reply to a comment
+              if (post.comments) {
+                return {
+                  ...post,
+                  comments: post.comments.map(comment => {
+                    if (comment.forum_post_id === payload.new.parent_post_id) {
+                      // Check if reply already exists (prevent duplicates)
+                      const exists = comment.replies?.some(r => r.forum_post_id === payload.new.forum_post_id);
+                      if (exists) return comment;
+                      
+                      return {
+                        ...comment,
+                        replies: [...(comment.replies || []), newPost]
+                      };
+                    }
+                    return comment;
+                  })
+                };
+              }
+              return post;
+            }));
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'forum_posts',
+          filter: `forum_id=eq.${forumId}`
+        },
+        (payload: any) => {
+          const updatedReactions = payload.new.reactions || {};
+          
+          setPosts(prev => prev.map(post => {
+            // Update reactions on main post
+            if (post.forum_post_id === payload.new.forum_post_id) {
+              return { ...post, reactions: updatedReactions };
+            }
+            // Update reactions on comments or replies
+            if (post.comments) {
+              return {
+                ...post,
+                comments: post.comments.map(comment => {
+                  if (comment.forum_post_id === payload.new.forum_post_id) {
+                    return { ...comment, reactions: updatedReactions };
+                  }
+                  if (comment.replies) {
+                    return {
+                      ...comment,
+                      replies: comment.replies.map(reply =>
+                        reply.forum_post_id === payload.new.forum_post_id
+                          ? { ...reply, reactions: updatedReactions }
+                          : reply
+                      )
+                    };
+                  }
+                  return comment;
+                })
+              };
+            }
+            return post;
+          }));
         }
       )
       .subscribe();
@@ -305,6 +484,154 @@ export default function FanArtPage() {
     }
   };
   
+  const addReaction = async (postId: string, emoji: string) => {
+    try {
+      const res = await fetch(`/api/forums/${forumId}/messages/${postId}/react`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?.id, emoji })
+      });
+      
+      if (!res.ok) throw new Error('Failed to add reaction');
+      
+      const { reactions } = await res.json();
+      
+      setPosts(prev => prev.map(post =>
+        post.forum_post_id === postId ? { ...post, reactions } : post
+      ));
+    } catch (error) {
+      console.error('Error adding reaction:', error);
+      toast.error('Failed to add reaction');
+    }
+  };
+  
+  const toggleComments = async (postId: string) => {
+    const isShown = showComments.has(postId);
+    
+    if (isShown) {
+      setShowComments(prev => {
+        const next = new Set(prev);
+        next.delete(postId);
+        return next;
+      });
+    } else {
+      // Fetch comments from Supabase (forum_posts with parent_post_id)
+      const { data, error } = await supabase
+        .from('forum_posts')
+        .select('*')
+        .eq('parent_post_id', postId)
+        .order('created_at', { ascending: true });
+      
+      if (!error && data) {
+        const commentsWithUsers = await Promise.all(
+          data.map(async (comment) => {
+            const userRes = await fetch(`/api/users/${comment.user_id}`);
+            const { user: userData } = userRes.ok ? await userRes.json() : { user: null };
+            
+            // Fetch replies (nested forum_posts)
+            const { data: replies } = await supabase
+              .from('forum_posts')
+              .select('*')
+              .eq('parent_post_id', comment.forum_post_id)
+              .order('created_at', { ascending: true });
+            
+            const repliesWithUsers = await Promise.all(
+              (replies || []).map(async (reply) => {
+                const replyUserRes = await fetch(`/api/users/${reply.user_id}`);
+                const { user: replyUserData } = replyUserRes.ok ? await replyUserRes.json() : { user: null };
+                return { ...reply, user: replyUserData, reactions: reply.reactions || {} };
+              })
+            );
+            
+            return { ...comment, user: userData, reactions: comment.reactions || {}, replies: repliesWithUsers };
+          })
+        );
+        
+        setPosts(prev => prev.map(post =>
+          post.forum_post_id === postId ? { ...post, comments: commentsWithUsers } : post
+        ));
+      }
+      
+      setShowComments(prev => new Set(prev).add(postId));
+    }
+  };
+  
+  const addComment = async (postId: string, parentPostId?: string) => {
+    const key = parentPostId || postId;
+    const text = commentText[key]?.trim();
+    
+    if (!text || !forumId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('forum_posts')
+        .insert({
+          forum_id: forumId,
+          parent_post_id: parentPostId || postId,
+          user_id: user?.id,
+          content: text,
+          media_type: 'text'
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Don't manually update state - let real-time handle it
+      setCommentText(prev => ({ ...prev, [key]: '' }));
+      setReplyingTo(null);
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      toast.error('Failed to add comment');
+    }
+  };
+  
+  const addCommentReaction = async (commentPostId: string, emoji: string) => {
+    try {
+      const res = await fetch(`/api/forums/${forumId}/messages/${commentPostId}/react`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?.id, emoji })
+      });
+      
+      if (!res.ok) throw new Error('Failed to add reaction');
+      
+      const { reactions } = await res.json();
+      
+      setPosts(prev => prev.map(post => ({
+        ...post,
+        comments: post.comments?.map(c => {
+          if (c.forum_post_id === commentPostId) {
+            return { ...c, reactions };
+          }
+          if (c.replies) {
+            return {
+              ...c,
+              replies: c.replies.map(r =>
+                r.forum_post_id === commentPostId ? { ...r, reactions } : r
+              )
+            };
+          }
+          return c;
+        })
+      })));
+    } catch (error) {
+      console.error('Error adding comment reaction:', error);
+      toast.error('Failed to add reaction');
+    }
+  };
+  
+  const filteredPosts = posts.filter(post => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      post.content?.toLowerCase().includes(query) ||
+      post.title?.toLowerCase().includes(query) ||
+      post.user?.username?.toLowerCase().includes(query) ||
+      post.user?.full_name?.toLowerCase().includes(query)
+    );
+  });
+  
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-[#1a1625]">
@@ -317,121 +644,450 @@ export default function FanArtPage() {
   }
   
   return (
-    <div className="min-h-screen bg-[#1a1625] pb-20">
-      {/* Header */}
-      <div className="bg-[#2d2838] p-6 sticky top-0 z-10 border-b border-gray-700">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-white text-2xl font-bold">Fan Art Gallery</h1>
-            <p className="text-gray-400 text-sm mt-1">
-              Share your artwork with the community
-            </p>
+    <div className="flex h-screen bg-[#1a1625]">
+      <CommunityHeader 
+        slug={slug}
+        communityName={communityData?.community_name}
+        isSubscribed={true}
+        isArtist={isArtist}
+        currentPage="fan-art"
+      />
+      
+      {/* Left Sidebar - Community Info */}
+      <div className={`bg-[#2d2838] border-r border-gray-700 flex flex-col mt-16 transition-all duration-300 ${isSidebarCollapsed ? 'w-0 overflow-hidden' : 'w-80'}`}>
+        {/* Community Header */}
+        <div className="p-6 border-b border-gray-700">
+          <div className="flex flex-col items-center text-center">
+            <img
+              src={getImageUrl(communityData?.profile_picture_url || 'images/placeholder.jpg')}
+              alt={communityData?.artist_name || 'Community'}
+              className="w-32 h-32 rounded-full object-cover mb-4"
+            />
+            <h2 className="text-white text-xl font-bold mb-2">{communityData?.community_name || 'Community'}</h2>
+            <p className="text-white text-lg">#{communityData?.artist_name || 'Loading...'}</p>
+            <div className="flex items-center gap-4 mt-3 text-sm">
+              <span className="text-gray-400">{communityData?.subscriber_count || 0} members</span>
+              <span className="text-green-500 flex items-center gap-1">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                {onlineCount} online
+              </span>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => router.push(isArtist ? '/artist/dashboard' : `/community/${slug}`)}
-              className="px-4 py-2 text-gray-400 hover:text-white transition"
-            >
-              ← Back
-            </button>
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="px-6 py-2 bg-[#FA6400] text-white rounded-lg font-semibold hover:bg-[#e55a00] transition"
-            >
-              + Upload Art
-            </button>
+        </div>
+
+        {/* Guidelines Footer */}
+        <div className="p-6 border-t border-gray-700">
+          <p className="text-gray-400 text-sm mb-4">Guidelines for {communityData?.artist_name || 'Artist'} Community</p>
+          <div className="flex items-center justify-center gap-6">
+            {communityData?.socials?.map((social, idx) => {
+              const platform = social.platform.toLowerCase();
+              return (
+                <a 
+                  key={idx}
+                  href={social.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white transition"
+                >
+                  {platform === 'twitter' || platform === 'x' ? (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                  ) : platform === 'instagram' ? (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                  ) : platform === 'youtube' ? (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                  ) : platform === 'facebook' ? (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                  ) : null}
+                </a>
+              );
+            })}
           </div>
         </div>
       </div>
-      
-      {/* Fan Art Grid */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {posts.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-gray-400 text-lg mb-4">No fan art yet</p>
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="px-6 py-3 bg-[#FA6400] text-white rounded-lg font-semibold hover:bg-[#e55a00] transition"
-            >
-              Be the first to upload!
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post) => (
-              <div
-                key={post.forum_post_id}
-                className="bg-[#2d2838] rounded-lg overflow-hidden hover:ring-2 hover:ring-purple-500 transition"
-              >
-                {/* Image */}
-                <div className="relative aspect-square bg-gray-900">
-                  <img
-                    src={getImageUrl(post.media_urls[0])}
-                    alt={post.title}
-                    className="w-full h-full object-cover cursor-pointer"
-                    onClick={() => window.open(getImageUrl(post.media_urls[0]), '_blank')}
-                  />
-                  {post.is_pinned && (
-                    <div className="absolute top-3 right-3 bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold">
-                      ⭐ FEATURED
-                    </div>
-                  )}
-                  {post.media_urls.length > 1 && (
-                    <div className="absolute top-3 left-3 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                      +{post.media_urls.length - 1} more
-                    </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col mt-16">
+        {/* Toggle Sidebar Button */}
+        <button
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          className="absolute left-2 top-20 z-10 bg-[#2d2838] text-white p-2 rounded-full hover:bg-[#3d3848] transition"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {isSidebarCollapsed ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            )}
+          </svg>
+        </button>
+        
+        {/* Fan Art Header */}
+        <div className="bg-[#2d2838] p-6 border-b border-gray-700">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <img
+                src={getImageUrl(user?.photoURL || 'images/placeholder.jpg')}
+                alt={user?.name || 'User'}
+                className="w-12 h-12 rounded-full object-cover"
+              />
+              <div>
+                <h2 className="text-white text-xl font-bold">{user?.name || 'User'}</h2>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-gray-400">community joined 12.06.25</span>
+                  {posts.length > 0 && (
+                    <span className="text-[#FA6400]">{posts.length} new messages</span>
                   )}
                 </div>
-                
-                {/* Content */}
-                <div className="p-4">
-                  <h3 className="text-white font-bold text-lg mb-2">
-                    {post.title}
-                  </h3>
-                  {post.content && (
-                    <p className="text-gray-400 text-sm mb-3 line-clamp-2">
-                      {post.content}
-                    </p>
-                  )}
-                  
-                  {/* User Info */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <img
-                      src={getImageUrl(post.user?.profile_picture_url || 'images/placeholder.jpg')}
-                      alt={post.user?.username || 'User'}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-semibold truncate">
-                        {post.user?.full_name || post.user?.username || 'Unknown User'}
-                      </p>
-                      <p className="text-gray-500 text-xs">
-                        {new Date(post.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="search for messages in chat"
+                className="px-4 py-2 bg-[#1a1625] text-white placeholder-gray-500 rounded-full w-80 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+        </div>
+      
+      {/* Fan Art Feed */}
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-5xl mx-auto space-y-6">
+          {filteredPosts.length === 0 && !loading && (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-lg mb-4">
+                {searchQuery ? 'No fan art found matching your search' : 'No fan art yet'}
+              </p>
+              {!searchQuery && (
+                <button
+                  onClick={() => setShowUploadModal(true)}
+                  className="px-6 py-3 bg-[#FA6400] text-white rounded-lg font-semibold hover:bg-[#e55a00] transition"
+                >
+                  Be the first to upload!
+                </button>
+              )}
+            </div>
+          )}
+          
+          {filteredPosts.map((post, idx) => {
+            const showDate = idx === 0 || 
+              new Date(filteredPosts[idx - 1].created_at).toDateString() !== new Date(post.created_at).toDateString();
+            
+            return (
+              <div key={post.forum_post_id}>
+                {showDate && (
+                  <div className="flex items-center justify-center my-6">
+                    <div className="h-px bg-gray-700 flex-1"></div>
+                    <span className="px-4 text-gray-400 text-sm">
+                      {new Date(post.created_at).toDateString() === new Date().toDateString() 
+                        ? 'Today' 
+                        : new Date(post.created_at).toLocaleDateString()}
+                    </span>
+                    <div className="h-px bg-gray-700 flex-1"></div>
                   </div>
+                )}
+                
+                <div className="flex gap-3 items-start">
+                  <img
+                    src={getImageUrl(post.user?.profile_picture_url || 'images/placeholder.jpg')}
+                    alt={post.user?.username || 'User'}
+                    className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
+                  />
                   
-                  {/* Actions */}
-                  <div className="flex items-center gap-4 pt-3 border-t border-gray-700">
-                    <button
-                      onClick={() => handleLike(post.forum_post_id)}
-                      className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition"
-                    >
-                      {post.user_has_liked ? (
-                        <FaHeart className="text-red-500" />
-                      ) : (
-                        <FaRegHeart />
-                      )}
-                      <span className="text-sm font-semibold">
-                        {post.likes_count}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-white font-semibold">
+                        {post.user?.full_name || post.user?.username || 'Unknown User'}
                       </span>
-                    </button>
+                    </div>
+                    
+                    <div className="bg-[#FA6400] p-4 rounded-2xl rounded-tl-sm max-w-2xl">
+                      {/* Image */}
+                      <div className="bg-white rounded-lg overflow-hidden mb-3">
+                        <img
+                          src={getImageUrl(post.media_urls[0])}
+                          alt={post.title}
+                          className="w-full cursor-pointer"
+                          onClick={() => window.open(getImageUrl(post.media_urls[0]), '_blank')}
+                        />
+                      </div>
+                      
+                      {/* Caption */}
+                      <p className="text-white break-words">{post.content}</p>
+                      
+                      <span className="text-xs text-white opacity-80 mt-2 block text-right">
+                        {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    
+                    {/* Reactions */}
+                    {post.reactions && Object.keys(post.reactions).length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {Object.entries(post.reactions).map(([emoji, users]) => (
+                          <button
+                            key={emoji}
+                            onClick={() => addReaction(post.forum_post_id, emoji)}
+                            className={`px-2 py-1 rounded-full text-sm flex items-center gap-1 transition ${
+                              users.includes(user?.id || '') 
+                                ? 'bg-[#FA6400] text-white' 
+                                : 'bg-[#2d2838] text-gray-300 hover:bg-[#3d3848]'
+                            }`}
+                          >
+                            <span>{emoji}</span>
+                            <span className="text-xs">{users.length}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Action buttons */}
+                    <div className="flex gap-3 mt-2">
+                      <button
+                        onClick={() => toggleComments(post.forum_post_id)}
+                        className="text-sm text-gray-400 hover:text-white flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#2d2838]"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        {post.commentCount || post.comments?.length || 0} Comments
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowReactionPicker(showReactionPicker === post.forum_post_id ? null : post.forum_post_id)}
+                          className="text-sm text-gray-400 hover:text-white flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#2d2838]"
+                        >
+                          😀 React
+                        </button>
+                        {showReactionPicker === post.forum_post_id && (
+                          <div className="absolute bottom-full left-0 mb-2 z-10">
+                            <EmojiPicker 
+                              onEmojiClick={(emojiData) => {
+                                addReaction(post.forum_post_id, emojiData.emoji);
+                                setShowReactionPicker(null);
+                              }}
+                              height={350}
+                              width={300}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Comments Section */}
+                    {showComments.has(post.forum_post_id) && (
+                      <div className="mt-4 space-y-3">
+                        {/* Add Comment */}
+                        <div className="flex gap-2">
+                          <img
+                            src={getImageUrl(user?.photoURL || 'images/placeholder.jpg')}
+                            alt={user?.name || 'User'}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              value={commentText[post.forum_post_id] || ''}
+                              onChange={(e) => setCommentText(prev => ({ ...prev, [post.forum_post_id]: e.target.value }))}
+                              onKeyPress={(e) => e.key === 'Enter' && addComment(post.forum_post_id)}
+                              placeholder="Add a comment..."
+                              className="w-full px-3 py-2 bg-[#2d2838] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Comments List */}
+                        {post.comments?.map((comment) => (
+                          <div key={comment.forum_post_id} className="flex gap-2">
+                            <img
+                              src={getImageUrl(comment.user?.profile_picture_url || 'images/placeholder.jpg')}
+                              alt={comment.user?.username || 'User'}
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                            <div className="flex-1">
+                              <div className="bg-[#2d2838] px-3 py-2 rounded-lg">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-white text-sm font-semibold">
+                                    {comment.user?.username || 'Unknown'}
+                                  </span>
+                                  <span className="text-gray-500 text-xs">
+                                    {new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+                                <p className="text-white text-sm">{comment.content}</p>
+                              </div>
+                              
+                              {/* Comment reactions */}
+                              {comment.reactions && Object.keys(comment.reactions).length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {Object.entries(comment.reactions).map(([emoji, users]) => (
+                                    <button
+                                      key={emoji}
+                                      onClick={() => addCommentReaction(comment.forum_post_id, emoji)}
+                                      className={`px-2 py-1 rounded-full text-xs flex items-center gap-1 transition ${
+                                        users.includes(user?.id || '') 
+                                          ? 'bg-[#FA6400] text-white' 
+                                          : 'bg-[#2d2838] text-gray-300 hover:bg-[#3d3848]'
+                                      }`}
+                                    >
+                                      <span>{emoji}</span>
+                                      <span className="text-xs">{users.length}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {/* Comment actions */}
+                              <div className="flex gap-2 mt-1">
+                                <button
+                                  onClick={() => setReplyingTo({ postId: post.forum_post_id, parentPostId: comment.forum_post_id })}
+                                  className="text-xs text-gray-400 hover:text-white"
+                                >
+                                  Reply
+                                </button>
+                                <div className="relative">
+                                  <button
+                                    onClick={() => setShowReactionPicker(showReactionPicker === comment.forum_post_id ? null : comment.forum_post_id)}
+                                    className="text-xs text-gray-400 hover:text-white"
+                                  >
+                                    😀 React
+                                  </button>
+                                  {showReactionPicker === comment.forum_post_id && (
+                                    <div className="absolute bottom-full left-0 mb-2 z-10">
+                                      <EmojiPicker 
+                                        onEmojiClick={(emojiData) => {
+                                          addCommentReaction(comment.forum_post_id, emojiData.emoji);
+                                          setShowReactionPicker(null);
+                                        }}
+                                        height={350}
+                                        width={300}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {/* Replies */}
+                              {comment.replies && comment.replies.length > 0 && (
+                                <div className="ml-4 mt-2 space-y-2">
+                                  {comment.replies.map((reply) => (
+                                    <div key={reply.forum_post_id} className="flex gap-2">
+                                      <img
+                                        src={getImageUrl(reply.user?.profile_picture_url || 'images/placeholder.jpg')}
+                                        alt={reply.user?.username || 'User'}
+                                        className="w-6 h-6 rounded-full object-cover"
+                                      />
+                                      <div className="flex-1">
+                                        <div className="bg-[#3d3848] px-3 py-2 rounded-lg">
+                                          <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-white text-xs font-semibold">
+                                              {reply.user?.username || 'Unknown'}
+                                            </span>
+                                            <span className="text-gray-500 text-xs">
+                                              {new Date(reply.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                          </div>
+                                          <p className="text-white text-xs">{reply.content}</p>
+                                        </div>
+                                        
+                                        {/* Reply reactions */}
+                                        {reply.reactions && Object.keys(reply.reactions).length > 0 && (
+                                          <div className="flex flex-wrap gap-1 mt-1">
+                                            {Object.entries(reply.reactions).map(([emoji, users]) => (
+                                              <button
+                                                key={emoji}
+                                                onClick={() => addCommentReaction(reply.forum_post_id, emoji)}
+                                                className={`px-1.5 py-0.5 rounded-full text-xs flex items-center gap-1 transition ${
+                                                  users.includes(user?.id || '') 
+                                                    ? 'bg-[#FA6400] text-white' 
+                                                    : 'bg-[#2d2838] text-gray-300 hover:bg-[#3d3848]'
+                                                }`}
+                                              >
+                                                <span>{emoji}</span>
+                                                <span className="text-xs">{users.length}</span>
+                                              </button>
+                                            ))}
+                                          </div>
+                                        )}
+                                        
+                                        {/* Reply actions */}
+                                        <div className="relative mt-1">
+                                          <button
+                                            onClick={() => setShowReactionPicker(showReactionPicker === reply.forum_post_id ? null : reply.forum_post_id)}
+                                            className="text-xs text-gray-400 hover:text-white"
+                                          >
+                                            😀 React
+                                          </button>
+                                          {showReactionPicker === reply.forum_post_id && (
+                                            <div className="absolute bottom-full left-0 mb-2 z-10">
+                                              <EmojiPicker 
+                                                onEmojiClick={(emojiData) => {
+                                                  addCommentReaction(reply.forum_post_id, emojiData.emoji);
+                                                  setShowReactionPicker(null);
+                                                }}
+                                                height={350}
+                                                width={300}
+                                              />
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {/* Reply input */}
+                              {replyingTo?.parentPostId === comment.forum_post_id && (
+                                <div className="ml-4 mt-2 flex gap-2">
+                                  <img
+                                    src={getImageUrl(user?.photoURL || 'images/placeholder.jpg')}
+                                    alt={user?.name || 'User'}
+                                    className="w-6 h-6 rounded-full object-cover"
+                                  />
+                                  <div className="flex-1 flex gap-2">
+                                    <input
+                                      type="text"
+                                      value={commentText[comment.forum_post_id] || ''}
+                                      onChange={(e) => setCommentText(prev => ({ ...prev, [comment.forum_post_id]: e.target.value }))}
+                                      onKeyPress={(e) => e.key === 'Enter' && addComment(post.forum_post_id, comment.forum_post_id)}
+                                      placeholder="Write a reply..."
+                                      className="flex-1 px-3 py-1 bg-[#3d3848] text-white text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                      autoFocus
+                                    />
+                                    <button
+                                      onClick={() => setReplyingTo(null)}
+                                      className="text-gray-400 hover:text-white text-xs"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
+      </div>
+      
+      {/* Upload Button */}
+      <div className="bg-[#2d2838] p-6 border-t border-gray-700">
+        <div className="max-w-5xl mx-auto flex justify-center">
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="px-12 py-3 bg-[#FA6400] text-white rounded-full font-bold text-lg hover:bg-[#e55a00] transition"
+          >
+            UPLOAD +
+          </button>
+        </div>
       </div>
       
       {/* Upload Modal */}
@@ -538,6 +1194,7 @@ export default function FanArtPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
