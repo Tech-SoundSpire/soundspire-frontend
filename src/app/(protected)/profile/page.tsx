@@ -237,7 +237,18 @@ export default function ProfilePage() {
 
             if (!res.ok) throw new Error("Profile update failed");
 
-            setProfile({ ...editableProfile, fullName: profile.fullName });
+            // Refetch profile from database to get updated data
+            const updatedRes = await fetch(`/api/profile?email=${encodeURIComponent(emailToUse)}`);
+            if (updatedRes.ok) {
+                const updatedData = await updatedRes.json();
+                setProfile({
+                    ...editableProfile,
+                    profileImage: updatedData.profile_picture_url || editableProfile.profileImage,
+                });
+            } else {
+                setProfile({ ...editableProfile, fullName: profile.fullName });
+            }
+            
             setIsEditing(false);
             toast.success("Profile updated");
         } catch (error) {
