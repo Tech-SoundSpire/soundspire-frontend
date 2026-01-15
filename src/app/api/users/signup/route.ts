@@ -1,19 +1,22 @@
-// app/api/auth/signup/route.ts (or wherever your signup API is)
-
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { User } from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import { sendEmail } from "@/utils/mailer";
 import jwt from "jsonwebtoken";
-import { getDefaultProfileImageUrl, getImageUrl } from "@/utils/userProfileImageUtils";
+import {
+  getDefaultProfileImageUrl,
+  getImageUrl,
+} from "@/utils/userProfileImageUtils";
 
 export async function POST(request: NextRequest) {
   try {
     await connectionTestingAndHelper();
+
     const reqBody = await request.json();
 
-    const { username, email, password_hash, profileImage } = reqBody;
+    // ✅ MATCHES User model field name
+    const { username, email, password_hash, profile_picture_url } = reqBody;
 
     // 1️⃣ Check if email already exists
     const existingUser = await User.findOne({ where: { email } });
@@ -34,10 +37,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 3️⃣ Hash password
-    const salt = 10;
-    const hashedPassword = await bcryptjs.hash(password_hash, salt);
+    const hashedPassword = await bcryptjs.hash(password_hash, 10);
 
-    // 4️⃣ Create new User with default profile image if not provided
+    // 4️⃣ Create new user (✅ correct field name)
     const newUser = await User.create({
       username,
       email,
@@ -45,14 +47,17 @@ export async function POST(request: NextRequest) {
       is_verified: false,
       is_artist: false,
       spotify_linked: false,
-      profileImage: profileImage ? getImageUrl(profileImage) : getDefaultProfileImageUrl(),
+      profile_picture_url: profile_picture_url
+        ? getImageUrl(profile_picture_url)
+        : getDefaultProfileImageUrl(),
     });
 
-    // 5️⃣ Create JWT token for verification
-    const tokenPayload = { username, email, password_hash: hashedPassword };
-    const token = await jwt.sign(tokenPayload, process.env.JWT_SECRET!, {
-      expiresIn: "20m",
-    });
+    // 5️⃣ Create JWT token for email verification
+    const token = jwt.sign(
+      { userId: newUser.user_id },
+      process.env.JWT_SECRET!,
+      { expiresIn: "20m" }
+    );
 
     const verificationUrl = `${process.env.DOMAIN}/verifyemail?token=${token}`;
 
@@ -61,19 +66,19 @@ export async function POST(request: NextRequest) {
       email,
       emailType: "VERIFY",
       link: verificationUrl,
-    }).catch((err) => {
-      console.log("Email send failed:", err);
     });
 
     return NextResponse.json({
-      message: "Verification email sent. Please check your inbox.",
       success: true,
+      message: "Verification email sent. Please check your inbox.",
       redirect: "/PreferenceSelectionPage",
       userId: newUser.user_id,
     });
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+  } catch (error) {
+    console.error("Signup error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
