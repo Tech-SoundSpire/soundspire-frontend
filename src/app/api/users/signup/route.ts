@@ -4,39 +4,30 @@ import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import { sendEmail } from "@/utils/mailer";
 import jwt from "jsonwebtoken";
+import {
+  getDefaultProfileImageUrl,
+  getImageUrl,
+} from "@/utils/userProfileImageUtils";
 
 export async function POST(request: NextRequest) {
   try {
     await connectionTestingAndHelper();
-    const reqBody = await request.json(); //getting all the parameter in the body we don't need middleware here
 
-    //things we need
-    const {
-      username,
-      email,
-      password_hash,
-    } = reqBody; //taking what is needed
+    const reqBody = await request.json();
 
-    console.log(reqBody);
+    // ✅ MATCHES User model field name
+    const { username, email, password_hash, profile_picture_url } = reqBody;
 
-    /***********Validation****************/
-
-    //getting the email from the database
-    console.log("🔍 Checking for existing user...");
-
+    // 1️⃣ Check if email already exists
     const existingUser = await User.findOne({ where: { email } });
-
-    //Checking if user already exists
     if (existingUser) {
       return NextResponse.json(
-        { error: "User already exists!",
-          redirect: "/login",
-         },
+        { error: "User already exists!", redirect: "/login" },
         { status: 400 }
       );
     }
 
-    // Check if username already exists
+    // 2️⃣ Check if username already exists
     const existingUsername = await User.findOne({ where: { username } });
     if (existingUsername) {
       return NextResponse.json(
@@ -45,17 +36,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 3️⃣ Hash password
+    const hashedPassword = await bcryptjs.hash(password_hash, 10);
 
-    //Hashing password
-    console.log("🔐 Hashing password...");
-
-    // const salt = await bcryptjs.genSalt(10);
-    const salt = 10;
-    const hashedPassword = await bcryptjs.hash(password_hash, salt);
-
-    //Creating new User
-    console.log("🧑‍💻 Creating new user...");
-
+    // 4️⃣ Create new user (✅ correct field name)
     const newUser = await User.create({
       username,
       email,
@@ -63,47 +47,38 @@ export async function POST(request: NextRequest) {
       is_verified: false,
       is_artist: false,
       spotify_linked: false,
+      profile_picture_url: profile_picture_url
+        ? getImageUrl(profile_picture_url)
+        : getDefaultProfileImageUrl(),
     });
 
-    //If password is authenticated creating the token
-    const tokenPayload = {
-      //token data created
-      username,
-      email,
-      password_hash: hashedPassword,
-    };
-    //creating the signed token
-    const token = await jwt.sign(tokenPayload, process.env.JWT_SECRET!, {
-      expiresIn: "20m",
-    });
+    // 5️⃣ Create JWT token for email verification
+    const token = jwt.sign(
+      { userId: newUser.user_id },
+      process.env.JWT_SECRET!,
+      { expiresIn: "20m" }
+    );
 
-    //verification Link
     const verificationUrl = `${process.env.DOMAIN}/verifyemail?token=${token}`;
 
-    //Sending verification email
-    console.log("📨 Sending verification email...");
-
+    // 6️⃣ Send verification email
     await sendEmail({
       email,
       emailType: "VERIFY",
-      // userId: newUser.user_id,
       link: verificationUrl,
-    }).catch((err) => {
-      console.log("Email send failed!!", err);
     });
-    console.log("✅ Email sent!");
 
     return NextResponse.json({
-      message: "Verification email sent. Please check your inbox.",
       success: true,
-      redirect: "/PreferenceSelectionPage", // Redirect to preference selection
+      message: "Verification email sent. Please check your inbox.",
+      redirect: "/PreferenceSelectionPage",
       userId: newUser.user_id,
     });
-  } catch (error: unknown) {
-    if(error instanceof Error){
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    // console.error("Signup error:", error);
-
+  } catch (error) {
+    console.error("Signup error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
