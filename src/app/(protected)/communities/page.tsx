@@ -15,6 +15,9 @@ import toast from "react-hot-toast";
 import BaseText from "@/components/BaseText/BaseText";
 export default function MyCommunities() {
     const [searchValue, setSearchValue] = useState("");
+    const [userProfilePicture, setUserProfilePicture] = useState<null | string>(
+        null,
+    );
     const { user } = useAuth();
     const [subscribedCommunitiesData, setSubscribedCommunitiesData] = useState<
         communityDataFromAPI[]
@@ -25,12 +28,14 @@ export default function MyCommunities() {
         (async () => {
             try {
                 const res = await fetch(
-                    `/api/community/subscribe?user_id=${user.id}`
+                    `/api/community/subscribe?user_id=${user.id}`,
                 );
                 if (!res.ok)
                     throw new Error("Error trying to fetch community API.");
                 const json = await res.json();
+
                 setSubscribedCommunitiesData(json.communities);
+                setUserProfilePicture(json.user.profile_picture_url);
             } catch (err) {
                 toast.error("Failed to load communities");
                 console.error(err);
@@ -71,7 +76,10 @@ export default function MyCommunities() {
                     <div className={styles["profile-picture"]}>
                         <img
                             alt="User Profile Picture"
-                            src={getDefaultProfileImageUrl()}
+                            src={
+                                getImageUrl(userProfilePicture) ||
+                                getDefaultProfileImageUrl()
+                            }
                         ></img>
                     </div>
                 </div>
@@ -87,7 +95,10 @@ export default function MyCommunities() {
                     </BaseText>
                 ) : (
                     subscribedCommunitiesData.map((community) => {
-                        const communityAt = community.name?.replace(/\s/g, "");
+                        const communityAt = community.name?.replace(
+                            /[\s'",.]/g,
+                            "",
+                        );
                         return (
                             <div
                                 key={community.artist_slug}
@@ -97,10 +108,10 @@ export default function MyCommunities() {
                                     <img
                                         src={
                                             getImageUrl(
-                                                community.artist_profile_picture_url
+                                                community.artist_profile_picture_url,
                                             ) ||
                                             getImageUrl(
-                                                community.artist_cover_photo_url
+                                                community.artist_cover_photo_url,
                                             ) ||
                                             getDefaultProfileImageUrl()
                                         }

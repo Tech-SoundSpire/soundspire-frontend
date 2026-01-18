@@ -54,7 +54,7 @@ export default function ProfilePage() {
         spotifyLinked: false,
     });
     const [subscriptions, setSubscriptions] = useState<communityDataFromAPI[]>(
-        []
+        [],
     );
     const [editableProfile, setEditableProfile] = useState<ProfileData>({
         ...profile,
@@ -68,11 +68,11 @@ export default function ProfilePage() {
         const fetchSubscriptions = async () => {
             try {
                 const res = await fetch(
-                    `/api/community/subscribe?user_id=${user.id}`
+                    `/api/community/subscribe?user_id=${user.id}`,
                 );
                 if (!res.ok)
                     throw new Error(
-                        "Error trying to receive response from subscriptions"
+                        "Error trying to receive response from subscriptions",
                     );
                 const subscriptionData = await res.json();
                 setSubscriptions(subscriptionData.communities);
@@ -86,7 +86,7 @@ export default function ProfilePage() {
         const fetchProfile = async () => {
             try {
                 const res = await fetch(
-                    `/api/profile?email=${encodeURIComponent(user.email || "")}`
+                    `/api/profile?email=${encodeURIComponent(user.email || "")}`,
                 );
 
                 const data = await res.json();
@@ -163,12 +163,12 @@ export default function ProfilePage() {
     };
 
     const checkUsernameUniqueness = async (
-        username: string
+        username: string,
     ): Promise<boolean> => {
         setIsValidatingUsername(true);
         try {
             const res = await fetch(
-                `/api/check-username?username=${encodeURIComponent(username)}`
+                `/api/check-username?username=${encodeURIComponent(username)}`,
             );
             const data = await res.json();
             return data.isUnique;
@@ -191,14 +191,14 @@ export default function ProfilePage() {
 
             if (!/^[a-zA-Z0-9_-]+$/.test(editableProfile.userName)) {
                 setUsernameError(
-                    "Username can only contain letters, numbers, underscores, or hyphens"
+                    "Username can only contain letters, numbers, underscores, or hyphens",
                 );
                 return;
             }
 
             if (editableProfile.userName !== profile.userName) {
                 const isUnique = await checkUsernameUniqueness(
-                    editableProfile.userName
+                    editableProfile.userName,
                 );
                 if (!isUnique) {
                     setUsernameError("This username is already taken");
@@ -238,17 +238,21 @@ export default function ProfilePage() {
             if (!res.ok) throw new Error("Profile update failed");
 
             // Refetch profile from database to get updated data
-            const updatedRes = await fetch(`/api/profile?email=${encodeURIComponent(emailToUse)}`);
+            const updatedRes = await fetch(
+                `/api/profile?email=${encodeURIComponent(emailToUse)}`,
+            );
             if (updatedRes.ok) {
                 const updatedData = await updatedRes.json();
                 setProfile({
                     ...editableProfile,
-                    profileImage: updatedData.profile_picture_url || editableProfile.profileImage,
+                    profileImage:
+                        updatedData.profile_picture_url ||
+                        editableProfile.profileImage,
                 });
             } else {
                 setProfile({ ...editableProfile, fullName: profile.fullName });
             }
-            
+
             setIsEditing(false);
             toast.success("Profile updated");
         } catch (error) {
@@ -259,14 +263,14 @@ export default function ProfilePage() {
     };
 
     const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
     ) => {
         const { name, value } = e.target;
         setEditableProfile((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleImageChange = async (
-        e: React.ChangeEvent<HTMLInputElement>
+        e: React.ChangeEvent<HTMLInputElement>,
     ) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -369,8 +373,8 @@ export default function ProfilePage() {
                                         {isLoading
                                             ? "Saving..."
                                             : isValidatingUsername
-                                            ? "Validating..."
-                                            : "Save Edits"}
+                                              ? "Validating..."
+                                              : "Save Edits"}
                                     </button>
                                 </>
                             ) : (
@@ -409,23 +413,23 @@ export default function ProfilePage() {
                                             isEditing
                                                 ? editableProfile.profileImage
                                                     ? getImageUrl(
-                                                          editableProfile.profileImage
+                                                          editableProfile.profileImage,
                                                       )
                                                     : profile.profileImage
-                                                    ? getImageUrl(
-                                                          profile.profileImage
-                                                      )
-                                                    : getDefaultProfileImageUrl()
+                                                      ? getImageUrl(
+                                                            profile.profileImage,
+                                                        )
+                                                      : getDefaultProfileImageUrl()
                                                 : profile.profileImage
-                                                ? getImageUrl(
-                                                      profile.profileImage
-                                                  )
-                                                : getDefaultProfileImageUrl()
+                                                  ? getImageUrl(
+                                                        profile.profileImage,
+                                                    )
+                                                  : getDefaultProfileImageUrl()
                                         }
                                         alt="Profile picture"
                                         width={112}
                                         height={112}
-                                        className="object-cover"
+                                        className="object-cover w-full h-full"
                                     />
                                     {isEditing && (
                                         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity duration-200">
@@ -547,14 +551,14 @@ export default function ProfilePage() {
                                         <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800">
                                             {profile.dob
                                                 ? new Date(
-                                                      profile.dob
+                                                      profile.dob,
                                                   ).toLocaleDateString(
                                                       "en-GB",
                                                       {
                                                           day: "2-digit",
                                                           month: "2-digit",
                                                           year: "numeric",
-                                                      }
+                                                      },
                                                   )
                                                 : "Not provided"}
                                         </div>
@@ -613,7 +617,7 @@ export default function ProfilePage() {
                                                         countriesWithCities.find(
                                                             (c) =>
                                                                 c.name ===
-                                                                newCountry
+                                                                newCountry,
                                                         );
                                                     const defaultCity =
                                                         countryData &&
@@ -697,13 +701,13 @@ export default function ProfilePage() {
                                             <img
                                                 src={
                                                     getImageUrl(
-                                                        subscription.artist_profile_picture_url
+                                                        subscription.artist_profile_picture_url,
                                                     ) ||
                                                     getImageUrl(
-                                                        subscription.artist_cover_photo_url
+                                                        subscription.artist_cover_photo_url,
                                                     ) ||
                                                     getImageUrl(
-                                                        DEFAULT_PROFILE_IMAGE
+                                                        DEFAULT_PROFILE_IMAGE,
                                                     )
                                                 }
                                                 alt={
@@ -767,8 +771,8 @@ export default function ProfilePage() {
                             {isLoading
                                 ? "Connecting..."
                                 : profile.spotifyLinked
-                                ? "Connected"
-                                : "Sync Now"}
+                                  ? "Connected"
+                                  : "Sync Now"}
                         </button>
                     </div>
                 </div>
