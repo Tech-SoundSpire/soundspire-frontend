@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         if (!artist_name || !artist_name.trim()) {
             return NextResponse.json(
                 { error: "Artist name is required" },
-                { status: 400 }
+                { status: 400 },
             );
         }
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
             try {
                 const decoded = jwt.verify(
                     existingToken,
-                    process.env.JWT_SECRET!
+                    process.env.JWT_SECRET!,
                 ) as DecodedToken;
                 const u = await User.findOne({
                     where: { user_id: decoded.id },
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
                     {
                         error: "Email, username, and password are required for new accounts",
                     },
-                    { status: 400 }
+                    { status: 400 },
                 );
             }
 
@@ -76,13 +76,13 @@ export async function POST(request: NextRequest) {
 
             if (!user) {
                 const existingUsername = await User.findOne({
-                    where: { username },
+                    where: { username, is_artist: true },
                 });
 
                 if (existingUsername) {
                     return NextResponse.json(
                         { error: "Username already taken" },
-                        { status: 400 }
+                        { status: 400 },
                     );
                 }
 
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
             if (!user) {
                 return NextResponse.json(
                     { error: "User could not be created or found" },
-                    { status: 500 }
+                    { status: 500 },
                 );
             }
 
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
             const token = jwt.sign(
                 { id: userId, role: "artist" },
                 process.env.JWT_SECRET!,
-                { expiresIn: "30d" }
+                { expiresIn: "30d" },
             );
             cookieStore.set({
                 name: "token",
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
                     artist_id: dupByName.artist_id,
                     redirect: `/payout?artistId=${dupByName.artist_id}`,
                 },
-                { status: 400 }
+                { status: 400 },
             );
         }
         const slug = await createArtistSlug(artist_name);

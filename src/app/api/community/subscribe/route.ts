@@ -1,6 +1,7 @@
 import Artist from "@/models/Artist";
 import Community from "@/models/Community";
 import CommunitySubscription from "@/models/CommunitySubscription";
+import { User } from "@/models/User";
 import { type communityDataFromAPI } from "@/types/communityGetAllAPIData";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { NextRequest, NextResponse } from "next/server";
@@ -17,7 +18,7 @@ export async function DELETE(request: NextRequest) {
                     message: "Ids weren't provided",
                     subscribed: true,
                 },
-                { status: 400 }
+                { status: 400 },
             );
         }
         const subscription = await CommunitySubscription.findOne({
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
                     message: "Ids weren't provided",
                     subscribed: false,
                 },
-                { status: 400 }
+                { status: 400 },
             );
         }
         // ASKS FOR SPECIFIC ID, USED ON THE ARTIST PROFILE PAGE
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
                         message: "Subscription found",
                         subscribed: true,
                     },
-                    { status: 200 }
+                    { status: 200 },
                 );
             }
             return NextResponse.json(
@@ -81,7 +82,7 @@ export async function GET(request: NextRequest) {
                     message: "Subscription not found",
                     subscribed: false,
                 },
-                { status: 200 }
+                { status: 200 },
             );
         }
         // IN GENERAL TO GET ALL THE SUBSCRIPTIONS FOR A USER.
@@ -107,6 +108,9 @@ export async function GET(request: NextRequest) {
                 },
             ],
         });
+        const userInfo = await User.findByPk(user_id, {
+            attributes: ["username", "profile_picture_url", "full_name"],
+        });
         const subscribedCommunities = allSubscriptions.map((element) => {
             const community = element.community;
             const artist = community?.artist;
@@ -124,8 +128,9 @@ export async function GET(request: NextRequest) {
             {
                 status: "SUCCESS",
                 communities: subscribedCommunities,
+                user: userInfo,
             },
-            { status: 200 }
+            { status: 200 },
         );
     } catch (err) {
         console.error("Error fetching subscription data: ", err);
@@ -153,7 +158,7 @@ export async function POST(request: NextRequest) {
         if (!user_id) {
             return NextResponse.json(
                 { error: "User id is invalid!" },
-                { status: 400 }
+                { status: 400 },
             );
         }
         let subscription = await CommunitySubscription.findOne({
@@ -162,7 +167,7 @@ export async function POST(request: NextRequest) {
         if (subscription) {
             return NextResponse.json(
                 { error: "User is already subscribed to this community!" },
-                { status: 400 }
+                { status: 400 },
             );
         }
         subscription = await CommunitySubscription.create({
@@ -179,7 +184,7 @@ export async function POST(request: NextRequest) {
         if (!subscription) {
             return NextResponse.json(
                 { error: "Failed to create a new community subscription" },
-                { status: 400 }
+                { status: 400 },
             );
         }
         const subData = subscription.get({ plain: true });
