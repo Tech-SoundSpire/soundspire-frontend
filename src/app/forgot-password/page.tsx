@@ -36,14 +36,16 @@ export default function ForgotPasswordPage() {
             <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
                 {/* Logo at Top */}
                 <div>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                        src={getLogoUrl()}
-                        alt="SoundSpire logo"
-                        width={200}
-                        height={200}
-                        className="mb-4"
-                    />
+                    <Link href="/">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={getLogoUrl()}
+                            alt="SoundSpire logo"
+                            width={200}
+                            height={200}
+                            className="mb-4 cursor-pointer"
+                        />
+                    </Link>
                 </div>
 
                 {/* Welcome Text at Bottom */}

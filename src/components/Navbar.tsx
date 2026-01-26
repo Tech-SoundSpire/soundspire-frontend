@@ -16,9 +16,10 @@ import Link from "next/link";
 import { useState } from "react";
 import BaseText from "./BaseText/BaseText";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
+import { useAuth } from "@/context/AuthContext";
 
 const Navbar = () => {
-    // const { logout } = useAuth();
+    const { user } = useAuth();
     const [isExpanded, setIsExpanded] = useState(false);
 
     const menuItems = [
@@ -34,6 +35,12 @@ const Navbar = () => {
     ];
     // Delay for opacity.
     const baseTransitionDelay = 35;
+
+    const getHomeRoute = () => {
+        if (!user) return "/";
+        return user.role === "artist" ? "/artist/dashboard" : "/explore";
+    };
+
     return (
         <nav
             className={`fixed left-0 top-0 h-full bg-black transition-all duration-300 z-[9999] ${
@@ -45,7 +52,7 @@ const Navbar = () => {
             <div className="flex flex-col h-full pt-6">
                 {/* Logo */}
                 <Link
-                    href="/"
+                    href={getHomeRoute()}
                     className={`grid items-center gap-4 mb-8 transition-all duration-300 ${
                         isExpanded
                             ? "grid-cols-[1fr_5fr]"

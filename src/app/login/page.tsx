@@ -129,16 +129,16 @@ function LoginPageInner() {
             {/* Left Side: Branding & Welcome */}
             <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
                 {/* Logo at Top */}
-                <div>
+                <Link href="/">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         src={getLogoUrl()}
                         alt="SoundSpire logo"
                         width={200}
                         height={200}
-                        className="mb-4"
+                        className="mb-4 cursor-pointer"
                     />
-                </div>
+                </Link>
 
                 {/* Welcome Text at Bottom */}
                 <div className="mb-12">
