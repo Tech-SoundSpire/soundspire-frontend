@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
 import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
 import BaseText from "@/components/BaseText/BaseText";
@@ -20,22 +21,16 @@ export default function RootLayout({
                     {/* Logo */}
                     <div className="flex items-center">
                         <div className="w-28 h-28 mr-3 relative">
-                            <img
-                                src={getLogoUrl()}
-                                alt="SoundSpire Logo"
-                                width={100}
-                                height={100}
-                                className="mr-3 object-contain"
-                            />
+                            <Link href="/">
+                                <img
+                                    src={getLogoUrl()}
+                                    alt="SoundSpire Logo"
+                                    width={100}
+                                    height={100}
+                                    className="mb-4 cursor-pointer"
+                                />
+                            </Link>
                         </div>
-                        <BaseText
-                            wrapper="span"
-                            textColor="#ffffff"
-                            fontSize="normal"
-                            fontWeight={700}
-                        >
-                            SoundSpire
-                        </BaseText>
                     </div>
 
                     {/* 🔹 Slot for page-specific header actions */}

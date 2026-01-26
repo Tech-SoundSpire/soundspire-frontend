@@ -117,13 +117,15 @@ export default function ArtistLoginPage() {
 
                 {/* Logo */}
                 <div className="relative z-10">
-                    <img
-                        src={getLogoUrl()}
-                        alt="SoundSpire logo"
-                        width={200}
-                        height={200}
-                        className="mb-4"
-                    />
+                    <Link href="/">
+                        <img
+                            src={getLogoUrl()}
+                            alt="SoundSpire logo"
+                            width={200}
+                            height={200}
+                            className="mb-4 cursor-pointer"
+                        />
+                    </Link>
                 </div>
 
                 {/* Welcome Text */}
