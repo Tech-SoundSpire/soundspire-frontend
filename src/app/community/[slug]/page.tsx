@@ -344,8 +344,9 @@ export default function ArtistCommunityProfile() {
                                 return (
                                     <a
                                         key={i}
-                                        href={`/${s.url}`}
+                                        href={s.url}
                                         target="_blank"
+                                        rel="noopener noreferrer"
                                         className="text-white hover:text-[#FA6400] transition text-3xl"
                                     >
                                         <Icon />
