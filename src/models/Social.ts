@@ -21,14 +21,14 @@ class Social
   extends Model<SocialAttributes, SocialCreationAttributes>
   implements SocialAttributes
 {
-  public id!: string;
-  public user_id!: string | null;
-  public artist_id!: string | null;
-  public platform!: string;
-  public external_id!: string;
-  public url!: string | null;
-  public created_at!: Date;
-  public updated_at!: Date;
+  declare id: string;
+  declare user_id: string | null;
+  declare artist_id: string | null;
+  declare platform: string;
+  declare external_id: string;
+  declare url: string | null;
+  declare created_at: Date;
+  declare updated_at: Date;
 }
 
 Social.init(

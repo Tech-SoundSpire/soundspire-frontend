@@ -36,28 +36,28 @@ class Review
   extends Model<ReviewAttributes, ReviewCreationAttributes>
   implements ReviewAttributes
 {
-  public review_id!: string;
-  public user_id!: string;
-  public content_type!: string;
-  public content_id!: string;
-  public artist_id!: string | null;
-  public artist_name!: string | null;
-  public content_name!: string;
-  public title!: string;
-  public text_content!: string;
-  public rating!: number;
-  public image_urls!: string[] | null;
+  declare review_id: string;
+  declare user_id: string;
+  declare content_type: string;
+  declare content_id: string;
+  declare artist_id: string | null;
+  declare artist_name: string | null;
+  declare content_name: string;
+  declare title: string;
+  declare text_content: string;
+  declare rating: number;
+  declare image_urls: string[] | null;
   // New fields for SoundSpire reviews
-  public author!: string | null;
-  public review_date!: Date | null;
-  public review_type!: string | null;
-  public created_at!: Date;
-  public updated_at!: Date;
-  public deleted_at!: Date | null;
+  declare author: string | null;
+  declare review_date: Date | null;
+  declare review_type: string | null;
+  declare created_at: Date;
+  declare updated_at: Date;
+  declare deleted_at: Date | null;
 
   // Association properties
-  public user?: any;
-  public artist?: any;
+  declare user?: any;
+  declare artist?: any;
 }
 
 Review.init(

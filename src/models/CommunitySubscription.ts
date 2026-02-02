@@ -30,18 +30,18 @@ class CommunitySubscription
     >
     implements CommunitySubscriptionAttributes
 {
-    public subscription_id!: string;
-    public user_id!: string;
-    public community_id!: string;
-    public start_date!: Date;
-    public end_date!: Date;
-    public is_active!: boolean;
-    public payment_id!: string | null;
-    public auto_renew!: boolean;
-    public created_at!: Date;
-    public updated_at!: Date;
+    declare subscription_id: string;
+    declare user_id: string;
+    declare community_id: string;
+    declare start_date: Date;
+    declare end_date: Date;
+    declare is_active: boolean;
+    declare payment_id: string | null;
+    declare auto_renew: boolean;
+    declare created_at: Date;
+    declare updated_at: Date;
 
-    public community?: NonAttribute<Community>;
+    declare community?: NonAttribute<Community>;
     artist: any;
 }
 

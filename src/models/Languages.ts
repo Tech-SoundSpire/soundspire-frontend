@@ -17,8 +17,8 @@ export class Languages
   extends Model<LanguagesAttributes, LanguagesCreationAttributes>
   implements LanguagesAttributes
 {
-  public language_id!: string;
-  public name!: string;
+  declare language_id: string;
+  declare name: string;
 
   static associate(models: Models) {
     // Add associations if needed

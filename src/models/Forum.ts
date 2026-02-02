@@ -14,13 +14,13 @@ interface ForumAttributes {
 interface ForumCreationAttributes extends Optional<ForumAttributes, 'forum_id' | 'description' | 'created_at' | 'updated_at'> {}
 
 class Forum extends Model<ForumAttributes, ForumCreationAttributes> implements ForumAttributes {
-  public forum_id!: string;
-  public community_id!: string;
-  public name!: string;
-  public description!: string;
-  public forum_type!: string;
-  public created_at!: Date;
-  public updated_at!: Date;
+  declare forum_id: string;
+  declare community_id: string;
+  declare name: string;
+  declare description: string;
+  declare forum_type: string;
+  declare created_at: Date;
+  declare updated_at: Date;
 }
 
 Forum.init({
