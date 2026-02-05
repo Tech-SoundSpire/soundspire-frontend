@@ -1,4 +1,5 @@
 "use client";
+
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import styles from "./communities.module.css";
 import Link from "next/link";
@@ -13,29 +14,36 @@ import { communityDataFromAPI } from "@/types/communityGetAllAPIData";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 import BaseText from "@/components/BaseText/BaseText";
+
 export default function MyCommunities() {
-    const [searchValue, setSearchValue] = useState("");
-    const [userProfilePicture, setUserProfilePicture] = useState<null | string>(
-        null,
-    );
     const { user } = useAuth();
-    const [subscribedCommunitiesData, setSubscribedCommunitiesData] = useState<
-        communityDataFromAPI[]
-    >([]);
+
+    const [searchValue, setSearchValue] = useState("");
+    const [userProfilePicture, setUserProfilePicture] = useState<string | null>(
+        null
+    );
+
+    // 🔑 SINGLE source of truth for UI
+    const [communities, setCommunities] = useState<communityDataFromAPI[]>([]);
     const [loadingCommunities, setLoadingCommunities] = useState(true);
+
+    /* =========================
+       Initial load → subscribed communities
+       ========================= */
     useEffect(() => {
         if (!user) return;
+
         (async () => {
             try {
                 const res = await fetch(
-                    `/api/community/subscribe?user_id=${user.id}`,
+                    `/api/community/subscribe?user_id=${user.id}`
                 );
                 if (!res.ok)
-                    throw new Error("Error trying to fetch community API.");
-                const json = await res.json();
+                    throw new Error("Error fetching subscribed communities");
 
-                setSubscribedCommunitiesData(json.communities);
-                setUserProfilePicture(json.user.profile_picture_url);
+                const json = await res.json();
+                setCommunities(json.communities);
+                setUserProfilePicture(json.user?.profile_picture_url || null);
             } catch (err) {
                 toast.error("Failed to load communities");
                 console.error(err);
@@ -45,12 +53,58 @@ export default function MyCommunities() {
         })();
     }, [user]);
 
+    /* =========================
+       Search logic
+       ========================= */
+    useEffect(() => {
+        if (!user) return;
+
+        // 🔁 CLEAR SEARCH → subscribed communities
+        if (!searchValue.trim()) {
+            (async () => {
+                try {
+                    const res = await fetch(
+                        `/api/community/subscribe?user_id=${user.id}`
+                    );
+                    const json = await res.json();
+                    setCommunities(json.communities);
+                } catch {
+                    toast.error("Failed to reload communities");
+                }
+            })();
+            return;
+        }
+
+        // ⛔ avoid spam requests
+        if (searchValue.trim().length < 2) return;
+
+        const fetchAllCommunities = async () => {
+            try {
+                const res = await fetch(
+                    `/api/community?search=${encodeURIComponent(searchValue)}`
+                );
+                if (!res.ok) throw new Error("Search failed");
+
+                const json = await res.json();
+                setCommunities(json.communities);
+            } catch (err) {
+                toast.error("Community search failed");
+            }
+        };
+
+        const debounce = setTimeout(fetchAllCommunities, 300);
+        return () => clearTimeout(debounce);
+    }, [searchValue, user]);
+
+    /* =========================
+       UI
+       ========================= */
     return (
         <div className={styles.main}>
             <header className={styles["intro"]}>
                 <div className={styles["navigation"]}>
                     <Link href={`/feed/`}>
-                        <FaArrowLeftLong></FaArrowLeftLong>
+                        <FaArrowLeftLong />
                     </Link>
                     <BaseHeading
                         headingLevel="h1"
@@ -61,18 +115,20 @@ export default function MyCommunities() {
                         MY COMMUNITIES
                     </BaseHeading>
                 </div>
+
                 <div className={styles["search"]}>
                     <div className={styles["search-bar"]}>
                         <div className={styles.icon}>
-                            <FaSearch></FaSearch>
+                            <FaSearch />
                         </div>
                         <input
                             type="text"
                             value={searchValue}
                             onChange={(e) => setSearchValue(e.target.value)}
                             placeholder="Search"
-                        ></input>
+                        />
                     </div>
+
                     <div className={styles["profile-picture"]}>
                         <img
                             alt="User Profile Picture"
@@ -80,44 +136,47 @@ export default function MyCommunities() {
                                 getImageUrl(userProfilePicture) ||
                                 getDefaultProfileImageUrl()
                             }
-                        ></img>
+                        />
                     </div>
                 </div>
             </header>
+
             <main className={styles.communities}>
                 {loadingCommunities ? (
                     <div className="flex justify-center items-center h-32">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
                     </div>
-                ) : subscribedCommunitiesData.length <= 0 ? (
+                ) : communities.length === 0 ? (
                     <BaseText textColor="#f0f0f0" fontSize="large">
                         No Communities Found.
                     </BaseText>
                 ) : (
-                    subscribedCommunitiesData.map((community) => {
+                    communities.map((community) => {
                         const communityAt = community.name?.replace(
                             /[\s'",.]/g,
-                            "",
+                            ""
                         );
+
                         return (
                             <div
-                                key={community.artist_slug}
+                                key={community.id}
                                 className={styles["community-card"]}
                             >
                                 <div className={styles["cover-image"]}>
                                     <img
                                         src={
                                             getImageUrl(
-                                                community.artist_profile_picture_url,
+                                                community.artist_profile_picture_url
                                             ) ||
                                             getImageUrl(
-                                                community.artist_cover_photo_url,
+                                                community.artist_cover_photo_url
                                             ) ||
                                             getDefaultProfileImageUrl()
                                         }
                                         alt={`${community.name}'s cover image.`}
-                                    ></img>
+                                    />
                                 </div>
+
                                 <div className={styles["card-content"]}>
                                     <div className={styles["reference"]}>
                                         <BaseHeading
@@ -132,8 +191,11 @@ export default function MyCommunities() {
                                             wrapper="span"
                                             fontSize="normal"
                                             textColor="#817f85"
-                                        >{`@${communityAt}`}</BaseText>
+                                        >
+                                            @{communityAt}
+                                        </BaseText>
                                     </div>
+
                                     <div className={styles["stats"]}>
                                         <div className={styles["listeners"]}>
                                             <div
@@ -147,6 +209,7 @@ export default function MyCommunities() {
                                                 75,983
                                             </BaseText>
                                         </div>
+
                                         <div className={styles["genres"]}>
                                             <div
                                                 className={styles["design"]}
@@ -172,7 +235,7 @@ export default function MyCommunities() {
                                         >
                                             Go to Community
                                         </BaseText>
-                                        <FaArrowRightLong></FaArrowRightLong>
+                                        <FaArrowRightLong />
                                     </Link>
                                 </div>
                             </div>
