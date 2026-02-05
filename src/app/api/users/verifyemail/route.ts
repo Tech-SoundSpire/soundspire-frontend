@@ -4,11 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { UserVerification } from "@/models/UserVerification";
 
-interface SignupTokenPayload {
-  email: string;
-  username: string;
-  password_hash: string;
+interface VerificationTokenPayload {
+  userId: string;
 }
+
 export async function POST(request: NextRequest) {
   try {
     const { token } = await request.json();
@@ -21,43 +20,32 @@ export async function POST(request: NextRequest) {
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET!
-    ) as SignupTokenPayload;
-
-    // const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    ) as VerificationTokenPayload;
 
     await connectionTestingAndHelper();
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ where: { email: decoded.email } });
+    const user = await User.findOne({ where: { user_id: decoded.userId } });
 
-    let verifiedUser = existingUser;
-
-    if (existingUser) {
-      // If user exists, just mark as verified (idempotent)
-      if (!existingUser.is_verified) {
-        await existingUser.update({ is_verified: true });
-      }
-      console.log("Email verified for existing user");
-    } else {
-      // Create user in DB (legacy path)
-      verifiedUser = await User.create({
-        username: decoded.username,
-        email: decoded.email,
-        password_hash: decoded.password_hash,
-        is_verified: true,
-      });
-      console.log("Email verified and account created");
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
     }
 
-    // Issue session token and record verification
+    if (!user.is_verified) {
+      await user.update({ is_verified: true });
+      console.log("Email verified for user:", user.email);
+    }
+
     const authToken = jwt.sign(
-      { id: verifiedUser!.user_id, email: verifiedUser!.email, role: verifiedUser!.is_artist ? "artist" : "user" },
+      { id: user.user_id, email: user.email, role: user.is_artist ? "artist" : "user" },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );
 
     await UserVerification.create({
-      user_id: verifiedUser!.user_id,
+      user_id: user.user_id,
       verification_type: "Email Verification",
       is_used: true,
       verification_token: authToken,

@@ -18,17 +18,17 @@ interface ForumPostAttributes {
 interface ForumPostCreationAttributes extends Optional<ForumPostAttributes, 'forum_post_id' | 'title' | 'content' | 'media_type' | 'media_urls' | 'is_pinned' | 'is_answered' | 'created_at' | 'updated_at'> {}
 
 class ForumPost extends Model<ForumPostAttributes, ForumPostCreationAttributes> implements ForumPostAttributes {
-  public forum_post_id!: string;
-  public forum_id!: string;
-  public user_id!: string;
-  public title!: string;
-  public content!: string;
-  public media_type!: string;
-  public media_urls!: string[];
-  public is_pinned!: boolean;
-  public is_answered!: boolean;
-  public created_at!: Date;
-  public updated_at!: Date;
+  declare forum_post_id: string;
+  declare forum_id: string;
+  declare user_id: string;
+  declare title: string;
+  declare content: string;
+  declare media_type: string;
+  declare media_urls: string[];
+  declare is_pinned: boolean;
+  declare is_answered: boolean;
+  declare created_at: Date;
+  declare updated_at: Date;
 }
 
 ForumPost.init({

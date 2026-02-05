@@ -25,14 +25,14 @@ export class UserPreferences
   extends Model<UserPreferencesAttributes, UserPreferencesCreationAttributes>
   implements UserPreferencesAttributes
 {
-  public preference_id!: string;
-  public user_id!: string;
-  public genres!: string[];
-  public languages!: string[];
-  public favorite_artists!: string[]; // UUID array for artist IDs
-  public spotify_id?: string;
-  public created_at?: Date;
-  public updated_at?: Date;
+  declare preference_id: string;
+  declare user_id: string;
+  declare genres: string[];
+  declare languages: string[];
+  declare favorite_artists: string[]; // UUID array for artist IDs
+  declare spotify_id?: string;
+  declare created_at?: Date;
+  declare updated_at?: Date;
 
   static associate(models: Models) {
     UserPreferences.belongsTo(models.User, {

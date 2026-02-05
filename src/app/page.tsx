@@ -146,17 +146,13 @@ export default function SignupPage() {
             });
 
             if (response.data.success) {
-                toast.success("Verification email sent! Check your inbox.");
+                toast.success("Verification email sent! Please check your inbox and verify your email before logging in.");
                 setUser({
                     username: "",
                     email: "",
                     password_hash: "",
                     confirm_password: "",
                 });
-
-                if (response.data.redirect) {
-                    window.location.href = response.data.redirect;
-                }
             }
         } catch (error) {
             if (axios.isAxiosError(error)) {
