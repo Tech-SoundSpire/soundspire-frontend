@@ -4,6 +4,7 @@ import { FaSearch } from "react-icons/fa";
 import Post from "@/components/Posts/Post";
 import { PostProps, CommentProps } from "@/lib/types";
 import styles from "./feed.module.css";
+import SearchDropdown from "@/components/ui/SearchDropdown";
 import {
   getImageUrl,
   DEFAULT_PROFILE_IMAGE,
@@ -74,42 +75,40 @@ export default function Page() {
   useEffect(() => {
     // 🔁 Clear search → default feed reload
     if (searchQuery.trim().length === 0) {
-        fetch("/api/posts")
-            .then((res) => res.json())
-            .then((data) => {
-                const updatedPosts = data.map((post: PostProps) => {
-                    const commentsMap: { [key: string]: CommentProps } = {};
-                    const topLevelComments: CommentProps[] = [];
+      fetch("/api/posts")
+        .then((res) => res.json())
+        .then((data) => {
+          const updatedPosts = data.map((post: PostProps) => {
+            const commentsMap: { [key: string]: CommentProps } = {};
+            const topLevelComments: CommentProps[] = [];
 
-                    post.comments.forEach((comment: CommentProps) => {
-                        commentsMap[comment.comment_id] = {
-                            ...comment,
-                            replies: [],
-                        };
-                    });
-
-                    post.comments.forEach((comment: CommentProps) => {
-                        if (comment.parent_comment_id) {
-                            commentsMap[comment.parent_comment_id]?.replies?.push(
-                                commentsMap[comment.comment_id]
-                            );
-                        } else {
-                            topLevelComments.push(
-                                commentsMap[comment.comment_id]
-                            );
-                        }
-                    });
-
-                    return {
-                        ...post,
-                        comments: topLevelComments,
-                    };
-                });
-
-                setPosts(updatedPosts);
+            post.comments.forEach((comment: CommentProps) => {
+              commentsMap[comment.comment_id] = {
+                ...comment,
+                replies: [],
+              };
             });
 
-        return;
+            post.comments.forEach((comment: CommentProps) => {
+              if (comment.parent_comment_id) {
+                commentsMap[comment.parent_comment_id]?.replies?.push(
+                  commentsMap[comment.comment_id],
+                );
+              } else {
+                topLevelComments.push(commentsMap[comment.comment_id]);
+              }
+            });
+
+            return {
+              ...post,
+              comments: topLevelComments,
+            };
+          });
+
+          setPosts(updatedPosts);
+        });
+
+      return;
     }
 
     // 🔍 Search case (min 2 chars)
@@ -117,53 +116,51 @@ export default function Page() {
     if (searchQuery.trim().length < 2) return;
 
     const fetchSearchPosts = async () => {
-        try {
-            const res = await fetch(
-                `/api/posts?search=${searchQuery}&user_id=${userId}`
-            );
-            if (!res.ok) throw new Error("Search failed");
+      try {
+        const res = await fetch(
+          `/api/posts?search=${searchQuery}&user_id=${userId}`,
+        );
+        if (!res.ok) throw new Error("Search failed");
 
-            const data = await res.json();
+        const data = await res.json();
 
-            // same comment normalisation
-            const updatedPosts = data.map((post: PostProps) => {
-                const commentsMap: { [key: string]: CommentProps } = {};
-                const topLevelComments: CommentProps[] = [];
+        // same comment normalisation
+        const updatedPosts = data.map((post: PostProps) => {
+          const commentsMap: { [key: string]: CommentProps } = {};
+          const topLevelComments: CommentProps[] = [];
 
-                post.comments.forEach((comment: CommentProps) => {
-                    commentsMap[comment.comment_id] = {
-                        ...comment,
-                        replies: [],
-                    };
-                });
+          post.comments.forEach((comment: CommentProps) => {
+            commentsMap[comment.comment_id] = {
+              ...comment,
+              replies: [],
+            };
+          });
 
-                post.comments.forEach((comment: CommentProps) => {
-                    if (comment.parent_comment_id) {
-                        commentsMap[comment.parent_comment_id]?.replies?.push(
-                            commentsMap[comment.comment_id]
-                        );
-                    } else {
-                        topLevelComments.push(
-                            commentsMap[comment.comment_id]
-                        );
-                    }
-                });
+          post.comments.forEach((comment: CommentProps) => {
+            if (comment.parent_comment_id) {
+              commentsMap[comment.parent_comment_id]?.replies?.push(
+                commentsMap[comment.comment_id],
+              );
+            } else {
+              topLevelComments.push(commentsMap[comment.comment_id]);
+            }
+          });
 
-                return {
-                    ...post,
-                    comments: topLevelComments,
-                };
-            });
+          return {
+            ...post,
+            comments: topLevelComments,
+          };
+        });
 
-            setPosts(updatedPosts);
-        } catch (err) {
-            console.error("Feed search failed", err);
-        }
+        setPosts(updatedPosts);
+      } catch (err) {
+        console.error("Feed search failed", err);
+      }
     };
 
     const debounce = setTimeout(fetchSearchPosts, 300);
     return () => clearTimeout(debounce);
-}, [searchQuery]);
+  }, [searchQuery]);
 
   //console.log(posts)
 
@@ -183,12 +180,9 @@ export default function Page() {
             </BaseHeading>
             <div className="relative w-full max-w-2xl items-center mx-auto">
               <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-[80%] px-4 py-2 pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                <SearchDropdown
+                  apiEndpoint="/api/posts"
+                  placeholder="Search posts..."
                 />
 
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />

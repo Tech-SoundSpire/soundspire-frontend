@@ -9,6 +9,7 @@ import { FaSearch, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import SearchDropdown from "@/components/ui/SearchDropdown";
 import {
   getImageUrl,
   DEFAULT_PROFILE_IMAGE,
@@ -176,13 +177,7 @@ export default function ExplorePage() {
         <div className="flex justify-between items-center mb-8">
           <div className="relative w-full max-w-2xl items-center mx-auto">
             <div className="relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
+              <SearchDropdown apiEndpoint="/api/search" />
 
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
