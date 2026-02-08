@@ -26,15 +26,15 @@ class Community
     extends Model<CommunityAttributes, CommunityCreationAttributes>
     implements CommunityAttributes
 {
-    public community_id!: string;
-    public artist_id!: string;
-    public name!: string;
-    public description!: string | null;
-    public subscription_fee!: number;
-    public subscription_interval!: string;
-    public created_at!: Date;
-    public updated_at!: Date;
-    public artist?: NonAttribute<Artist>;
+    declare community_id: string;
+    declare artist_id: string;
+    declare name: string;
+    declare description: string | null;
+    declare subscription_fee: number;
+    declare subscription_interval: string;
+    declare created_at: Date;
+    declare updated_at: Date;
+    declare artist?: NonAttribute<Artist>;
 }
 
 Community.init(

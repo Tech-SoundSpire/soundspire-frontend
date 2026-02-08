@@ -35,20 +35,20 @@ class Artist
     extends Model<ArtistAttributes, ArtistCreationAttributes>
     implements ArtistAttributes
 {
-    public artist_id!: string;
-    public user_id!: string | null;
-    public artist_name!: string;
-    public bio!: string | null;
-    public profile_picture_url!: string | null;
-    public cover_photo_url!: string | null;
-    public verification_status!: string | null;
-    public third_party_platform!: string | null;
-    public third_party_id!: string | null;
-    public featured!: boolean;
-    public payout_method!: PayoutMethod | null;
-    public created_at!: Date;
-    public updated_at!: Date;
-    public slug!: string;
+    declare artist_id: string;
+    declare user_id: string | null;
+    declare artist_name: string;
+    declare bio: string | null;
+    declare profile_picture_url: string | null;
+    declare cover_photo_url: string | null;
+    declare verification_status: string | null;
+    declare third_party_platform: string | null;
+    declare third_party_id: string | null;
+    declare featured: boolean;
+    declare payout_method: PayoutMethod | null;
+    declare created_at: Date;
+    declare updated_at: Date;
+    declare slug: string;
     // Association definition
     static associate(models: Models) {
         // Artist.hasMany(models.Post, { foreignKey: 'artist_id', as: 'posts' });
