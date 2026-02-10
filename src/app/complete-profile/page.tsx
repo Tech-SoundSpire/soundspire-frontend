@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -14,6 +14,8 @@ import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
 import { sanitizeURL } from "@/utils/sanitizeURL";
+import { City, Country, ICity, ICountry } from "country-state-city";
+import { getPhoneLength } from "@/lib/countryPhoneLength";
 
 interface FormData {
     full_name: string;
@@ -21,6 +23,7 @@ interface FormData {
     date_of_birth: string;
     city: string;
     country: string;
+    country_code: string;
     phone_number: string;
     profile_picture_url?: string | null;
 }
@@ -41,14 +44,55 @@ export default function CompleteProfilePage() {
         date_of_birth: "",
         city: "",
         country: "",
+        country_code: "",
         phone_number: "",
         profile_picture_url: null,
     });
 
-    const [errors, setErrors] = useState<Partial<FormData>>({});
+    const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
     const [preview, setPreview] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
+
+    // City search state
+    const [cityQuery, setCityQuery] = useState("");
+    const [showCityDropdown, setShowCityDropdown] = useState(false);
+    const cityDropdownRef = useRef<HTMLDivElement>(null);
+
+    // All cities (loaded once)
+    const allCities = useMemo(() => City.getAllCities(), []);
+
+    // Filtered cities based on search query
+    const filteredCities = useMemo(() => {
+        if (cityQuery.length < 2) return [];
+        const q = cityQuery.toLowerCase();
+        return allCities
+            .filter((c) => c.name.toLowerCase().startsWith(q))
+            .slice(0, 50);
+    }, [cityQuery, allCities]);
+
+    // Selected country info (derived from city selection)
+    const selectedCountry: ICountry | undefined = useMemo(() => {
+        if (!form.country_code) return undefined;
+        return Country.getCountryByCode(form.country_code) || undefined;
+    }, [form.country_code]);
+
+    // Phone length for selected country
+    const phoneLen = useMemo(
+        () => (form.country_code ? getPhoneLength(form.country_code) : null),
+        [form.country_code]
+    );
+
+    // Close city dropdown on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target as Node)) {
+                setShowCityDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
 
     useEffect(() => {
         // Wait for all checks to complete
@@ -103,17 +147,23 @@ export default function CompleteProfilePage() {
         /^[A-Za-z\s]+$/.test(name)
             ? ""
             : "Full name should contain only letters.";
-    const validatePhoneNumber = (phone: string) =>
-        /^\d{10}$/.test(phone) ? "" : "Phone number must be exactly 10 digits.";
+    const validatePhoneNumber = (phone: string) => {
+        if (!phone) return "Phone number is required.";
+        if (!/^\d+$/.test(phone)) return "Phone number must contain only digits.";
+        if (phoneLen) {
+            if (phone.length < phoneLen.min || phone.length > phoneLen.max) {
+                return phoneLen.min === phoneLen.max
+                    ? `Phone number must be exactly ${phoneLen.min} digits for this country.`
+                    : `Phone number must be ${phoneLen.min}-${phoneLen.max} digits for this country.`;
+            }
+        }
+        return "";
+    };
     const validateDOB = (dob: string) => {
         const birthDate = new Date(dob);
         const age = new Date().getFullYear() - birthDate.getFullYear();
         return age >= 13 ? "" : "You must be at least 13 years old.";
     };
-    const validateText = (value: string, field: string) =>
-        /^[A-Za-z\s]+$/.test(value)
-            ? ""
-            : `${field} should contain only letters.`;
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -123,11 +173,23 @@ export default function CompleteProfilePage() {
         if (name === "full_name") error = validateFullName(value);
         if (name === "phone_number") error = validatePhoneNumber(value);
         if (name === "date_of_birth") error = validateDOB(value);
-        if (name === "city") error = validateText(value, "City");
-        if (name === "country") error = validateText(value, "Country");
 
         setForm({ ...form, [name]: value });
         setErrors({ ...errors, [name]: error });
+    };
+
+    const handleCitySelect = (city: ICity) => {
+        const country = Country.getCountryByCode(city.countryCode);
+        setCityQuery(city.name);
+        setForm({
+            ...form,
+            city: city.name,
+            country: country?.name || "",
+            country_code: city.countryCode,
+            phone_number: "", // reset phone when country changes
+        });
+        setErrors({ ...errors, city: "", country: "", phone_number: "" });
+        setShowCityDropdown(false);
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,12 +253,12 @@ export default function CompleteProfilePage() {
             return;
         }
 
-        const newErrors: Partial<FormData> = {
+        const newErrors: Partial<Record<keyof FormData, string>> = {
             full_name: validateFullName(form.full_name),
             phone_number: validatePhoneNumber(form.phone_number),
             date_of_birth: validateDOB(form.date_of_birth),
-            city: validateText(form.city, "City"),
-            country: validateText(form.country, "Country"),
+            city: form.city ? "" : "Please select a city.",
+            country: form.country ? "" : "Please select a city first.",
         };
 
         if (Object.values(newErrors).some((err) => err)) {
@@ -215,6 +277,9 @@ export default function CompleteProfilePage() {
 
             const res = await axios.post("/api/users/complete-profile", {
                 ...form,
+                phone_number: selectedCountry
+                    ? `+${selectedCountry.phonecode}-${form.phone_number}`
+                    : form.phone_number,
                 profile_picture_url: profilePictureUrl,
             });
 
@@ -365,16 +430,38 @@ export default function CompleteProfilePage() {
                         )}
                     </div>
 
-                    {/* City */}
-                    <div>
+                    {/* City - searchable dropdown */}
+                    <div ref={cityDropdownRef} className="relative">
                         <input
                             type="text"
-                            name="city"
-                            placeholder="City"
-                            value={form.city}
-                            onChange={handleChange}
+                            placeholder="Search for your city..."
+                            value={cityQuery}
+                            onChange={(e) => {
+                                setCityQuery(e.target.value);
+                                setShowCityDropdown(true);
+                                if (!e.target.value) {
+                                    setForm({ ...form, city: "", country: "", country_code: "", phone_number: "" });
+                                }
+                            }}
+                            onFocus={() => cityQuery.length >= 2 && setShowCityDropdown(true)}
                             className="w-full px-4 py-3 rounded-xl border border-gray-600 bg-gray-900/50 text-gray-100"
                         />
+                        {showCityDropdown && filteredCities.length > 0 && (
+                            <ul className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto rounded-xl border border-gray-600 bg-gray-800 shadow-lg">
+                                {filteredCities.map((city, i) => {
+                                    const country = Country.getCountryByCode(city.countryCode);
+                                    return (
+                                        <li
+                                            key={`${city.name}-${city.stateCode}-${city.countryCode}-${i}`}
+                                            onClick={() => handleCitySelect(city)}
+                                            className="px-4 py-2 cursor-pointer hover:bg-gray-700 text-gray-100 text-sm"
+                                        >
+                                            {city.name}, {city.stateCode} — {country?.flag} {country?.name}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
                         {errors.city && (
                             <BaseText textColor="#f87171" fontSize="small">
                                 {errors.city}
@@ -382,15 +469,14 @@ export default function CompleteProfilePage() {
                         )}
                     </div>
 
-                    {/* Country */}
+                    {/* Country - auto-filled, read-only */}
                     <div>
                         <input
                             type="text"
-                            name="country"
-                            placeholder="Country"
-                            value={form.country}
-                            onChange={handleChange}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-600 bg-gray-900/50 text-gray-100"
+                            placeholder="Country (auto-filled from city)"
+                            value={selectedCountry ? `${selectedCountry.flag} ${selectedCountry.name}` : ""}
+                            readOnly
+                            className="w-full px-4 py-3 rounded-xl border border-gray-600 bg-gray-900/30 text-gray-400 cursor-not-allowed"
                         />
                         {errors.country && (
                             <BaseText textColor="#f87171" fontSize="small">
@@ -399,16 +485,34 @@ export default function CompleteProfilePage() {
                         )}
                     </div>
 
-                    {/* Phone Number */}
+                    {/* Phone Number with country code */}
                     <div>
-                        <input
-                            type="tel"
-                            name="phone_number"
-                            placeholder="Phone Number"
-                            value={form.phone_number}
-                            onChange={handleChange}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-600 bg-gray-900/50 text-gray-100"
-                        />
+                        <div className="flex gap-2">
+                            <div className="w-24 flex-shrink-0">
+                                <input
+                                    type="text"
+                                    value={selectedCountry ? `+${selectedCountry.phonecode}` : ""}
+                                    readOnly
+                                    placeholder="+__"
+                                    className="w-full px-3 py-3 rounded-xl border border-gray-600 bg-gray-900/30 text-gray-400 text-center cursor-not-allowed"
+                                />
+                            </div>
+                            <input
+                                type="tel"
+                                name="phone_number"
+                                placeholder={
+                                    phoneLen
+                                        ? phoneLen.min === phoneLen.max
+                                            ? `Phone (${phoneLen.min} digits)`
+                                            : `Phone (${phoneLen.min}-${phoneLen.max} digits)`
+                                        : "Select a city first"
+                                }
+                                value={form.phone_number}
+                                onChange={handleChange}
+                                disabled={!form.country_code}
+                                className="flex-1 px-4 py-3 rounded-xl border border-gray-600 bg-gray-900/50 text-gray-100 disabled:bg-gray-900/30 disabled:text-gray-500 disabled:cursor-not-allowed"
+                            />
+                        </div>
                         {errors.phone_number && (
                             <BaseText textColor="#f87171" fontSize="small">
                                 {errors.phone_number}

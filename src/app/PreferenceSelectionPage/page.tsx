@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Search, CheckCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -15,19 +15,21 @@ import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRou
 import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
+import ISO6391 from "iso-639-1";
+import musicGenres from "music-genres";
 
 // --- TYPE DEFINITIONS ---
 interface Language {
     language_id: string;
     name: string;
+    nativeName: string;
     color: string;
-    char: string;
 }
 
 interface Genre {
     genre_id: string;
     name: string;
-    img: string;
+    isParent: boolean;
 }
 
 interface Artist {
@@ -152,23 +154,21 @@ const LanguageSelection: React.FC<SelectionProps<Language>> = ({
                             }`}
                         >
                             <div
-                                className={`aspect-square rounded-2xl ${
+                                className={`aspect-[4/3] rounded-2xl ${
                                     language.color
-                                } flex items-center justify-center text-white text-4xl font-bold transition-all duration-300 ${
+                                } flex flex-col items-center justify-center gap-1 text-white transition-all duration-300 ${
                                     isSelected
-                                        ? "ring-4 ring-orange-400 shadow-lg"
-                                        : "group-hover:shadow-lg"
+                                        ? "ring-4 ring-orange-400 shadow-lg shadow-orange-400/20"
+                                        : "group-hover:shadow-lg group-hover:brightness-110"
                                 }`}
                             >
-                                {language.char}
+                                <span className="text-2xl md:text-3xl font-bold leading-tight">
+                                    {language.nativeName}
+                                </span>
                             </div>
-                            <BaseText
-                                fontWeight={500}
-                                textAlign="center"
-                                className="mt-2"
-                            >
+                            <p className="text-center mt-2 text-sm text-gray-300 font-medium">
                                 {language.name}
-                            </BaseText>
+                            </p>
 
                             {isSelected && (
                                 <div className="absolute -top-2 -right-2">
@@ -181,6 +181,29 @@ const LanguageSelection: React.FC<SelectionProps<Language>> = ({
             </div>
         </div>
     );
+};
+
+// Genre color mapping for parent genres
+const genreColors: Record<string, string> = {
+    Alternative: "border-purple-500 bg-purple-500/10",
+    Blues: "border-blue-500 bg-blue-500/10",
+    Country: "border-amber-500 bg-amber-500/10",
+    Electronic: "border-cyan-500 bg-cyan-500/10",
+    "Hip Hop Rap": "border-red-500 bg-red-500/10",
+    Jazz: "border-yellow-500 bg-yellow-500/10",
+    Latino: "border-orange-500 bg-orange-500/10",
+    Metal: "border-gray-400 bg-gray-400/10",
+    Pop: "border-pink-500 bg-pink-500/10",
+    Punk: "border-green-500 bg-green-500/10",
+    "R B Soul": "border-violet-500 bg-violet-500/10",
+    Reggae: "border-emerald-500 bg-emerald-500/10",
+    Rock: "border-rose-500 bg-rose-500/10",
+};
+
+const genreEmojis: Record<string, string> = {
+    Alternative: "🎸", Blues: "🎷", Country: "🤠", Electronic: "🎛️",
+    "Hip Hop Rap": "🎤", Jazz: "🎺", Latino: "💃", Metal: "🤘",
+    Pop: "🎵", Punk: "⚡", "R B Soul": "🎙️", Reggae: "🌴", Rock: "🎸",
 };
 
 // Step 2: Genre Selection
@@ -209,6 +232,10 @@ const GenreSelection: React.FC<SelectionProps<Genre>> = ({
         }
     };
 
+    // Group: parent genres shown as big cards, subgenres as pills
+    const parentGenres = filteredItems.filter((g) => g.isParent);
+    const subGenres = filteredItems.filter((g) => !g.isParent);
+
     return (
         <div className="space-y-6">
             <div className="text-left">
@@ -216,54 +243,77 @@ const GenreSelection: React.FC<SelectionProps<Genre>> = ({
                     headingLevel="h2"
                     className="text-3xl font-bold mb-2"
                 >
-                    Choose Your Favorite Genre
+                    Choose Your Favorite Genres
                 </BaseHeading>
                 <BaseText textColor="#fb923c" fontWeight={500}>
-                    Choose upto 5 Genres
+                    Choose up to 5 Genres
                 </BaseText>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {filteredItems.map((genre) => {
-                    const isSelected = selected.some(
-                        (item) => item.genre_id === genre.genre_id
-                    );
-                    return (
-                        <div
-                            key={genre.genre_id}
-                            onClick={() => handleToggle(genre)}
-                            className={`relative cursor-pointer group transition-all duration-300 ${
-                                isSelected ? "scale-105" : "hover:scale-105"
-                            }`}
-                        >
-                            <div className="relative aspect-square rounded-2xl overflow-hidden">
-                                <img
-                                    src={genre.img}
-                                    alt={genre.name}
-                                    className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-75"
-                                />
-                                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                                    <BaseHeading
-                                        headingLevel="h3"
-                                        textColor="#ffffff"
-                                        fontSize="normal"
-                                        fontWeight={700}
-                                        textAlign="center"
-                                    >
-                                        {genre.name}
-                                    </BaseHeading>
-                                </div>
+            {/* Parent genres as cards */}
+            {parentGenres.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {parentGenres.map((genre) => {
+                        const isSelected = selected.some(
+                            (item) => item.genre_id === genre.genre_id
+                        );
+                        const color = genreColors[genre.name] || "border-gray-500 bg-gray-500/10";
+                        const emoji = genreEmojis[genre.name] || "🎶";
+                        return (
+                            <div
+                                key={genre.genre_id}
+                                onClick={() => handleToggle(genre)}
+                                className={`relative cursor-pointer group transition-all duration-200 rounded-2xl border-2 p-4 flex flex-col items-center justify-center gap-2 ${color} ${
+                                    isSelected
+                                        ? "!border-orange-400 !bg-orange-400/20 shadow-lg shadow-orange-400/20 scale-105"
+                                        : "hover:brightness-125 hover:scale-105"
+                                }`}
+                            >
+                                <span className="text-3xl">{emoji}</span>
+                                <span className="text-white text-sm font-bold text-center">
+                                    {genre.name}
+                                </span>
+                                {isSelected && (
+                                    <div className="absolute -top-2 -right-2">
+                                        <CheckCircle className="w-7 h-7 text-white bg-orange-500 rounded-full p-0.5" />
+                                    </div>
+                                )}
                             </div>
+                        );
+                    })}
+                </div>
+            )}
 
-                            {isSelected && (
-                                <div className="absolute -top-2 -right-2">
-                                    <CheckCircle className="w-8 h-8 text-white bg-orange-500 rounded-full p-1" />
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
+            {/* Subgenres as pills */}
+            {subGenres.length > 0 && (
+                <>
+                    {parentGenres.length > 0 && (
+                        <BaseText textColor="#9ca3af" fontSize="small" className="mt-2">
+                            Subgenres
+                        </BaseText>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                        {subGenres.map((genre) => {
+                            const isSelected = selected.some(
+                                (item) => item.genre_id === genre.genre_id
+                            );
+                            return (
+                                <button
+                                    key={genre.genre_id}
+                                    onClick={() => handleToggle(genre)}
+                                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ${
+                                        isSelected
+                                            ? "border-orange-400 bg-orange-500/20 text-orange-300"
+                                            : "border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-400 hover:bg-gray-700/50"
+                                    }`}
+                                >
+                                    {isSelected && "✓ "}{genre.name}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </>
+            )}
         </div>
     );
 };
@@ -410,38 +460,44 @@ const PreferenceSelectionPage: React.FC = () => {
         router,
     ]);
 
-    // Load available options from database
+    // Load available options — languages & genres from packages, artists from DB
     useEffect(() => {
-        const loadOptions = async () => {
+        // Languages from iso-639-1
+        const colors = [
+            "bg-teal-500", "bg-orange-500", "bg-yellow-500", "bg-pink-500",
+            "bg-blue-500", "bg-green-500", "bg-indigo-500", "bg-red-500",
+        ];
+        const allLangs = ISO6391.getAllNames().map((name: string, i: number) => ({
+            language_id: ISO6391.getCode(name) || String(i),
+            name,
+            nativeName: ISO6391.getNativeName(ISO6391.getCode(name) || "") || name,
+            color: colors[i % colors.length],
+        }));
+        setAvailableLanguages(allLangs);
+
+        // Genres from music-genres (top-level + subgenres flattened)
+        const allGenresObj = musicGenres.getAllGenres();
+        const genreList: Genre[] = [];
+        Object.keys(allGenresObj).forEach((parent) => {
+            const displayName = parent.replace(/_/g, " ");
+            genreList.push({
+                genre_id: parent,
+                name: displayName,
+                isParent: true,
+            });
+            (allGenresObj[parent] as string[]).forEach((sub: string) => {
+                genreList.push({
+                    genre_id: `${parent}_${sub}`,
+                    name: sub,
+                    isParent: false,
+                });
+            });
+        });
+        setAvailableGenres(genreList);
+
+        // Artists still from DB
+        const loadArtists = async () => {
             try {
-                // Load languages
-                const languagesResponse = await axios.get(
-                    "/api/preferences/available/languages"
-                );
-                const languagesData = languagesResponse.data.languages.map(
-                    (lang: any) => ({
-                        ...lang,
-                        color: getRandomColor(),
-                        char: lang.name.charAt(0).toUpperCase(),
-                    })
-                );
-                setAvailableLanguages(languagesData);
-
-                // Load genres
-                const genresResponse = await axios.get(
-                    "/api/preferences/available/genres"
-                );
-                const genresData = genresResponse.data.genres.map(
-                    (genre: any) => ({
-                        ...genre,
-                        img: `https://placehold.co/600x400/111827/FFFFFF?text=${encodeURIComponent(
-                            genre.name
-                        )}`,
-                    })
-                );
-                setAvailableGenres(genresData);
-
-                // Load real artists from the database
                 const artistsResponse = await axios.get(
                     "/api/preferences/available/artists"
                 );
@@ -457,29 +513,15 @@ const PreferenceSelectionPage: React.FC = () => {
                 );
                 setAvailableArtists(artistsData);
             } catch (error) {
-                console.error("Error loading options:", error);
-                toast.error("Failed to load preference options");
+                console.error("Error loading artists:", error);
+                toast.error("Failed to load artists");
             }
         };
 
         if (user) {
-            loadOptions();
+            loadArtists();
         }
     }, [user]);
-
-    const getRandomColor = () => {
-        const colors = [
-            "bg-teal-500",
-            "bg-orange-500",
-            "bg-yellow-500",
-            "bg-pink-500",
-            "bg-blue-500",
-            "bg-green-500",
-            "bg-indigo-500",
-            "bg-red-500",
-        ];
-        return colors[Math.floor(Math.random() * colors.length)];
-    };
 
     const handleSelect = <K extends keyof Selections>(
         category: K,
@@ -544,30 +586,32 @@ const PreferenceSelectionPage: React.FC = () => {
     }
 
     return (
-        <div className="bg-[#120B1A] text-white min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
-            <div className="w-full max-w-4xl mx-auto space-y-8">
-                {/* Search Bar */}
-                <SearchBar
-                    placeholder={placeholders[step - 1]}
-                    onSearch={(query) =>
-                        handleSearch(
-                            Object.keys(searchQueries)[
-                                step - 1
-                            ] as keyof typeof searchQueries,
-                            query
-                        )
-                    }
-                />
+        <div className="bg-[#120B1A] text-white h-screen flex flex-col p-4 sm:p-6 font-sans overflow-hidden">
+            <div className="w-full max-w-4xl mx-auto flex flex-col h-full">
+                {/* Search Bar - fixed top */}
+                <div className="flex-shrink-0 py-4">
+                    <SearchBar
+                        placeholder={placeholders[step - 1]}
+                        onSearch={(query) =>
+                            handleSearch(
+                                Object.keys(searchQueries)[
+                                    step - 1
+                                ] as keyof typeof searchQueries,
+                                query
+                            )
+                        }
+                    />
+                </div>
 
-                {/* Carousel Container */}
-                <div className="overflow-hidden">
+                {/* Carousel Container - scrollable middle */}
+                <div className="flex-1 min-h-0 overflow-hidden">
                     <div
-                        className="flex transition-transform duration-500 ease-in-out"
+                        className="flex transition-transform duration-500 ease-in-out h-full"
                         style={{
                             transform: `translateX(-${(step - 1) * 100}%)`,
                         }}
                     >
-                        <div className="w-full flex-shrink-0 px-2 overflow-hidden">
+                        <div className="w-full flex-shrink-0 px-2 overflow-y-auto">
                             <LanguageSelection
                                 selected={selections.languages}
                                 onSelect={(items) =>
@@ -577,7 +621,7 @@ const PreferenceSelectionPage: React.FC = () => {
                                 searchQuery={searchQueries.languages}
                             />
                         </div>
-                        <div className="w-full flex-shrink-0 px-2 overflow-hidden">
+                        <div className="w-full flex-shrink-0 px-2 overflow-y-auto">
                             <GenreSelection
                                 selected={selections.genres}
                                 onSelect={(items) =>
@@ -587,7 +631,7 @@ const PreferenceSelectionPage: React.FC = () => {
                                 searchQuery={searchQueries.genres}
                             />
                         </div>
-                        <div className="w-full flex-shrink-0 px-2 overflow-hidden">
+                        <div className="w-full flex-shrink-0 px-2 overflow-y-auto">
                             <ArtistSelection
                                 selected={selections.artists}
                                 onSelect={(items) =>
@@ -600,10 +644,10 @@ const PreferenceSelectionPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Footer: Pagination and Navigation */}
-                <div className="flex items-center justify-between mt-8">
+                {/* Footer: Pagination and Navigation - fixed bottom */}
+                <div className="flex-shrink-0 flex items-center justify-between py-4">
                     {/* Prev Button */}
-                    <div>
+                    <div className="w-28">
                         {step > 1 && (
                             <button
                                 onClick={prevStep}
@@ -623,7 +667,7 @@ const PreferenceSelectionPage: React.FC = () => {
                     />
 
                     {/* Next/Done Button */}
-                    <div>
+                    <div className="w-28 flex justify-end">
                         {step < 3 ? (
                             <button
                                 onClick={nextStep}
