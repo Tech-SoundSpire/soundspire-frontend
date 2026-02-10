@@ -6,6 +6,7 @@ import type { Models } from './index';
 class Post extends Model {
   static associate(models : Models) {
     Post.belongsTo(models.Artist, { foreignKey: 'artist_id', as: 'artist' });
+    Post.belongsTo(models.Community, { foreignKey: 'community_id', as: 'community' });
     Post.hasMany(models.Comment, { foreignKey: 'post_id', as: 'comments' });
     Post.hasMany(models.Like, { foreignKey: 'post_id', as: 'likes' });
   }
@@ -21,6 +22,10 @@ Post.init(
     artist_id: {
       type: DataTypes.UUID,
       allowNull: false
+    },
+    community_id: {
+      type: DataTypes.UUID,
+      allowNull: true
     },
     content_text: DataTypes.TEXT,
     media_type: DataTypes.STRING(50),

@@ -14,13 +14,19 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
   const router = useRouter();
 
   const handleNavigation = (page: string, requiresSubscription: boolean) => {
-    if (requiresSubscription && !isSubscribed) {
+    if (requiresSubscription && !isSubscribed && !isArtist) {
       toast.error(`Subscribe to access ${page}`);
       return;
     }
     
+    if (page === 'about' && isArtist) {
+      router.push('/artist/dashboard');
+      return;
+    }
+
     const routes: Record<string, string> = {
       'about': `/community/${slug}`,
+      'forum': `/community/${slug}/forum`,
       'all-chat': `/community/${slug}/all-chat`,
       'fan-art': `/community/${slug}/fan-art`,
     };
@@ -46,11 +52,12 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
           className={`transition ${currentPage === 'about' ? 'text-[#FA6400] font-semibold' : 'hover:text-[#FA6400]'}`}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
-            About
+            {isArtist ? 'Home' : 'About'}
           </BaseText>
         </button>
         
         <button 
+          onClick={() => handleNavigation('forum', false)}
           className={`transition ${currentPage === 'forum' ? 'text-[#FA6400] font-semibold' : 'hover:text-[#FA6400]'}`}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
@@ -63,11 +70,11 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
           className={`transition ${
             currentPage === 'all-chat' 
               ? 'text-[#FA6400] font-semibold' 
-              : isSubscribed 
+              : (isSubscribed || isArtist)
                 ? 'hover:text-[#FA6400]' 
                 : 'opacity-50 cursor-not-allowed'
           }`}
-          disabled={!isSubscribed}
+          disabled={!isSubscribed && !isArtist}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
             All Chat
@@ -79,11 +86,11 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
           className={`transition ${
             currentPage === 'fan-art' 
               ? 'text-[#FA6400] font-semibold' 
-              : isSubscribed 
+              : (isSubscribed || isArtist)
                 ? 'hover:text-[#FA6400]' 
                 : 'opacity-50 cursor-not-allowed'
           }`}
-          disabled={!isSubscribed}
+          disabled={!isSubscribed && !isArtist}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
             Fan Art

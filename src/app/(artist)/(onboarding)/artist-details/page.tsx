@@ -377,7 +377,12 @@ function ArtistDetailsContent() {
 
             toast.success("Community created successfully!");
 
-            router.push(`/payout?artistId=${artistId}`);
+            if (artistData.requiresVerification) {
+                toast.success("Verification email sent! Please check your inbox.", { duration: 5000 });
+                router.push("/artist/login");
+            } else {
+                router.push(`/payout?artistId=${artistId}`);
+            }
         } catch (err: any) {
             toast.error(err.message || "Submission failed");
         } finally {

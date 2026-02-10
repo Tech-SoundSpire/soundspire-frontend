@@ -1,6 +1,6 @@
 "use client";
 import { FaRegHeart, FaHeart } from "react-icons/fa6";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CommentProps } from "@/lib/types";
 import {
     getImageUrl,
@@ -17,19 +17,19 @@ export default function Comment({
     user_id: string;
     post_id: string;
 }) {
-    console.log("Feed PostComment:", comment);
-    console.log("User object:", comment.user);
-    console.log("Profile picture URL:", comment.user?.profile_picture_url);
-
-    const filtered = comment.likes.filter((like) => like.user_id == user_id);
-
-    const [liked, setLiked] = useState<boolean>(filtered.length === 1);
-    const [likeCount, setLikeCount] = useState<number>(
-        comment.likes.length || 0
-    );
+    const [liked, setLiked] = useState<boolean>(false);
+    const [likeCount, setLikeCount] = useState<number>(0);
     const [replyText, setReplyText] = useState("");
     const [showReplyBox, setShowReplyBox] = useState(false);
     const [replies, setReplies] = useState(comment.replies || []);
+
+    // Sync state with props on every poll update
+    useEffect(() => {
+        const likes = comment.likes || [];
+        setLiked(likes.some((like) => like.user_id === user_id));
+        setLikeCount(likes.length);
+        setReplies(comment.replies || []);
+    }, [comment]);
 
     async function onLike() {
         await fetch("/api/like/", {
@@ -118,7 +118,7 @@ export default function Comment({
                                 className="comment-like-count"
                                 fontSize="small"
                             >
-                                {likeCount != 0 ? likeCount : null}
+                                {likeCount > 0 ? likeCount : ""}
                             </BaseText>
                         </div>
                         <button

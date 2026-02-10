@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { getImageUrl } from "@/utils/userProfileImageUtils";
 
 export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -17,6 +18,10 @@ export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
         );
     };
 
+    const isVideo = (url: string) => {
+        return url.match(/\.(mp4|webm|ogg|mov)$/i);
+    };
+
     if (!mediaUrls || mediaUrls.length === 0) return null;
 
     return (
@@ -27,14 +32,22 @@ export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
             >
                 {mediaUrls.map((url, index) => (
                     <div key={index} className="min-w-full">
-                        <img
-                            src={url}
-                            alt={`Post Image ${index + 1}`}
-                            className="w-full h-auto object-contain"
-                            width={1000}
-                            height={1000}
-                            loading="lazy"
-                        />
+                        {isVideo(url) ? (
+                            <video
+                                src={getImageUrl(url)}
+                                controls
+                                className="w-full h-auto object-contain"
+                            />
+                        ) : (
+                            <img
+                                src={getImageUrl(url)}
+                                alt={`Post Image ${index + 1}`}
+                                className="w-full h-auto object-contain"
+                                width={1000}
+                                height={1000}
+                                loading="lazy"
+                            />
+                        )}
                     </div>
                 ))}
             </div>
