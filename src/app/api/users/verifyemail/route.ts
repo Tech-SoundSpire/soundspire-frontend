@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       { expiresIn: "7d" }
     );
 
-    await UserVerification.create({
+    await UserVerification.upsert({
       user_id: user.user_id,
       verification_type: "Email Verification",
       is_used: true,

@@ -118,7 +118,11 @@ export default function ArtistDashboard() {
                     <button className="text-[#FA6400] font-semibold">
                         Home
                     </button>
-                    <button className="hover:text-[#FA6400] transition">
+                    <button 
+                        onClick={() => artist?.slug && artist?.community && router.push(`/community/${artist.slug}/forum`)}
+                        className={`hover:text-[#FA6400] transition ${!artist?.slug || !artist?.community ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={!artist?.slug || !artist?.community}
+                    >
                         Artist Forum
                     </button>
                     <button 

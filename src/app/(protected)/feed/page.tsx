@@ -2,83 +2,93 @@
 import { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import Post from "@/components/Posts/Post";
-import { PostProps, CommentProps } from "@/lib/types";
+import { PostProps } from "@/lib/types";
 import styles from "./feed.module.css";
-import {
-    getImageUrl,
-    DEFAULT_PROFILE_IMAGE,
-} from "@/utils/userProfileImageUtils";
+import { getImageUrl, DEFAULT_PROFILE_IMAGE } from "@/utils/userProfileImageUtils";
 import { useAuth } from "@/context/AuthContext";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import toast from "react-hot-toast";
 import BaseText from "@/components/BaseText/BaseText";
 import Link from "next/link";
 import { type communityDataFromAPI } from "@/types/communityGetAllAPIData";
+
 export default function Page() {
     const [posts, setPosts] = useState<PostProps[]>([]);
     const { user } = useAuth();
-    const [subscriptions, setSubscriptions] = useState<
-        communityDataFromAPI[] | null
-    >(null);
+    const [subscriptions, setSubscriptions] = useState<communityDataFromAPI[] | null>(null);
+    const [userProfile, setUserProfile] = useState<any>(null);
 
-    useEffect(() => {
-        fetch("/api/posts")
-            .then((res) => res.json())
-            .then((data) => {
-                const updatedPosts = data.map((post: PostProps) => {
-                    const commentsMap: { [key: string]: CommentProps } = {};
-                    const topLevelComments: CommentProps[] = [];
-
-                    post.comments.forEach((comment: CommentProps) => {
-                        commentsMap[comment.comment_id] = {
-                            ...comment,
-                            replies: [],
-                        };
-                    });
-
-                    post.comments.forEach((comment: CommentProps) => {
-                        if (comment.parent_comment_id) {
-                            const parent =
-                                commentsMap[comment.parent_comment_id];
-                            parent?.replies?.push(
-                                commentsMap[comment.comment_id]
-                            );
-                        } else {
-                            topLevelComments.push(
-                                commentsMap[comment.comment_id]
-                            );
-                        }
-                    });
-
-                    return {
-                        ...post,
-                        comments: topLevelComments,
-                    };
+    // Fetch posts function
+    const fetchPosts = async (userId: string) => {
+        try {
+            const res = await fetch(`/api/community/posts?userId=${userId}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!Array.isArray(data)) return;
+            
+            // Process posts with proper nesting
+            const processed = data.map((p: any) => {
+                const cMap: any = {};
+                const topLevel: any[] = [];
+                
+                (p.comments || []).forEach((c: any) => {
+                    cMap[c.comment_id] = { ...c, replies: [] };
                 });
-
-                setPosts(updatedPosts);
+                
+                (p.comments || []).forEach((c: any) => {
+                    if (c.parent_comment_id && cMap[c.parent_comment_id]) {
+                        cMap[c.parent_comment_id].replies.push(cMap[c.comment_id]);
+                    } else if (!c.parent_comment_id) {
+                        topLevel.push(cMap[c.comment_id]);
+                    }
+                });
+                
+                return { ...p, comments: topLevel, likes: p.likes || [] };
             });
-    }, []);
+            
+            setPosts(processed);
+        } catch (error) {
+            console.error('Error fetching posts:', error);
+        }
+    };
+
+    // Initial load
     useEffect(() => {
-        if (!user) return;
+        if (!user?.id) return;
+        
+        fetchPosts(user.id);
+        
+        // Fetch subscriptions and profile
         (async () => {
             try {
-                const res = await fetch(
-                    `/api/community/subscribe?user_id=${user.id}`
-                );
-                if (!res.ok)
-                    throw new Error("Error fetching subscription data");
-                const json = await res.json();
+                const [subRes, profileRes] = await Promise.all([
+                    fetch(`/api/community/subscribe?user_id=${user.id}`),
+                    fetch(`/api/users/${user.id}`)
+                ]);
 
-                setSubscriptions(json.communities);
+                if (subRes.ok) {
+                    const json = await subRes.json();
+                    setSubscriptions(json.communities);
+                }
+
+                if (profileRes.ok) {
+                    setUserProfile(await profileRes.json());
+                }
             } catch (err: any) {
-                toast.error(err.message || "Error fetching subscription data");
+                toast.error(err.message || "Error fetching data");
             }
         })();
     }, [user]);
-    const userId = user?.id || "33333333-3333-3333-3333-333333333333";
 
-    //console.log(posts)
+    // Polling for updates
+    useEffect(() => {
+        if (!user?.id) return;
+        
+        const interval = setInterval(() => fetchPosts(user.id), 2000);
+        return () => clearInterval(interval);
+    }, [user]);
+
+    const userId = user?.id || "33333333-3333-3333-3333-333333333333";
 
     return (
         <>
@@ -107,7 +117,12 @@ export default function Page() {
                     </div>
                     <div className="flex flex-col items-center justify-center">
                         {posts.map((post: PostProps, index: number) => (
-                            <Post key={index} post={post} user_id={userId} />
+                            <Post 
+                                key={post.post_id} 
+                                post={post} 
+                                user_id={userId} 
+                                userProfilePicture={userProfile?.profile_picture_url || user?.photoURL}
+                            />
                         ))}
                     </div>
                 </main>
@@ -133,12 +148,8 @@ export default function Page() {
                                 >
                                     <img
                                         src={
-                                            getImageUrl(
-                                                element.artist_profile_picture_url
-                                            ) ||
-                                            getImageUrl(
-                                                element.artist_cover_photo_url
-                                            ) ||
+                                            getImageUrl(element.artist_profile_picture_url) ||
+                                            getImageUrl(element.artist_cover_photo_url) ||
                                             getImageUrl(DEFAULT_PROFILE_IMAGE)
                                         }
                                         alt={`Avatar`}

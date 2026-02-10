@@ -5,7 +5,7 @@ import {
     FaRegComments,
     FaHeart,
 } from "react-icons/fa6";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Comment from "@/components/Posts/PostComment";
 import { CommentProps, PostProps } from "@/lib/types";
 import MediaCarousel from "@/components/Posts/PostCarousel";
@@ -15,21 +15,24 @@ import {
 } from "@/utils/userProfileImageUtils";
 import BaseText from "../BaseText/BaseText";
 
-export default function Post(props: { post: PostProps; user_id: string }) {
-    const { post, user_id } = props;
+export default function Post(props: { post: PostProps; user_id: string; userProfilePicture?: string | null }) {
+    const { post, user_id, userProfilePicture } = props;
     const effectiveUserId = user_id;
     //const effectiveUserId='55555555-5555-5555-5555-555555555555';
 
-    const filtered = post.likes.filter(
-        (like) => like.user_id == effectiveUserId
-    );
-
     const [showComments, setShowComments] = useState<boolean>(false);
-    const [liked, setLiked] = useState<boolean>(filtered.length == 1);
+    const [liked, setLiked] = useState<boolean>(false);
+    const [likeCount, setLikeCount] = useState<number>(0);
     const [commentText, setCommentText] = useState("");
-    const [comments, setComments] = useState(post.comments);
-    console.log("Post data:", post);
-    console.log("Comments array:", comments);
+    const [comments, setComments] = useState(post.comments || []);
+
+    // Sync state with props on every poll update
+    useEffect(() => {
+        const likes = post.likes || [];
+        setLiked(likes.some((like) => like.user_id === effectiveUserId));
+        setLikeCount(likes.length);
+        setComments(post.comments || []);
+    }, [post]);
 
     async function onLike() {
         await fetch("/api/like/", {
@@ -41,6 +44,7 @@ export default function Post(props: { post: PostProps; user_id: string }) {
             }),
         });
         setLiked(true);
+        setLikeCount(prev => prev + 1);
     }
 
     async function onDislike() {
@@ -53,6 +57,7 @@ export default function Post(props: { post: PostProps; user_id: string }) {
             }),
         });
         setLiked(false);
+        setLikeCount(prev => prev - 1);
     }
 
     async function onComment() {
@@ -75,7 +80,7 @@ export default function Post(props: { post: PostProps; user_id: string }) {
     }
 
     return (
-        <div className="post rounded-xl bg-white w-[80%] mb-10" id="me">
+        <div className="post rounded-xl bg-white w-[80%] mb-10 shadow-lg" id="me">
             <div className="post-header flex items-center p-5">
                 <img
                     src={
@@ -94,15 +99,17 @@ export default function Post(props: { post: PostProps; user_id: string }) {
             </div>
 
             <div className="post-body mb-2">
-                {post.media_type == "image" ? (
+                {post.media_urls && post.media_urls.length > 0 && (
                     <MediaCarousel mediaUrls={post.media_urls} />
-                ) : null}
-                {post.media_type == "none" ? (
-                    <div className="p-5">
-                        <BaseText fontSize="small">
-                            {post.content_text}
-                        </BaseText>
-                    </div>
+                )}
+                {!post.media_urls || post.media_urls.length === 0 ? (
+                    post.content_text && (
+                        <div className="p-5">
+                            <BaseText fontSize="small">
+                                {post.content_text}
+                            </BaseText>
+                        </div>
+                    )
                 ) : null}
             </div>
             <div className="post-interactions flex pl-4 py-5 text-lg">
@@ -124,7 +131,7 @@ export default function Post(props: { post: PostProps; user_id: string }) {
                         fontSize="small"
                         fontWeight={500}
                     >
-                        Like
+                        Like {likeCount > 0 && `(${likeCount})`}
                     </BaseText>
                 </button>
                 <button
@@ -153,7 +160,7 @@ export default function Post(props: { post: PostProps; user_id: string }) {
                     </BaseText>
                 </button>
             </div>
-            {post.media_type != "none" ? (
+            {post.media_urls && post.media_urls.length > 0 && post.content_text && (
                 <div className="post-details flex px-5 pb-5 flex-wrap">
                     <BaseText
                         fontWeight={400}
@@ -172,35 +179,32 @@ export default function Post(props: { post: PostProps; user_id: string }) {
                         {post.content_text}
                     </BaseText>
                 </div>
-            ) : null}
+            )}
             <div className="post-comments-preview p-4">
                 {showComments ? (
-                    <div className="post-comment flex items-center py-2">
+                    <div className="post-comment flex items-center gap-3 py-2">
                         <img
-                            src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                            src={userProfilePicture ? getImageUrl(userProfilePicture) : getImageUrl(DEFAULT_PROFILE_IMAGE)}
                             alt={`Avatar`}
-                            className="w-12 h-12 rounded-full object-cover mr-5"
+                            className="w-10 h-10 rounded-full object-cover"
                             width={100}
                             height={100}
                         />
-                        <div>
-                            <input
-                                placeholder="Enter Comment..."
-                                className="border-b-black border-b-2 w-[35vw] p-2 focus:outline-none"
-                                value={commentText}
-                                onChange={(e) => setCommentText(e.target.value)}
-                                onKeyDown={(e) =>
-                                    e.key === "Enter" && onComment()
-                                }
-                            ></input>
-                            <button
-                                onClick={onComment}
-                                className="text-black px-3 font-semibold text-md"
-                            >
-                                {" "}
-                                Post
-                            </button>
-                        </div>
+                        <input
+                            placeholder="Write a comment..."
+                            className="flex-1 bg-gray-50 text-gray-900 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-gray-300"
+                            value={commentText}
+                            onChange={(e) => setCommentText(e.target.value)}
+                            onKeyDown={(e) =>
+                                e.key === "Enter" && onComment()
+                            }
+                        />
+                        <button
+                            onClick={onComment}
+                            className="text-purple-600 font-semibold hover:text-purple-700 transition"
+                        >
+                            Post
+                        </button>
                     </div>
                 ) : null}
                 {showComments

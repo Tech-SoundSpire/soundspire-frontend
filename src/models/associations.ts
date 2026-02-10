@@ -94,8 +94,9 @@ export function defineAssociations() {
     as: "posts",
   });
 
-  Post.belongsTo(Artist, {
-    foreignKey: "artist_id",
+  Community.hasMany(Post, {
+    foreignKey: "community_id",
+    as: "posts",
   });
 
   // Comment associations
@@ -135,7 +136,7 @@ export function defineAssociations() {
 
   Forum.belongsTo(Community, {
     foreignKey: "community_id",
-    as: "community",
+    as: "Community",
   });
 
   Forum.hasMany(ForumPost, {
