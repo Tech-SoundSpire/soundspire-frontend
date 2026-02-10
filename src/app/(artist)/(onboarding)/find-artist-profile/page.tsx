@@ -80,7 +80,7 @@ export default function FindArtistPage() {
             } finally {
                 setLoading(false);
             }
-        }, 400);
+        }, 800);
 
         return () => clearTimeout(delayDebounce);
     }, [searchQuery, mounted]);
@@ -129,39 +129,74 @@ export default function FindArtistPage() {
                     {/* Floating Dialog for Results */}
                     {!loading && results.length > 0 && (
                         <div className="absolute left-0 right-0 mt-3 z-50 mx-auto max-w-2xl bg-[#2d2838]/95 backdrop-blur-md rounded-xl shadow-lg overflow-hidden">
-                            <div className="max-h-64 overflow-y-auto artist-scrollbar">
-                                <ul className="divide-y divide-[#FA6400]/50">
-                                    {results.map((artist, i) => (
-                                        <li
-                                            key={i}
-                                            onClick={() =>
-                                                handleArtistClick(artist)
-                                            }
-                                            className="flex justify-between items-center p-4 cursor-pointer hover:bg-[#3a3248] transition-colors duration-200"
-                                        >
-                                            <div>
-                                                <BaseText
-                                                    fontWeight={700}
-                                                    fontSize="small"
-                                                >
-                                                    {artist.name}
-                                                </BaseText>
-                                                <BaseText
-                                                    fontSize="small"
-                                                    textColor="#9ca3af"
-                                                >
-                                                    {artist.genres?.length > 0
-                                                        ? artist.genres[0]
-                                                              ?.root ??
-                                                          "Unknown Genre"
-                                                        : "Unknown Genre"}
-                                                </BaseText>
+                            <div className="max-h-80 overflow-y-auto artist-scrollbar">
+                                {(() => {
+                                    // Group results by genre
+                                    const grouped: Record<string, any[]> = {};
+                                    results.forEach((artist) => {
+                                        const genre =
+                                            artist.genres?.[0]?.root || artist.genres?.[0]?.name || (typeof artist.genres?.[0] === "string" ? artist.genres[0] : null) || "Other";
+                                        if (!grouped[genre]) grouped[genre] = [];
+                                        grouped[genre].push(artist);
+                                    });
+                                    return Object.entries(grouped).map(
+                                        ([genre, artists]) => (
+                                            <div key={genre}>
+                                                <div className="px-4 py-2 bg-[#1a1625]/80 sticky top-0 z-10">
+                                                    <span className="text-xs font-semibold text-orange-400 uppercase tracking-wider">
+                                                        {genre}
+                                                    </span>
+                                                </div>
+                                                <ul>
+                                                    {artists.map(
+                                                        (artist: any, i: number) => (
+                                                            <li
+                                                                key={i}
+                                                                onClick={() =>
+                                                                    handleArtistClick(
+                                                                        artist
+                                                                    )
+                                                                }
+                                                                className="flex items-center gap-3 p-3 cursor-pointer hover:bg-[#3a3248] transition-colors duration-200"
+                                                            >
+                                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                                                                    {artist.imageUrl ? (
+                                                                        <img
+                                                                            src={artist.imageUrl}
+                                                                            alt={artist.name}
+                                                                            className="w-full h-full object-cover"
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-lg font-bold">
+                                                                            {artist.name?.charAt(0)}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <BaseText
+                                                                        fontWeight={700}
+                                                                        fontSize="small"
+                                                                    >
+                                                                        {artist.name}
+                                                                    </BaseText>
+                                                                    {artist.countryCode && (
+                                                                        <BaseText
+                                                                            fontSize="small"
+                                                                            textColor="#9ca3af"
+                                                                        >
+                                                                            {artist.countryCode}
+                                                                        </BaseText>
+                                                                    )}
+                                                                </div>
+                                                                <FiArrowUpRight className="text-white text-xl flex-shrink-0" />
+                                                            </li>
+                                                        )
+                                                    )}
+                                                </ul>
                                             </div>
-                                            {/* White 45° Arrow on Right */}
-                                            <FiArrowUpRight className="text-white text-2xl transform rotate-0" />
-                                        </li>
-                                    ))}
-                                </ul>
+                                        )
+                                    );
+                                })()}
                             </div>
                         </div>
                     )}
