@@ -36,6 +36,7 @@ interface Artist {
     artist_id: string;
     name: string;
     img: string;
+    soundcharts_uuid?: string;
 }
 
 interface Selections {
@@ -318,16 +319,48 @@ const GenreSelection: React.FC<SelectionProps<Genre>> = ({
     );
 };
 
-// Step 3: Artist Selection
+// Step 3: Artist Selection — searches SoundCharts API
 const ArtistSelection: React.FC<SelectionProps<Artist>> = ({
     selected,
     onSelect,
     items,
     searchQuery,
 }) => {
-    const filteredItems = items.filter((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const [scResults, setScResults] = useState<Artist[]>([]);
+    const [scLoading, setScLoading] = useState(false);
+
+    // Debounced SoundCharts search
+    useEffect(() => {
+        if (searchQuery.length < 2) {
+            setScResults([]);
+            return;
+        }
+        setScLoading(true);
+        const timer = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/artists?q=${encodeURIComponent(searchQuery)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setScResults(
+                        (data.items || []).map((a: any) => ({
+                            artist_id: a.uuid,
+                            name: a.name,
+                            img: a.imageUrl || "",
+                            soundcharts_uuid: a.uuid,
+                        }))
+                    );
+                }
+            } catch {
+                // ignore
+            } finally {
+                setScLoading(false);
+            }
+        }, 800);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Show SoundCharts results when searching, DB artists otherwise
+    const displayItems = searchQuery.length >= 2 ? scResults : items;
 
     const handleToggle = (artist: Artist) => {
         const isSelected = selected.some(
@@ -351,18 +384,43 @@ const ArtistSelection: React.FC<SelectionProps<Artist>> = ({
                     Choose Your Favourite Artists
                 </h2>
                 <p className="text-orange-400 font-medium">
-                    Choose upto 5 Artists
+                    Choose up to 5 Artists — search any artist
+                </p>
+                <p className="text-orange-300/80 text-sm mt-2 bg-orange-500/10 border border-orange-500/20 rounded-lg px-3 py-2">
+                    💡 Can&apos;t find your artist below? Use the search bar above to find any artist worldwide.
                 </p>
             </div>
 
+            {/* Selected artists chips */}
+            {selected.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                    {selected.map((a) => (
+                        <button
+                            key={a.artist_id}
+                            onClick={() => handleToggle(a)}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 border border-orange-400 text-orange-300 text-sm"
+                        >
+                            {a.img && (
+                                <img src={a.img} alt="" className="w-5 h-5 rounded-full object-cover" />
+                            )}
+                            {a.name} ✕
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {scLoading && searchQuery.length >= 2 && (
+                <p className="text-gray-400 text-sm">Searching artists...</p>
+            )}
+
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {filteredItems.map((artist, index) => {
+                {displayItems.map((artist, index) => {
                     const isSelected = selected.some(
                         (item) => item.artist_id === artist.artist_id
                     );
                     return (
                         <div
-                            key={index}
+                            key={`${artist.artist_id}-${index}`}
                             onClick={() => handleToggle(artist)}
                             className={`relative cursor-pointer group transition-all duration-300 ${
                                 isSelected ? "scale-105" : "hover:scale-105"
@@ -551,7 +609,11 @@ const PreferenceSelectionPage: React.FC = () => {
                 userId: user.id,
                 genres: selections.genres.map((g: any) => g.name),
                 languages: selections.languages.map((l: any) => l.name),
-                favoriteArtists: selections.artists.map((a: any) => a.name), // Send artist names, API will convert to IDs
+                favoriteArtists: selections.artists.map((a) => ({
+                    name: a.name,
+                    soundcharts_uuid: a.soundcharts_uuid || null,
+                    imageUrl: a.img || null,
+                })),
             });
 
             toast.success("Preferences saved successfully!");

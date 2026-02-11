@@ -81,20 +81,26 @@ const carouselItems = [
 export default function ExplorePage() {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [artists, setArtists] = useState<Artist[]>([]);
+    const [suggestedArtists, setSuggestedArtists] = useState<any[]>([]);
     const [genres, setGenres] = useState<Genre[]>([]);
     const [loading, setLoading] = useState(true);
-    const { setUser } = useAuth();
+    const { user, setUser } = useAuth();
     const router = useRouter();
 
     // Fetch data from API
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [reviewsRes, artistsRes, genresRes] = await Promise.all([
+                const fetches: Promise<Response>[] = [
                     fetch("/api/explore/reviews"),
                     fetch("/api/explore/artists"),
                     fetch("/api/explore/genres"),
-                ]);
+                ];
+                if (user?.id) {
+                    fetches.push(fetch(`/api/explore/suggested?userId=${user.id}`));
+                }
+
+                const [reviewsRes, artistsRes, genresRes, suggestedRes] = await Promise.all(fetches);
 
                 if (reviewsRes.ok) {
                     const reviewsData = await reviewsRes.json();
@@ -110,6 +116,11 @@ export default function ExplorePage() {
                     const genresData = await genresRes.json();
                     setGenres(genresData);
                 }
+
+                if (suggestedRes?.ok) {
+                    const suggestedData = await suggestedRes.json();
+                    setSuggestedArtists(suggestedData.artists || []);
+                }
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {
@@ -118,7 +129,7 @@ export default function ExplorePage() {
         };
 
         fetchData();
-    }, []);
+    }, [user?.id]);
 
     return (
         <div className="min-h-screen bg-[#1a1625]">
@@ -165,30 +176,36 @@ export default function ExplorePage() {
                         </div>
                     ) : (
                         <div className="flex gap-6 overflow-x-auto pb-4">
-                            {artists.map((artist) => (
-                                <Link
-                                    key={artist.artist_id}
-                                    className="flex-shrink-0 text-center"
-                                    href={`/community/${artist.slug}/`}
-                                >
-                                    <img
-                                        src={
-                                            artist.profile_picture_url ||
-                                            getImageUrl(DEFAULT_PROFILE_IMAGE)
-                                        }
-                                        alt={artist.artist_name}
-                                        className="w-24 h-24 rounded-full object-cover mb-2"
-                                    />
-                                    <BaseText
-                                        textColor="#ffffff"
-                                        fontSize="small"
-                                        fontWeight={500}
-                                        className="max-w-24 truncate"
+                            {(suggestedArtists.length > 0 ? suggestedArtists : artists).map((artist: any) => {
+                                const href = artist.onSoundSpire === false
+                                    ? `/community/sc/${artist.soundcharts_uuid}`
+                                    : `/community/${artist.slug}/`;
+                                const imgSrc = artist.imageUrl
+                                    || artist.profile_picture_url
+                                    || getImageUrl(DEFAULT_PROFILE_IMAGE);
+                                const name = artist.name || artist.artist_name;
+                                return (
+                                    <Link
+                                        key={artist.artist_id}
+                                        className="flex-shrink-0 text-center"
+                                        href={href}
                                     >
-                                        {artist.artist_name}
-                                    </BaseText>
-                                </Link>
-                            ))}
+                                        <img
+                                            src={imgSrc}
+                                            alt={name}
+                                            className="w-24 h-24 rounded-full object-cover mb-2"
+                                        />
+                                        <BaseText
+                                            textColor="#ffffff"
+                                            fontSize="small"
+                                            fontWeight={500}
+                                            className="max-w-24 truncate"
+                                        >
+                                            {name}
+                                        </BaseText>
+                                    </Link>
+                                );
+                            })}
                         </div>
                     )}
                 </section>

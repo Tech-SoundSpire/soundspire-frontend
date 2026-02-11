@@ -36,11 +36,24 @@ export async function POST(request: NextRequest) {
 
     // Validate and convert artist names to IDs from the artists table
     let artistIds: string[] = [];
+    let soundchartsArtists: object[] = [];
     if (favoriteArtists && favoriteArtists.length > 0) {
-      const artistRecords = await Artist.findAll({
-        where: { artist_name: favoriteArtists }
-      });
-      artistIds = artistRecords.map(a => a.artist_id);
+      // New format: [{name, soundcharts_uuid, imageUrl}]
+      if (typeof favoriteArtists[0] === "object") {
+        soundchartsArtists = favoriteArtists;
+        // Also try to match any that exist in our DB
+        const names = favoriteArtists.map((a: any) => a.name);
+        const artistRecords = await Artist.findAll({
+          where: { artist_name: names }
+        });
+        artistIds = artistRecords.map(a => a.artist_id);
+      } else {
+        // Legacy format: string array of names
+        const artistRecords = await Artist.findAll({
+          where: { artist_name: favoriteArtists }
+        });
+        artistIds = artistRecords.map(a => a.artist_id);
+      }
     }
 
     // Check if user already has preferences
@@ -54,6 +67,7 @@ export async function POST(request: NextRequest) {
         genres: genreIds,
         languages: languageIds,
         favorite_artists: artistIds,
+        favorite_soundcharts_artists: soundchartsArtists,
         updated_at: new Date()
       });
     } else {
@@ -62,7 +76,8 @@ export async function POST(request: NextRequest) {
         user_id: userId,
         genres: genreIds,
         languages: languageIds,
-        favorite_artists: artistIds
+        favorite_artists: artistIds,
+        favorite_soundcharts_artists: soundchartsArtists,
       });
     }
 
