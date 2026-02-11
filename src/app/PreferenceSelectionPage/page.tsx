@@ -632,7 +632,7 @@ const PreferenceSelectionPage: React.FC = () => {
         "Find Your Artists...",
     ];
 
-    if (authLoading) {
+    if (authLoading || profileLoading || preferencesLoading) {
         return (
             <div className="bg-[#120B1A] text-white min-h-screen flex items-center justify-center">
                 <div className="text-center">
@@ -643,7 +643,7 @@ const PreferenceSelectionPage: React.FC = () => {
         );
     }
 
-    if (!user) {
+    if (!user || user.role === "artist") {
         return null; // Will redirect
     }
 

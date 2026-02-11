@@ -54,6 +54,9 @@ export default function CompleteProfilePage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
 
+    // Detect if this is an artist switching to fan mode (has some fields filled already)
+    const isArtistSwitching = !!(user?.isAlsoArtist && user?.role === "user");
+
     // City search state
     const [cityQuery, setCityQuery] = useState("");
     const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -139,7 +142,39 @@ export default function CompleteProfilePage() {
     useEffect(() => {
         if (!user) {
             refreshUser();
+            return;
         }
+        // Pre-fill form from existing profile data (e.g. artist switching to fan)
+        const loadExistingProfile = async () => {
+            try {
+                const res = await axios.get(`/api/profile?email=${encodeURIComponent(user.email)}`);
+                const p = res.data;
+                if (p) {
+                    setForm((prev) => ({
+                        ...prev,
+                        full_name: p.full_name || prev.full_name,
+                        gender: p.gender || prev.gender,
+                        date_of_birth: p.date_of_birth || prev.date_of_birth,
+                        city: p.city || prev.city,
+                        country: p.country || prev.country,
+                        phone_number: p.mobile_number?.replace(/^\+\d+-/, "") || prev.phone_number,
+                        profile_picture_url: p.profile_picture_url || prev.profile_picture_url,
+                    }));
+                    if (p.city) setCityQuery(p.city);
+                    // Try to derive country_code from country name
+                    if (p.country) {
+                        const allCountries = Country.getAllCountries();
+                        const match = allCountries.find((c) => c.name === p.country);
+                        if (match) {
+                            setForm((prev) => ({ ...prev, country_code: match.isoCode }));
+                        }
+                    }
+                }
+            } catch {
+                // ignore — form stays empty
+            }
+        };
+        loadExistingProfile();
     }, [user, refreshUser]);
 
     // Validation functions
@@ -283,7 +318,7 @@ export default function CompleteProfilePage() {
                 profile_picture_url: profilePictureUrl,
             });
 
-            setUser(res.data.user);
+            await refreshUser();
             toast.success("Profile completed successfully!");
             router.push("/PreferenceSelectionPage");
         } catch (error: any) {
@@ -335,10 +370,15 @@ export default function CompleteProfilePage() {
                     fontWeight={700}
                     textAlign="center"
                     textColor="#fb923c"
-                    className="mb-8"
+                    className="mb-2"
                 >
                     Complete Your Profile
                 </BaseHeading>
+                {isArtistSwitching && (
+                    <p className="text-center text-gray-400 text-sm mb-6">
+                        Just need your gender and date of birth to continue as a fan.
+                    </p>
+                )}
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Profile Picture Upload */}
                     <div className="flex flex-col items-center mb-6">
@@ -384,7 +424,10 @@ export default function CompleteProfilePage() {
                             placeholder="Full Name"
                             value={form.full_name}
                             onChange={handleChange}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-600 bg-gray-900/50 text-gray-100"
+                            readOnly={isArtistSwitching && !!form.full_name}
+                            className={`w-full px-4 py-3 rounded-xl border border-gray-600 bg-gray-900/50 text-gray-100 ${
+                                isArtistSwitching && form.full_name ? "opacity-60 cursor-not-allowed" : ""
+                            }`}
                         />
                         {errors.full_name && (
                             <BaseText textColor="#f87171" fontSize="small">
@@ -437,14 +480,18 @@ export default function CompleteProfilePage() {
                             placeholder="Search for your city..."
                             value={cityQuery}
                             onChange={(e) => {
+                                if (isArtistSwitching && form.city) return;
                                 setCityQuery(e.target.value);
                                 setShowCityDropdown(true);
                                 if (!e.target.value) {
                                     setForm({ ...form, city: "", country: "", country_code: "", phone_number: "" });
                                 }
                             }}
-                            onFocus={() => cityQuery.length >= 2 && setShowCityDropdown(true)}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-600 bg-gray-900/50 text-gray-100"
+                            onFocus={() => !(isArtistSwitching && form.city) && cityQuery.length >= 2 && setShowCityDropdown(true)}
+                            readOnly={isArtistSwitching && !!form.city}
+                            className={`w-full px-4 py-3 rounded-xl border border-gray-600 bg-gray-900/50 text-gray-100 ${
+                                isArtistSwitching && form.city ? "opacity-60 cursor-not-allowed" : ""
+                            }`}
                         />
                         {showCityDropdown && filteredCities.length > 0 && (
                             <ul className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto rounded-xl border border-gray-600 bg-gray-800 shadow-lg">
@@ -510,7 +557,10 @@ export default function CompleteProfilePage() {
                                 value={form.phone_number}
                                 onChange={handleChange}
                                 disabled={!form.country_code}
-                                className="flex-1 px-4 py-3 rounded-xl border border-gray-600 bg-gray-900/50 text-gray-100 disabled:bg-gray-900/30 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                readOnly={isArtistSwitching && !!form.phone_number}
+                                className={`flex-1 px-4 py-3 rounded-xl border border-gray-600 bg-gray-900/50 text-gray-100 disabled:bg-gray-900/30 disabled:text-gray-500 disabled:cursor-not-allowed ${
+                                    isArtistSwitching && form.phone_number ? "opacity-60 cursor-not-allowed" : ""
+                                }`}
                             />
                         </div>
                         {errors.phone_number && (
