@@ -294,7 +294,7 @@ function ArtistDetailsContent() {
                                 g.charAt(0).toUpperCase() +
                                 g.slice(1).toLowerCase()
                         ) || [];
-                setSelectedGenres([...new Set(genresArray)]);
+                setSelectedGenres([...new Set(genresArray)] as string[]);
 
                 // setProfilePreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
                 // setCoverPreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);

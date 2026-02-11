@@ -6,8 +6,11 @@ export interface User {
   name: string;
   email: string;
   photoURL?: string | null;
-  provider: 'local' | string; // allows flexibility for 'google', etc.
+  provider: 'local' | string;
   role: 'user' | 'artist';
+  isAlsoArtist?: boolean;
+  isAlsoUser?: boolean;
+  artistId?: string | null;
 }
 
 interface AuthContextType {
@@ -16,6 +19,7 @@ interface AuthContextType {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  switchRole: (role: 'user' | 'artist') => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,6 +42,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           photoURL: data.user.photoURL || data.user.image || null,
           provider: data.user.provider || 'local',
           role: data.user.role || 'user',
+          isAlsoArtist: data.user.isAlsoArtist || false,
+          isAlsoUser: data.user.isAlsoUser || false,
+          artistId: data.user.artistId || null,
         };
         setUser(normalizedUser);
       } else {
@@ -64,8 +71,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const switchRole = async (role: 'user' | 'artist') => {
+    try {
+      const res = await fetch('/api/auth/switch-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ role }),
+      });
+      if (res.ok) {
+        await checkSession();
+      }
+    } catch (error) {
+      console.error('Role switch failed:', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, setUser, logout, refreshUser: checkSession }}>
+    <AuthContext.Provider value={{ user, isLoading, setUser, logout, refreshUser: checkSession, switchRole }}>
       {children}
     </AuthContext.Provider>
   );

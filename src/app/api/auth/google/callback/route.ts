@@ -117,11 +117,23 @@ export async function GET(request: Request) {
         verification_token: "google-oauth",
         expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
       });
+    } else {
+      // Existing user logging in via Google — verify email and link Google ID
+      if (!userInDb.is_verified) {
+        await userInDb.update({ is_verified: true });
+      }
+      if (!userInDb.google_id) {
+        await userInDb.update({ google_id: userData.id });
+      }
     }
 
-    // Check if user has preferences
-    let redirectPath = "/feed"; // Default
-    if (isNewUser) {
+    // Determine role and redirect
+    const role = userInDb!.is_artist ? "artist" : "user";
+    let redirectPath: string;
+
+    if (role === "artist") {
+      redirectPath = "/artist/dashboard";
+    } else if (isNewUser) {
       redirectPath = "/complete-profile";
     } else {
       const preferences = await UserPreferences.findOne({
@@ -135,6 +147,8 @@ export async function GET(request: Request) {
           preferences.favorite_artists.length === 0)
       ) {
         redirectPath = "/PreferenceSelectionPage";
+      } else {
+        redirectPath = "/feed";
       }
     }
 
@@ -164,7 +178,7 @@ export async function GET(request: Request) {
     
 
     const authToken = jwt.sign(
-      { id: userInDb!.user_id, email: userInDb!.email },
+      { id: userInDb!.user_id, email: userInDb!.email, role },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );

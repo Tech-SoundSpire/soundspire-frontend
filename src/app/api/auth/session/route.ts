@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { User } from "@/models/index";
+import { User, Artist } from "@/models/index";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 
 interface DecodedToken {
@@ -13,7 +13,7 @@ export async function GET() {
   try {
     await connectionTestingAndHelper();
     
-    const cookieStore = await cookies(); // <-- await here
+    const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
     if (!token) return NextResponse.json({ user: null });
@@ -23,6 +23,17 @@ export async function GET() {
     if (!user) return NextResponse.json({ user: null });
 
     const role = decoded.role || (user.is_artist ? "artist" : "user");
+
+    // Check if user also has an artist profile
+    let artistId: string | null = null;
+    let isAlsoArtist = false;
+    if (user.is_artist) {
+      const artist = await Artist.findOne({ where: { user_id: user.user_id } });
+      if (artist) {
+        artistId = artist.artist_id;
+        isAlsoArtist = true;
+      }
+    }
 
     return NextResponse.json({
       user: {
@@ -34,6 +45,9 @@ export async function GET() {
         is_verified: user.is_verified,
         spotifyLinked: user.spotify_linked,
         role,
+        isAlsoArtist,
+        isAlsoUser: user.is_artist ? true : false, // artists are always also users
+        artistId,
       },
     });
   } catch (error) {

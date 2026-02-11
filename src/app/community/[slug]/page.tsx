@@ -162,6 +162,7 @@ export default function ArtistCommunityProfile() {
             await subscribe();
         }
     };
+    const isOwnCommunity = !!(user?.isAlsoArtist && artist?.artist_id && user?.artistId === artist?.artist_id);
     const cover_image = getImageUrl(artist.cover_photo_url);
     const buttonText =
         savingSubscription && !alreadySubscribed
@@ -510,6 +511,7 @@ export default function ArtistCommunityProfile() {
                     </div>
                 </div>
             </div>
+            {!isOwnCommunity && (
             <div className={styles["subscribe-banner"]}>
                 <button
                     disabled={savingSubscription}
@@ -530,6 +532,7 @@ export default function ArtistCommunityProfile() {
                     </BaseText>
                 </button>
             </div>
+            )}
         </>
     );
 }

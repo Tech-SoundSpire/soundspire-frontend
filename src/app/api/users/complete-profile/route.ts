@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; role?: string };
     const body = await req.json();
 
     // ✅ Update user including profile picture
@@ -21,16 +21,16 @@ export async function POST(req: NextRequest) {
         city: body.city,
         country: body.country,
         mobile_number: body.phone_number,
-        profile_picture_url: body.profile_picture_url, // <--- ADD THIS
+        profile_picture_url: body.profile_picture_url,
       },
       { where: { user_id: decoded.id }, returning: true }
     );
 
     const updatedUser = updatedUsers[0];
 
-    // ✅ Issue new JWT cookie with updated info
+    // ✅ Issue new JWT cookie preserving the current role
     const authToken = jwt.sign(
-      { id: updatedUser.user_id, email: updatedUser.email },
+      { id: updatedUser.user_id, email: updatedUser.email, role: decoded.role || (updatedUser.is_artist ? "artist" : "user") },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );

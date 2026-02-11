@@ -37,7 +37,7 @@ const default_image_link = getImageUrl(DEFAULT_PROFILE_IMAGE);
 
 export default function ArtistDashboard() {
     const router = useRouter();
-    const { logout } = useAuth();
+    const { logout, switchRole } = useAuth();
     const [artist, setArtist] = useState<ArtistData | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -147,6 +147,15 @@ export default function ArtistDashboard() {
                         className="px-6 py-2 bg-[#FA6400] hover:bg-[#e55a00] text-white font-bold rounded-lg transition-colors duration-200 shadow-lg"
                     >
                         Logout
+                    </button>
+                    <button
+                        onClick={async () => {
+                            await switchRole("user");
+                            router.push("/explore");
+                        }}
+                        className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors duration-200 shadow-lg"
+                    >
+                        Switch to Fan
                     </button>
                 </nav>
 

@@ -9,6 +9,7 @@ import {
     FaBell,
     FaUser,
     FaCog,
+    FaExchangeAlt,
 } from "react-icons/fa";
 import { MdOutlineDynamicFeed } from "react-icons/md";
 import Link from "next/link";
@@ -17,9 +18,11 @@ import { useState } from "react";
 import BaseText from "./BaseText/BaseText";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
-    const { user } = useAuth();
+    const { user, switchRole } = useAuth();
+    const router = useRouter();
     const [isExpanded, setIsExpanded] = useState(false);
 
     const menuItems = [
@@ -123,6 +126,38 @@ const Navbar = () => {
                         </Link>
                     ))}
                 </div>
+
+                {/* Role Switch Button */}
+                {user && (user.isAlsoArtist || user.role === "artist") && (
+                    <>
+                        <div className="mt-auto mb-4 w-full h-px bg-gray-800"></div>
+                        <button
+                            onClick={async () => {
+                                const newRole = user.role === "artist" ? "user" : "artist";
+                                await switchRole(newRole);
+                                router.push(newRole === "artist" ? "/artist/dashboard" : "/explore");
+                            }}
+                            className={`grid items-center text-orange-400 hover:text-orange-300 hover:bg-gray-800 transition-all duration-300 mb-4 ${
+                                isExpanded
+                                    ? "grid-cols-[1fr_5fr]"
+                                    : "grid-cols-[1fr_0fr]"
+                            } p-3`}
+                        >
+                            <FaExchangeAlt className={`w-5 h-5 ${isExpanded ? "mr-4" : ""}`} />
+                            <BaseText
+                                wrapper="span"
+                                className={`whitespace-nowrap overflow-hidden transition-opacity duration-300 ${
+                                    isExpanded ? "opacity-1" : "opacity-0"
+                                }`}
+                                textColor="inherit"
+                                fontSize="very small"
+                                fontName="inter"
+                            >
+                                {user.role === "artist" ? "Switch to Fan" : "Switch to Artist"}
+                            </BaseText>
+                        </button>
+                    </>
+                )}
             </div>
         </nav>
     );

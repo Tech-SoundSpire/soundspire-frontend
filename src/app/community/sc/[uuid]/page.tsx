@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
@@ -20,7 +20,8 @@ interface ArtistInfo {
 export default function SoundChartsArtistPage() {
     const params = useParams();
     const uuid = params.uuid as string;
-    const { user } = useAuth();
+    const { user, isLoading: authLoading } = useAuth();
+    const router = useRouter();
 
     const [artist, setArtist] = useState<ArtistInfo | null>(null);
     const [loading, setLoading] = useState(true);
@@ -28,9 +29,16 @@ export default function SoundChartsArtistPage() {
     const [userVoted, setUserVoted] = useState(false);
     const [voting, setVoting] = useState(false);
 
+    // Redirect if not authenticated
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.replace("/login");
+        }
+    }, [authLoading, user, router]);
+
     // Fetch artist from SoundCharts
     useEffect(() => {
-        if (!uuid) return;
+        if (!uuid || !user) return;
         (async () => {
             try {
                 const res = await fetch(`/api/artists/${uuid}`);
@@ -95,7 +103,7 @@ export default function SoundChartsArtistPage() {
         }
     };
 
-    if (loading) {
+    if (authLoading || loading) {
         return (
             <>
                 <Navbar />

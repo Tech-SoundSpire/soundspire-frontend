@@ -32,7 +32,7 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
-    const { user, logout } = useAuth();
+    const { user, logout, switchRole } = useAuth();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [isSubscriptionsLoading, setIsSubscriptionsLoading] = useState(true);
@@ -796,7 +796,33 @@ export default function ProfilePage() {
                         </button>
                     </div>
 
-                    {/* Delete Account */}
+                    {/* Switch to Artist */}
+                    {user.isAlsoArtist && user.role === "user" && (
+                        <>
+                            <hr className="border-gray-800 my-8" />
+                            <div>
+                                <BaseHeading fontSize="large" fontWeight={700} textColor="#a855f6" className="mb-2">
+                                    Artist Mode
+                                </BaseHeading>
+                                <BaseText textColor="#9ca3af" fontSize="small" className="mb-4">
+                                    You have an artist profile. Switch to manage your community, posts, and fans.
+                                </BaseText>
+                                <button
+                                    onClick={async () => {
+                                        await switchRole("artist");
+                                        router.push("/artist/dashboard");
+                                    }}
+                                    className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors"
+                                >
+                                    Switch to Artist Dashboard
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Delete Account - hidden for artists in fan mode */}
+                    {!user.isAlsoArtist && (
+                    <>
                     <hr className="border-gray-800 my-8" />
                     <div>
                         <BaseHeading fontSize="large" fontWeight={700} textColor="#ef4444" className="mb-2">
@@ -812,6 +838,8 @@ export default function ProfilePage() {
                             Delete My Account
                         </button>
                     </div>
+                    </>
+                    )}
 
                     {/* Delete Confirmation Modal */}
                     {showDeleteModal && (
