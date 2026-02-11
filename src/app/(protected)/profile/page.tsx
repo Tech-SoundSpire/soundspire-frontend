@@ -40,6 +40,10 @@ export default function ProfilePage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [usernameError, setUsernameError] = useState<string | null>(null);
     const [isValidatingUsername, setIsValidatingUsername] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteConfirmStep, setDeleteConfirmStep] = useState(false);
+    const [deleteInput, setDeleteInput] = useState("");
+    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
     const [profile, setProfile] = useState<ProfileData>({
         fullName: "",
@@ -326,6 +330,22 @@ export default function ProfilePage() {
             toast.error((err as Error).message);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (deleteInput !== "confirm delete") return;
+        setIsDeletingAccount(true);
+        try {
+            const res = await fetch("/api/users/delete-account", { method: "DELETE", credentials: "include" });
+            if (!res.ok) throw new Error("Failed to delete account");
+            toast.success("Account deleted. Goodbye!");
+            await logout();
+            router.replace("/login");
+        } catch (err) {
+            toast.error((err as Error).message);
+        } finally {
+            setIsDeletingAccount(false);
         }
     };
 
@@ -775,6 +795,86 @@ export default function ProfilePage() {
                                   : "Sync Now"}
                         </button>
                     </div>
+
+                    {/* Delete Account */}
+                    <hr className="border-gray-800 my-8" />
+                    <div>
+                        <BaseHeading fontSize="large" fontWeight={700} textColor="#ef4444" className="mb-2">
+                            Danger Zone
+                        </BaseHeading>
+                        <BaseText textColor="#9ca3af" fontSize="small" className="mb-4">
+                            Permanently delete your account and all associated data. This action cannot be undone.
+                        </BaseText>
+                        <button
+                            onClick={() => setShowDeleteModal(true)}
+                            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors"
+                        >
+                            Delete My Account
+                        </button>
+                    </div>
+
+                    {/* Delete Confirmation Modal */}
+                    {showDeleteModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                            <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6 max-w-md w-full mx-4 space-y-4">
+                                <BaseHeading fontSize="normal" fontWeight={700} textColor="#ef4444">
+                                    Are you sure?
+                                </BaseHeading>
+                                <BaseText textColor="#d1d5db" fontSize="small">
+                                    This will permanently delete your account, preferences, reviews, comments, votes, and all associated data. This cannot be undone.
+                                </BaseText>
+
+                                {!deleteConfirmStep ? (
+                                    <div className="flex gap-3 pt-2">
+                                        <button
+                                            onClick={() => setShowDeleteModal(false)}
+                                            className="flex-1 py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                                        >
+                                            No, keep my account
+                                        </button>
+                                        <button
+                                            onClick={() => setDeleteConfirmStep(true)}
+                                            className="flex-1 py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors"
+                                        >
+                                            Yes, delete it
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3 pt-2">
+                                        <BaseText textColor="#f87171" fontSize="small" fontWeight={600}>
+                                            Type &quot;confirm delete&quot; below to proceed:
+                                        </BaseText>
+                                        <input
+                                            type="text"
+                                            value={deleteInput}
+                                            onChange={(e) => setDeleteInput(e.target.value)}
+                                            placeholder="confirm delete"
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-600 bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                                        />
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={() => {
+                                                    setShowDeleteModal(false);
+                                                    setDeleteConfirmStep(false);
+                                                    setDeleteInput("");
+                                                }}
+                                                className="flex-1 py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleDeleteAccount}
+                                                disabled={deleteInput !== "confirm delete" || isDeletingAccount}
+                                                className="flex-1 py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                            >
+                                                {isDeletingAccount ? "Deleting..." : "Delete!"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
         </div>
