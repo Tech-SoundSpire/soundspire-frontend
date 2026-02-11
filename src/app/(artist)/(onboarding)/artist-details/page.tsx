@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useRef, Suspense } from "react";
+import { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import { X } from "lucide-react";
@@ -13,6 +13,9 @@ import {
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
 import { sanitizeURL } from "@/utils/sanitizeURL";
+import { City, Country, ICity, ICountry } from "country-state-city";
+import { getPhoneLength } from "@/lib/countryPhoneLength";
+import musicGenres from "music-genres";
 
 // const DEFAULT_PLACEHOLDER = "https://soundspirewebsiteassets.s3.amazonaws.com/images/placeholder.jpg";
 const DEFAULT_PLACEHOLDER = getImageUrl(DEFAULT_PROFILE_IMAGE);
@@ -64,7 +67,90 @@ function ArtistDetailsContent() {
         null
     );
     const [genreInput, setGenreInput] = useState("");
+    const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+    const [genreSearch, setGenreSearch] = useState("");
+    const [showGenreDropdown, setShowGenreDropdown] = useState(false);
+    const genreDropdownRef = useRef<HTMLDivElement>(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    // Build flat genre list from music-genres package
+    const allGenreNames = useMemo(() => {
+        const obj = musicGenres.getAllGenres();
+        const list: string[] = [];
+        Object.keys(obj).forEach((parent) => {
+            list.push(parent.replace(/_/g, " "));
+            (obj[parent] as string[]).forEach((sub) => list.push(sub));
+        });
+        return list;
+    }, []);
+
+    const filteredGenreOptions = useMemo(() => {
+        if (genreSearch.length < 1) return [];
+        const q = genreSearch.toLowerCase();
+        return allGenreNames
+            .filter((g) => g.toLowerCase().includes(q) && !selectedGenres.includes(g))
+            .slice(0, 15);
+    }, [genreSearch, allGenreNames, selectedGenres]);
+
+    // Keep genreInput in sync with selectedGenres for submission
+    useEffect(() => {
+        setGenreInput(selectedGenres.join(", "));
+    }, [selectedGenres]);
+
+    // Close genre dropdown on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (genreDropdownRef.current && !genreDropdownRef.current.contains(e.target as Node))
+                setShowGenreDropdown(false);
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
+
+    // City/Country/Phone state
+    const [cityQuery, setCityQuery] = useState("");
+    const [showCityDropdown, setShowCityDropdown] = useState(false);
+    const [countryCode, setCountryCode] = useState("");
+    const cityDropdownRef = useRef<HTMLDivElement>(null);
+    const [termsScrolledToBottom, setTermsScrolledToBottom] = useState(false);
+
+    const allCities = useMemo(() => City.getAllCities(), []);
+    const filteredCities = useMemo(() => {
+        if (cityQuery.length < 2) return [];
+        const q = cityQuery.toLowerCase();
+        return allCities.filter((c) => c.name.toLowerCase().startsWith(q)).slice(0, 50);
+    }, [cityQuery, allCities]);
+    const selectedCountry: ICountry | undefined = useMemo(
+        () => (countryCode ? Country.getCountryByCode(countryCode) || undefined : undefined),
+        [countryCode]
+    );
+    const phoneLen = useMemo(
+        () => (countryCode ? getPhoneLength(countryCode) : null),
+        [countryCode]
+    );
+
+    const handleCitySelect = (city: ICity) => {
+        const country = Country.getCountryByCode(city.countryCode);
+        setCityQuery(city.name);
+        setCountryCode(city.countryCode);
+        setFormData((prev: any) => ({
+            ...prev,
+            city: city.name,
+            country: country?.name || "",
+            phone: "",
+        }));
+        setShowCityDropdown(false);
+    };
+
+    // Close city dropdown on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target as Node))
+                setShowCityDropdown(false);
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
 
     useEffect(() => setMounted(true), []);
 
@@ -208,7 +294,7 @@ function ArtistDetailsContent() {
                                 g.charAt(0).toUpperCase() +
                                 g.slice(1).toLowerCase()
                         ) || [];
-                setGenreInput([...new Set(genresArray)].join(", "));
+                setSelectedGenres([...new Set(genresArray)]);
 
                 // setProfilePreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
                 // setCoverPreview(artist?.imageUrl || DEFAULT_PLACEHOLDER);
@@ -289,11 +375,37 @@ function ArtistDetailsContent() {
     const handleSubmit = async (e: any) => {
         e.preventDefault();
         if (!formData.acceptTerms) return toast.error("Please accept terms");
+
+        // Mandatory field validation
+        if (!formData.artist_name?.trim()) return toast.error("Artist name is required");
+        if (!formData.username?.trim()) return toast.error("Username is required");
+        if (!formData.bio?.trim()) return toast.error("Bio is required");
+        if (!genreInput?.trim()) return toast.error("At least one genre is required");
+        if (!formData.email?.trim()) return toast.error("Email is required");
+        if (!formData.phone?.trim()) return toast.error("Phone number is required");
+        if (!formData.city?.trim()) return toast.error("City is required");
+        if (!formData.country?.trim()) return toast.error("Country is required");
+
+        // Phone length validation
+        if (phoneLen) {
+            const len = formData.phone.replace(/\D/g, "").length;
+            if (len < phoneLen.min || len > phoneLen.max) {
+                return toast.error(
+                    phoneLen.min === phoneLen.max
+                        ? `Phone must be ${phoneLen.min} digits for this country`
+                        : `Phone must be ${phoneLen.min}-${phoneLen.max} digits for this country`
+                );
+            }
+        }
+
         if (
             !isLoggedIn &&
             formData.password_hash !== formData.confirm_password
         ) {
             return toast.error("Passwords do not match");
+        }
+        if (!isLoggedIn && !formData.password_hash?.trim()) {
+            return toast.error("Password is required");
         }
         if (!artistId) return toast.error("Artist not selected");
 
@@ -332,6 +444,7 @@ function ArtistDetailsContent() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...formData,
+                    phone: selectedCountry ? `+${selectedCountry.phonecode}-${formData.phone}` : formData.phone,
                     socials: socialsFromInputs,
                     profile_picture_url: profileUrl,
                     cover_photo_url: coverUrl,
@@ -420,8 +533,8 @@ function ArtistDetailsContent() {
                 {/* Artist Name + Username */}
                 <div className="grid md:grid-cols-2 gap-6">
                     {[
-                        { name: "artist_name", label: "Artist Name" },
-                        { name: "username", label: "Username" },
+                        { name: "artist_name", label: "Artist Name *" },
+                        { name: "username", label: "Username *" },
                     ].map((field) => (
                         <div key={field.name}>
                             <label className="block mb-2 text-sm font-semibold text-gray-300">
@@ -446,7 +559,7 @@ function ArtistDetailsContent() {
                 {/* Bio */}
                 <div>
                     <label className="block mb-2 text-sm font-semibold text-gray-300">
-                        Bio
+                        Bio <span className="text-red-400">*</span>
                     </label>
                     <textarea
                         name="bio"
@@ -463,29 +576,61 @@ function ArtistDetailsContent() {
                 </div>
 
                 {/* Genres */}
-                <div>
+                <div ref={genreDropdownRef} className="relative">
                     <label className="block mb-2 text-sm font-semibold text-gray-300">
-                        Genres (comma separated)
+                        Genres <span className="text-red-400">*</span>
                     </label>
+                    {/* Selected genre pills */}
+                    {selectedGenres.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {selectedGenres.map((g) => (
+                                <button
+                                    key={g}
+                                    type="button"
+                                    onClick={() => setSelectedGenres(selectedGenres.filter((x) => x !== g))}
+                                    className="px-3 py-1 rounded-full bg-[#FA6400]/20 border border-[#FA6400]/40 text-orange-300 text-sm flex items-center gap-1"
+                                >
+                                    {g} <span className="text-xs">✕</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                     <input
                         type="text"
-                        value={genreInput}
-                        onChange={(e) => setGenreInput(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" && !loading) {
-                                e.preventDefault();
-                            }
+                        value={genreSearch}
+                        onChange={(e) => {
+                            setGenreSearch(e.target.value);
+                            setShowGenreDropdown(true);
                         }}
-                        placeholder="e.g. Hip Hop, Pop"
+                        onFocus={() => genreSearch.length >= 1 && setShowGenreDropdown(true)}
+                        onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
+                        placeholder="Search genres..."
                         className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                     />
+                    {showGenreDropdown && filteredGenreOptions.length > 0 && (
+                        <ul className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto rounded-lg border border-gray-600 bg-[#2d2838] shadow-lg">
+                            {filteredGenreOptions.map((g) => (
+                                <li
+                                    key={g}
+                                    onClick={() => {
+                                        setSelectedGenres([...selectedGenres, g]);
+                                        setGenreSearch("");
+                                        setShowGenreDropdown(false);
+                                    }}
+                                    className="px-4 py-2 cursor-pointer hover:bg-[#3a3248] text-gray-100 text-sm"
+                                >
+                                    {g}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
 
                 {/* Profile & Cover Upload */}
                 <div className="grid md:grid-cols-2 gap-6">
                     <div>
                         <label className="block mb-2 text-sm font-semibold text-gray-300">
-                            Profile Photo
+                            Profile Photo <span className="text-red-400">*</span>
                         </label>
                         <div className="w-60 h-40 rounded-xl overflow-hidden bg-[#2d2838] relative group mx-auto">
                             <img
@@ -638,37 +783,123 @@ function ArtistDetailsContent() {
                         Contact Information
                     </BaseHeading>
                     <div className="grid md:grid-cols-2 gap-6">
-                        {[
-                            "email",
-                            "phone",
-                            "distribution_company",
-                            "city",
-                            "country",
-                        ].map((field) => (
-                            <div key={field}>
-                                <label className="block mb-2 text-sm font-semibold text-gray-300 capitalize">
-                                    {field.replace("_", " ")}
-                                </label>
+                        {/* Email */}
+                        <div>
+                            <label className="block mb-2 text-sm font-semibold text-gray-300">
+                                Email <span className="text-red-400">*</span>
+                            </label>
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
+                                className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
+                            />
+                        </div>
+
+                        {/* Distribution Company */}
+                        <div>
+                            <label className="block mb-2 text-sm font-semibold text-gray-300">
+                                Distribution Company
+                            </label>
+                            <input
+                                type="text"
+                                name="distribution_company"
+                                value={formData.distribution_company}
+                                onChange={handleChange}
+                                onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
+                                className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
+                            />
+                        </div>
+
+                        {/* City - searchable dropdown */}
+                        <div ref={cityDropdownRef} className="relative">
+                            <label className="block mb-2 text-sm font-semibold text-gray-300">
+                                City <span className="text-red-400">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Search for your city..."
+                                value={cityQuery}
+                                onChange={(e) => {
+                                    setCityQuery(e.target.value);
+                                    setShowCityDropdown(true);
+                                    if (!e.target.value) {
+                                        setCountryCode("");
+                                        setFormData((prev: any) => ({ ...prev, city: "", country: "", phone: "" }));
+                                    }
+                                }}
+                                onFocus={() => cityQuery.length >= 2 && setShowCityDropdown(true)}
+                                className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
+                            />
+                            {showCityDropdown && filteredCities.length > 0 && (
+                                <ul className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto rounded-lg border border-gray-600 bg-[#2d2838] shadow-lg">
+                                    {filteredCities.map((city, i) => {
+                                        const c = Country.getCountryByCode(city.countryCode);
+                                        return (
+                                            <li key={`${city.name}-${city.stateCode}-${city.countryCode}-${i}`}
+                                                onClick={() => handleCitySelect(city)}
+                                                className="px-4 py-2 cursor-pointer hover:bg-[#3a3248] text-gray-100 text-sm">
+                                                {city.name}, {city.stateCode} — {c?.flag} {c?.name}
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            )}
+                        </div>
+
+                        {/* Country - auto-filled */}
+                        <div>
+                            <label className="block mb-2 text-sm font-semibold text-gray-300">
+                                Country <span className="text-red-400">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={selectedCountry ? `${selectedCountry.flag} ${selectedCountry.name}` : ""}
+                                readOnly
+                                placeholder="Auto-filled from city"
+                                className="w-full p-3 bg-[#2d2838]/50 rounded-lg text-gray-400 cursor-not-allowed"
+                            />
+                        </div>
+
+                        {/* Phone with country code */}
+                        <div className="md:col-span-2">
+                            <label className="block mb-2 text-sm font-semibold text-gray-300">
+                                Phone Number <span className="text-red-400">*</span>
+                            </label>
+                            <div className="flex gap-2">
+                                <div className="w-24 flex-shrink-0">
+                                    <input
+                                        type="text"
+                                        value={selectedCountry ? `+${selectedCountry.phonecode}` : ""}
+                                        readOnly
+                                        placeholder="+__"
+                                        className="w-full p-3 bg-[#2d2838]/50 rounded-lg text-gray-400 text-center cursor-not-allowed"
+                                    />
+                                </div>
                                 <input
-                                    type={field === "email" ? "email" : "text"}
-                                    name={field}
-                                    value={(formData as any)[field]}
+                                    type="tel"
+                                    name="phone"
+                                    placeholder={phoneLen
+                                        ? phoneLen.min === phoneLen.max
+                                            ? `Phone (${phoneLen.min} digits)`
+                                            : `Phone (${phoneLen.min}-${phoneLen.max} digits)`
+                                        : "Select a city first"}
+                                    value={formData.phone}
                                     onChange={handleChange}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter" && !loading) {
-                                            e.preventDefault();
-                                        }
-                                    }}
-                                    className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
+                                    disabled={!countryCode}
+                                    onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
+                                    className="flex-1 p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400] disabled:bg-[#2d2838]/50 disabled:text-gray-500 disabled:cursor-not-allowed"
                                 />
                             </div>
-                        ))}
+                        </div>
 
                         {/* Only show password if user not logged in */}
                         {!isLoggedIn && (
                             <div className="md:col-span-2">
                                 <label className="block mb-2 text-sm font-semibold text-gray-300">
-                                    Password
+                                    Password <span className="text-red-400">*</span>
                                 </label>
                                 <input
                                     type="password"
@@ -690,7 +921,7 @@ function ArtistDetailsContent() {
                         {!isLoggedIn && (
                             <div className="md:col-span-2">
                                 <label className="block mb-2 text-sm font-semibold text-gray-300">
-                                    Confirm Password
+                                    Confirm Password <span className="text-red-400">*</span>
                                 </label>
                                 <input
                                     type="password"
@@ -769,7 +1000,20 @@ function ArtistDetailsContent() {
                         Terms & Conditions
                     </BaseHeading>
 
-                    <div className="bg-[#2d2838] rounded-lg p-4 h-48 overflow-y-scroll text-sm text-gray-300 mb-4 space-y-3">
+                    <div
+                        className="bg-[#2d2838] rounded-lg p-4 h-48 overflow-y-scroll text-sm text-gray-300 mb-4 space-y-3"
+                        ref={(el) => {
+                            if (el && el.scrollHeight <= el.clientHeight + 10) {
+                                setTermsScrolledToBottom(true);
+                            }
+                        }}
+                        onScroll={(e) => {
+                            const el = e.currentTarget;
+                            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+                                setTermsScrolledToBottom(true);
+                            }
+                        }}
+                    >
                         <BaseText>
                             By creating an account, you agree that all provided
                             information is accurate and up to date. You
@@ -801,9 +1045,15 @@ function ArtistDetailsContent() {
                             name="acceptTerms"
                             checked={formData.acceptTerms}
                             onChange={handleChange}
-                            className="w-4 h-4 accent-[#FA6400]"
+                            disabled={!termsScrolledToBottom}
+                            className="w-4 h-4 accent-[#FA6400] disabled:opacity-40"
                         />
-                        <span>I accept the Terms and Conditions</span>
+                        <span className={termsScrolledToBottom ? "" : "text-gray-500"}>
+                            I accept the Terms and Conditions
+                            {!termsScrolledToBottom && (
+                                <span className="text-xs text-gray-500 ml-1">(scroll to bottom to enable)</span>
+                            )}
+                        </span>
                     </label>
                 </div>
 
@@ -819,7 +1069,19 @@ function ArtistDetailsContent() {
             {/* Modal */}
             {showTermsModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-[#241e33] rounded-xl max-w-2xl w-full p-6 relative overflow-y-auto max-h-[80vh]">
+                    <div className="bg-[#241e33] rounded-xl max-w-2xl w-full p-6 relative overflow-y-auto max-h-[80vh]"
+                        ref={(el) => {
+                            if (el && el.scrollHeight <= el.clientHeight + 10) {
+                                setTermsScrolledToBottom(true);
+                            }
+                        }}
+                        onScroll={(e) => {
+                            const el = e.currentTarget;
+                            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+                                setTermsScrolledToBottom(true);
+                            }
+                        }}
+                    >
                         <button
                             type="button"
                             onClick={() => setShowTermsModal(false)}
