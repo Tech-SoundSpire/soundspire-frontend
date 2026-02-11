@@ -167,3 +167,21 @@ User.init(
         ],
     },
 );
+
+// Clean up related records on soft delete
+User.afterDestroy(async (user) => {
+    const uid = user.user_id;
+    const { sequelize: seq } = User;
+    if (!seq) return;
+    await Promise.all([
+        seq.query(`DELETE FROM user_preferences WHERE user_id = :uid`, { replacements: { uid } }),
+        seq.query(`DELETE FROM community_subscriptions WHERE user_id = :uid`, { replacements: { uid } }),
+        seq.query(`DELETE FROM comments WHERE user_id = :uid`, { replacements: { uid } }),
+        seq.query(`DELETE FROM likes WHERE user_id = :uid`, { replacements: { uid } }),
+        seq.query(`DELETE FROM forum_posts WHERE user_id = :uid`, { replacements: { uid } }),
+        seq.query(`DELETE FROM artist_votes WHERE user_id = :uid`, { replacements: { uid } }),
+        seq.query(`DELETE FROM socials WHERE user_id = :uid`, { replacements: { uid } }),
+        seq.query(`DELETE FROM user_verification WHERE user_id = :uid`, { replacements: { uid } }),
+        seq.query(`UPDATE reviews SET deleted_at = NOW() WHERE user_id = :uid AND deleted_at IS NULL`, { replacements: { uid } }),
+    ]);
+});
