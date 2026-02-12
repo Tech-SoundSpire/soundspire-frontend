@@ -9,11 +9,13 @@ import { sanitizeURL } from "@/utils/sanitizeURL";
 import {
     getDefaultProfileImageUrl,
     getImageUrl,
+    getLogoUrl,
 } from "@/utils/userProfileImageUtils";
 import { useAuth } from "@/context/AuthContext";
 import { communitySubscriptionData } from "@/types/communitySubscription";
 import styles from "./community_profile.module.css";
 import Navbar from "@/components/Navbar";
+import CommunityHeader from "@/components/CommunityHeader";
 import { FaFacebook, FaInstagram, FaTiktok, FaYoutube } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { IconType } from "react-icons/lib";
@@ -184,172 +186,53 @@ export default function ArtistCommunityProfile() {
         <>
             <Navbar></Navbar>
             <div className="min-h-screen bg-[#1a1625] text-white flex flex-col">
-                {/* HEADER */}
-                <header className="w-full bg-[#1a1625]/90 backdrop-blur-md py-4 px-8 flex items-center justify-center fixed top-0 left-0 z-50">
-                    {/* Navigation Buttons */}
-                    <nav className="flex items-center justify-center gap-8 ml-auto">
-                        <button className="text-[#FA6400] font-semibold">
-                            <BaseText
-                                wrapper="span"
-                                textColor="inherit"
-                                fontSize="normal"
-                            >
-                                About
-                            </BaseText>
-                        </button>
-                        <button className="hover:text-[#FA6400] transition">
-                            <BaseText
-                                wrapper="span"
-                                textColor="inherit"
-                                fontSize="normal"
-                            >
-                                Artist Forum
-                            </BaseText>
-                        </button>
-                        <button 
-                            onClick={() => {
-                                if (!alreadySubscribed) {
-                                    toast.error('Subscribe to access All Chat');
-                                    return;
-                                }
-                                if (artist?.slug) {
-                                    window.location.href = `/community/${artist.slug}/all-chat`;
-                                }
-                            }}
-                            className={`transition ${alreadySubscribed ? 'hover:text-[#FA6400]' : 'opacity-50 cursor-not-allowed'}`}
-                            disabled={!alreadySubscribed}
-                        >
-                            <BaseText
-                                wrapper="span"
-                                textColor="inherit"
-                                fontSize="normal"
-                            >
-                                All Chat
-                            </BaseText>
-                        </button>
-                        <button 
-                            onClick={() => {
-                                if (!alreadySubscribed) {
-                                    toast.error('Subscribe to access Fan Art');
-                                    return;
-                                }
-                                if (artist?.slug) {
-                                    window.location.href = `/community/${artist.slug}/fan-art`;
-                                }
-                            }}
-                            className={`transition ${alreadySubscribed ? 'hover:text-[#FA6400]' : 'opacity-50 cursor-not-allowed'}`}
-                            disabled={!alreadySubscribed}
-                        >
-                            <BaseText
-                                wrapper="span"
-                                textColor="inherit"
-                                fontSize="normal"
-                            >
-                                Fan Art
-                            </BaseText>
-                        </button>
-                        <button className="hover:text-[#FA6400] transition">
-                            <BaseText
-                                wrapper="span"
-                                textColor="inherit"
-                                fontSize="normal"
-                            >
-                                Suggestions
-                            </BaseText>
-                        </button>
-                    </nav>
-
-                    {/* Community Name */}
-                    {artist.community?.name ? (
-                        <BaseText
-                            wrapper="span"
-                            textColor="#9ca3af"
-                            fontStyle="italic"
-                            fontWeight={500}
-                            className="ml-auto"
-                        >
-                            {artist.community.name}
-                        </BaseText>
-                    ) : (
-                        <BaseText
-                            wrapper="span"
-                            className="ml-auto"
-                            textColor="#6b7280"
-                            fontStyle="italic"
-                        >
-                            No Community
-                        </BaseText>
-                    )}
-                </header>
-                <div className="relative w-full flex justify-center items-center mt-28 mb-16 px-8 bg-[#1a1625]">
-                    {/* Cover Image Block */}
-                    <div
-                        className="relative w-[85%] h-[450px] rounded-2xl overflow-hidden shadow-2xl"
-                        style={{
-                            backgroundImage: `url(${cover_image})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                        }}
-                    >
-                        {/* Gradient overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1625]/80 via-transparent to-[#1a1625]/30"></div>
-
-                        {/* Artist Name */}
-                        <div className="absolute top-6 right-6 z-10">
-                            <BaseHeading
-                                headingLevel="h1"
-                                fontSize="heading"
-                                fontWeight={700}
-                                className=" bg-[#1a1625]/70 px-5 py-2 rounded-lg"
-                            >
-                                {artist.artist_name}
-                            </BaseHeading>
+                <CommunityHeader
+                    slug={slug as string}
+                    communityName={artist.community?.name}
+                    isSubscribed={alreadySubscribed}
+                    currentPage="about"
+                />
+                <div className="relative w-full mt-16">
+                    {/* Cover image - full width */}
+                    <div className="w-full h-56 md:h-72 overflow-hidden">
+                        <img
+                            src={cover_image}
+                            alt="Cover"
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                    {/* Profile photo overlapping bottom of cover */}
+                    <div className="absolute left-1/2 -translate-x-1/2 -bottom-16 z-10">
+                        <div className="w-32 h-32 md:w-36 md:h-36 rounded-full border-4 border-[#1a1625] overflow-hidden bg-gray-700 shadow-xl">
+                            <img src={profile_image} alt={artist.artist_name} className="w-full h-full object-cover" />
                         </div>
                     </div>
+                </div>
 
-                    {/* Social Icons Beside Cover */}
+                {/* Name + Social icons */}
+                <div className="mt-20 text-center">
+                    <BaseHeading fontSize="large" fontWeight={700}>
+                        {artist.artist_name}
+                    </BaseHeading>
+                    {artist.community?.name && (
+                        <BaseText textColor="#9ca3af" fontSize="small" fontStyle="italic" className="mt-1">
+                            {artist.community.name}
+                        </BaseText>
+                    )}
                     {artist.socials && artist.socials.length > 0 && (
-                        <div
-                            className="
-                            absolute 
-                            right-[6%]
-                            top-1/2 
-                            -translate-y-1/2 
-                            flex flex-col 
-                            gap-5 
-                            z-30
-                        "
-                        >
+                        <div className="flex justify-center gap-4 mt-3">
                             {artist.socials.map((s, i) => {
                                 let Icon: IconType | null = null;
                                 switch (s.platform.toLowerCase()) {
-                                    case "youtube":
-                                        Icon = FaYoutube;
-                                        break;
-                                    case "instagram":
-                                        Icon = FaInstagram;
-                                        break;
-                                    case "twitter":
-                                    case "x":
-                                        Icon = FaXTwitter;
-                                        break;
-                                    case "facebook":
-                                        Icon = FaFacebook;
-                                        break;
-                                    case "tiktok":
-                                        Icon = FaTiktok;
-                                        break;
-                                    default:
-                                        return null;
+                                    case "youtube": Icon = FaYoutube; break;
+                                    case "instagram": Icon = FaInstagram; break;
+                                    case "twitter": case "x": Icon = FaXTwitter; break;
+                                    case "facebook": Icon = FaFacebook; break;
+                                    case "tiktok": Icon = FaTiktok; break;
+                                    default: return null;
                                 }
                                 return (
-                                    <a
-                                        key={i}
-                                        href={s.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-white hover:text-[#FA6400] transition text-3xl"
-                                    >
+                                    <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#FA6400] transition text-2xl">
                                         <Icon />
                                     </a>
                                 );
@@ -358,159 +241,58 @@ export default function ArtistCommunityProfile() {
                     )}
                 </div>
                 {/* MAIN CONTENT */}
-                <div className="flex flex-col items-center px-8 py-16 bg-[#1a1625]">
-                    <div className="w-[85%] flex flex-col space-y-10">
-                        {/* About Section */}
-                        <div className="p-8 rounded-2xl bg-[#1a1625]">
-                            <BaseHeading
-                                fontWeight={600}
-                                fontSize="sub heading"
-                                className="mb-3"
-                                headingLevel="h2"
-                            >
-                                About
-                            </BaseHeading>
-                            {artist.bio ? (
-                                <BaseText
-                                    className="leading-relaxed prose prose-invert max-w-none"
-                                    textColor="#d1d5db"
-                                    fontSize="normal"
-                                >
-                                    {artist.bio}
-                                </BaseText>
-                            ) : (
-                                <BaseText
-                                    textColor="#d1d5db"
-                                    className="leading-relaxed"
-                                >
-                                    No bio available yet.
-                                </BaseText>
-                            )}
-                        </div>
-
-                        {/* Community Section */}
-                        {artist.community && (
-                            <div className="p-8 rounded-2xl bg-[#1a1625]">
-                                <BaseHeading
-                                    fontWeight={600}
-                                    className="mb-3"
-                                    headingLevel="h2"
-                                    fontSize="sub heading"
-                                >
-                                    Highlights of Community
-                                </BaseHeading>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    {[
-                                        "Be a part of the TRIBE",
-                                        "Get Access to the Screens",
-                                        "Tap into the Global Community",
-                                    ].map((title, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="relative h-64 rounded-xl overflow-hidden shadow-lg"
-                                            style={{
-                                                backgroundImage: `url(${default_image})`,
-                                                backgroundSize: "cover",
-                                                backgroundPosition: "center",
-                                            }}
-                                        >
-                                            <div className="absolute inset-0 bg-gradient-to-t from-[#1a1625]/90 via-transparent to-[#1a1625]/30"></div>
-                                            <div className="absolute bottom-4 right-4 z-10">
-                                                <BaseHeading
-                                                    headingLevel="h1"
-                                                    fontSize="small"
-                                                    fontWeight={600}
-                                                    className=" bg-[#1a1625]/70 px-3 py-2 rounded-lg"
-                                                >
-                                                    {title}
-                                                </BaseHeading>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                <div className="max-w-4xl w-full mx-auto px-6 py-8 space-y-8">
+                    {/* About */}
+                    <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
+                        <BaseHeading fontWeight={600} fontSize="normal" className="mb-3">About</BaseHeading>
+                        {artist.bio ? (
+                            <BaseText className="leading-relaxed" textColor="#d1d5db" fontSize="normal">
+                                {artist.bio}
+                            </BaseText>
+                        ) : (
+                            <BaseText textColor="#6b7280">No bio available yet.</BaseText>
                         )}
+                    </div>
 
-                        {/* Artist Profile Section */}
-                        <div className="p-8 rounded-2xl bg-[#1a1625] flex flex-col">
-                            <BaseHeading
-                                headingLevel="h2"
-                                fontSize="sub heading"
-                                fontWeight={600}
-                                className="mb-3"
-                            >
-                                Artist Profile
-                            </BaseHeading>
-                            <div className="w-48 h-48 rounded-xl overflow-hidden relative">
-                                <img
-                                    src={profile_image}
-                                    alt="Artist"
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Reviews Section - SoundSpire Team */}
-                        <div className="p-8 rounded-2xl bg-[#1a1625] flex flex-col">
-                            <BaseHeading
-                                headingLevel="h2"
-                                fontSize="sub heading"
-                                fontWeight={600}
-                                className="mb-6"
-                            >
-                                Reviews by the Sound Spire Team
-                            </BaseHeading>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                {[1, 2, 3].map((i) => (
-                                    <div
-                                        key={i}
-                                        className="bg-[#221c2f] border border-gray-700 rounded-xl p-6 shadow-lg hover:shadow-xl transition"
-                                    >
-                                        {/* Artist Review image */}
-                                        <div className="w-48 h-48 rounded-xl overflow-hidden">
-                                            <img
-                                                src={profile_image}
-                                                alt="Artist profile"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-
-                                        {/* Review text */}
-                                        <BaseText
-                                            textColor="#d1d5db"
-                                            fontSize="small"
-                                            textAlign="left"
-                                            className="mb-4"
-                                        >
-                                            Lorem ipsum dolor sit amet,
-                                            consectetur adipiscing elit. Sed
-                                            feugiat nunc vitae mi facilisis, sit
-                                            amet sodales velit luctus.
-                                        </BaseText>
-
-                                        {/* Reviewer */}
-                                        <BaseText
-                                            textColor="#fa6400"
-                                            fontSize="very small"
-                                            textAlign="left"
-                                            fontWeight={500}
-                                        >
-                                            Ashish Paul • 20 Dec
-                                        </BaseText>
-
-                                        {/* Button */}
-                                        <button className="bg-[#FA6400] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#ff832e] transition text-left">
-                                            Read More
-                                        </button>
+                    {/* Community Highlights */}
+                    {artist.community && (
+                        <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
+                            <BaseHeading fontSize="normal" fontWeight={600} className="mb-3">Community Highlights</BaseHeading>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {["Be a part of the TRIBE", "Get Access to the Screens", "Tap into the Global Community"].map((title, idx) => (
+                                    <div key={idx} className="relative h-40 rounded-xl overflow-hidden bg-gradient-to-br from-purple-900/30 to-[#1a1625] border border-gray-700 flex items-end p-4">
+                                        <BaseText fontWeight={600} fontSize="small">{title}</BaseText>
                                     </div>
                                 ))}
                             </div>
                         </div>
+                    )}
+
+                    {/* Reviews */}
+                    <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
+                        <BaseHeading headingLevel="h2" fontSize="normal" fontWeight={600} className="mb-6">Reviews by the SoundSpire Team</BaseHeading>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="bg-[#1a1625] border border-gray-700 rounded-xl p-5 shadow-lg hover:shadow-xl transition space-y-3">
+                                    <div className="w-full h-32 rounded-lg overflow-hidden">
+                                        <img src={profile_image} alt="Artist" className="w-full h-full object-cover" />
+                                    </div>
+                                    <BaseText textColor="#d1d5db" fontSize="small">
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed feugiat nunc vitae mi facilisis.
+                                    </BaseText>
+                                    <BaseText textColor="#fa6400" fontSize="very small" fontWeight={500}>
+                                        Ashish Paul • 20 Dec
+                                    </BaseText>
+                                    <button className="bg-[#FA6400] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#ff832e] transition">
+                                        Read More
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
+
             {!isOwnCommunity && (
             <div className={styles["subscribe-banner"]}>
                 <button

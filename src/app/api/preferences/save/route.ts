@@ -16,21 +16,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    // Validate and convert genre names to IDs
+    // Store raw names as-is (npm package data may not exist in DB tables)
+    // Also try to match DB records for backward compatibility
     let genreIds: string[] = [];
     if (genres && genres.length > 0) {
-      const genreRecords = await Genres.findAll({
-        where: { name: genres }
-      });
+      const genreRecords = await Genres.findAll({ where: { name: genres } });
       genreIds = genreRecords.map(g => g.genre_id);
     }
 
-    // Validate and convert language names to IDs
     let languageIds: string[] = [];
     if (languages && languages.length > 0) {
-      const languageRecords = await Languages.findAll({
-        where: { name: languages }
-      });
+      const languageRecords = await Languages.findAll({ where: { name: languages } });
       languageIds = languageRecords.map(l => l.language_id);
     }
 
@@ -61,24 +57,19 @@ export async function POST(request: NextRequest) {
       where: { user_id: userId }
     });
 
+    const prefData = {
+      genres: genreIds,
+      languages: languageIds,
+      favorite_artists: artistIds,
+      favorite_soundcharts_artists: soundchartsArtists,
+      genre_names: genres || [],
+      language_names: languages || [],
+    };
+
     if (existingPreferences) {
-      // Update existing preferences
-      await existingPreferences.update({
-        genres: genreIds,
-        languages: languageIds,
-        favorite_artists: artistIds,
-        favorite_soundcharts_artists: soundchartsArtists,
-        updated_at: new Date()
-      });
+      await existingPreferences.update({ ...prefData, updated_at: new Date() });
     } else {
-      // Create new preferences
-      await UserPreferences.create({
-        user_id: userId,
-        genres: genreIds,
-        languages: languageIds,
-        favorite_artists: artistIds,
-        favorite_soundcharts_artists: soundchartsArtists,
-      });
+      await UserPreferences.create({ user_id: userId, ...prefData });
     }
 
     return NextResponse.json({
