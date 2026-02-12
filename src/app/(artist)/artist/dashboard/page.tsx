@@ -186,19 +186,8 @@ export default function ArtistDashboard() {
                 isSubscribed={true}
                 isArtist={true}
                 currentPage="about"
-                extraButtons={
-                    <>
-                        <button onClick={handleLogout} className="px-4 py-1.5 bg-[#FA6400] hover:bg-[#e55a00] text-white font-bold rounded-lg transition text-sm">
-                            Logout
-                        </button>
-                        <button
-                            onClick={async () => { await switchRole("user"); router.push("/explore"); }}
-                            className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition text-sm"
-                        >
-                            Switch to Fan
-                        </button>
-                    </>
-                }
+                onLogout={handleLogout}
+                onSwitchToFan={async () => { await switchRole("user"); router.push("/explore"); }}
             />
 
             {/* COVER + PROFILE (LinkedIn-style) */}
