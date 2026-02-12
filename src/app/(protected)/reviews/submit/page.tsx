@@ -157,7 +157,7 @@ export default function SubmitReviewPage() {
             }
 
             toast.success("Review submitted successfully!");
-            router.push("/reviews");
+            setTimeout(() => router.push("/reviews"), 2000);
         } catch (error) {
             toast.error((error as Error).message || "Failed to submit review");
             console.error(error);

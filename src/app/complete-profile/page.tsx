@@ -320,7 +320,7 @@ export default function CompleteProfilePage() {
 
             await refreshUser();
             toast.success("Profile completed successfully!");
-            router.push("/PreferenceSelectionPage");
+            setTimeout(() => router.push("/PreferenceSelectionPage"), 2000);
         } catch (error: any) {
             console.error(error);
             toast.error(

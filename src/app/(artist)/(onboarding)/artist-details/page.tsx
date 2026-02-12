@@ -173,7 +173,7 @@ function ArtistDetailsContent() {
     useEffect(() => {
         if (!artistId) {
             toast.error("Please select an artist from the list first.");
-            router.replace("/find-artist-profile");
+            setTimeout(() => router.replace("/find-artist-profile"), 2000);
         }
     }, [artistId, router]);
 
@@ -492,7 +492,7 @@ function ArtistDetailsContent() {
 
             if (artistData.requiresVerification) {
                 toast.success("Verification email sent! Please check your inbox.", { duration: 5000 });
-                router.push("/artist/login");
+                setTimeout(() => router.push("/artist/login"), 3000);
             } else {
                 router.push(`/payout?artistId=${artistId}`);
             }
