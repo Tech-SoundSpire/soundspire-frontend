@@ -75,6 +75,13 @@ export async function POST(request: NextRequest) {
                 where: { email },
             });
 
+            if (user && !user.is_artist) {
+                return NextResponse.json(
+                    { error: "A fan account already exists with this email. Please use a different email for your artist account." },
+                    { status: 400 },
+                );
+            }
+
             if (!user) {
                 const existingUsername = await User.findOne({
                     where: { username, is_artist: true },
