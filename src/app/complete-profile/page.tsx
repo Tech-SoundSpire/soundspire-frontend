@@ -359,7 +359,7 @@ export default function CompleteProfilePage() {
     }
     const rawProfileImage =
         preview ||
-        form.profile_picture_url ||
+        (form.profile_picture_url && getImageUrl(form.profile_picture_url)) ||
         getImageUrl(DEFAULT_PROFILE_IMAGE);
     const safeProfileImage = sanitizeURL(rawProfileImage);
     return (
