@@ -115,6 +115,7 @@ function Inner() {
             {/* Right Side */}
             <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white text-black">
                 <div className="bg-slate-100 p-6 rounded shadow-md w-full max-w-md">
+                    <form onSubmit={(e) => { e.preventDefault(); handleReset(); }}>
                     <BaseHeading
                         headingLevel="h2"
                         fontSize="normal"
@@ -153,12 +154,13 @@ function Inner() {
                         className="w-full mb-4 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                     />
                     <button
-                        onClick={handleReset}
+                        type="submit"
                         disabled={loading || !password}
                         className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
                     >
                         {loading ? "Updating..." : "Reset Password"}
                     </button>
+                    </form>
                 </div>
             </div>
         </div>
