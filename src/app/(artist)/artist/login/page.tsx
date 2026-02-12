@@ -117,7 +117,7 @@ export default function ArtistLoginPage() {
 
                 {/* Logo */}
                 <div className="relative z-10">
-                    <Link href="/">
+                    <Link href="/artist/dashboard">
                         <img
                             src={getLogoUrl()}
                             alt="SoundSpire logo"

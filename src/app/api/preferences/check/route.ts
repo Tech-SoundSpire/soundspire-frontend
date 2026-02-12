@@ -25,7 +25,9 @@ export async function GET(request: NextRequest) {
         (preferences.genres && preferences.genres.length > 0) ||
         (preferences.languages && preferences.languages.length > 0) ||
         (preferences.favorite_artists && preferences.favorite_artists.length > 0) ||
-        (preferences.favorite_soundcharts_artists && (preferences.favorite_soundcharts_artists as any[]).length > 0)
+        (preferences.favorite_soundcharts_artists && (preferences.favorite_soundcharts_artists as any[]).length > 0) ||
+        (preferences.genre_names && (preferences.genre_names as any[]).length > 0) ||
+        (preferences.language_names && (preferences.language_names as any[]).length > 0)
       );
 
       return NextResponse.json({

@@ -10,6 +10,8 @@ export interface UserPreferencesAttributes {
   languages: string[];
   favorite_artists: string[]; // UUID array for artist IDs from artists table
   favorite_soundcharts_artists: object[]; // SoundCharts artist data [{name, soundcharts_uuid, imageUrl}]
+  genre_names: string[];
+  language_names: string[];
   spotify_id?: string;
   created_at?: Date;
   updated_at?: Date;
@@ -32,6 +34,8 @@ export class UserPreferences
   declare languages: string[];
   declare favorite_artists: string[]; // UUID array for artist IDs
   declare favorite_soundcharts_artists: object[];
+  declare genre_names: string[];
+  declare language_names: string[];
   declare spotify_id?: string;
   declare created_at?: Date;
   declare updated_at?: Date;
@@ -75,6 +79,16 @@ UserPreferences.init(
       defaultValue: [],
     },
     favorite_soundcharts_artists: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      defaultValue: [],
+    },
+    genre_names: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      defaultValue: [],
+    },
+    language_names: {
       type: DataTypes.JSONB,
       allowNull: false,
       defaultValue: [],
