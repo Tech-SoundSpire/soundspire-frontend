@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
 import toast from "react-hot-toast";
+import { FaArrowLeft } from "react-icons/fa";
 
 interface ArtistInfo {
     name: string;
@@ -131,6 +132,12 @@ export default function SoundChartsArtistPage() {
             <div className="h-screen flex flex-col bg-[#1a1625] text-white overflow-hidden">
                 {/* Banner + Profile photo */}
                 <div className="relative flex-shrink-0">
+                    <button
+                        onClick={() => router.push("/explore")}
+                        className="absolute top-4 left-20 z-20 w-10 h-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/60 transition"
+                    >
+                        <FaArrowLeft className="text-white" />
+                    </button>
                     {/* Cover banner — artist image blurred, or gradient fallback */}
                     <div className="h-44 overflow-hidden relative">
                         {artist.imageUrl ? (
