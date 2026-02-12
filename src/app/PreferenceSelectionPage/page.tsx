@@ -617,7 +617,7 @@ const PreferenceSelectionPage: React.FC = () => {
             });
 
             toast.success("Preferences saved successfully!");
-            router.push("/explore");
+            setTimeout(() => router.push("/explore"), 2000);
         } catch (error) {
             console.error("Error saving preferences:", error);
             toast.error("Failed to save preferences. Please try again.");

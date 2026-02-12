@@ -50,7 +50,7 @@ function Inner() {
             setLoading(true);
             await axios.post("/api/users/reset-password", { token, password });
             toast.success("password Updates!");
-            router.push("/login");
+            setTimeout(() => router.push("/login"), 2000);
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 toast.error(

@@ -20,7 +20,7 @@ export default function RootLayout({
         <html lang="en">
             <body className={`antialiased min-h-screen bg-[#1a1625]`}>
                 <AuthProvider>
-                    <Toaster position="top-center" reverseOrder={false} />
+                    <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 5000 }} />
                     {children}
                 </AuthProvider>
             </body>
