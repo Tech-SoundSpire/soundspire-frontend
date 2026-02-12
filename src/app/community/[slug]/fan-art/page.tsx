@@ -1098,7 +1098,7 @@ export default function FanArtPage() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-white text-2xl font-bold">Upload Fan Art</h2>
                 <button
-                  onClick={() => setShowUploadModal(false)}
+                  onClick={() => { setShowUploadModal(false); setSelectedFiles([]); setPreviewUrls([]); setTitle(''); setDescription(''); }}
                   className="text-gray-400 hover:text-white transition"
                   disabled={isUploading}
                 >
@@ -1176,7 +1176,7 @@ export default function FanArtPage() {
               {/* Actions */}
               <div className="flex gap-3">
                 <button
-                  onClick={() => setShowUploadModal(false)}
+                  onClick={() => { setShowUploadModal(false); setSelectedFiles([]); setPreviewUrls([]); setTitle(''); setDescription(''); }}
                   className="flex-1 px-6 py-3 bg-gray-700 text-white rounded-lg font-semibold hover:bg-gray-600 transition"
                   disabled={isUploading}
                 >

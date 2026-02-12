@@ -533,12 +533,12 @@ function ArtistDetailsContent() {
                 {/* Artist Name + Username */}
                 <div className="grid md:grid-cols-2 gap-6">
                     {[
-                        { name: "artist_name", label: "Artist Name *" },
-                        { name: "username", label: "Username *" },
+                        { name: "artist_name", label: "Artist Name" },
+                        { name: "username", label: "Username" },
                     ].map((field) => (
                         <div key={field.name}>
                             <label className="block mb-2 text-sm font-semibold text-gray-300">
-                                {field.label}
+                                {field.label} <span className="text-red-400">*</span>
                             </label>
                             <input
                                 type="text"
