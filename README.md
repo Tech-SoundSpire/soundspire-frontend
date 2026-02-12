@@ -447,7 +447,7 @@ npm run build
 ## 🤝 Contributing
 
 1. Create a feature branch (`git checkout -b feature/amazing-feature`)
-2. Always take a pull from the main branch before getting started on development in the feature branch (`git fetch origin` and then `git rebase origin/mainline`). Incase you are directly working on main without a feature branch: `git pull --rebase`
+2. Always take a pull from the main branch before getting started on development in the feature branch (`git fetch origin` and then `git rebase origin/main`). Incase you are directly working on main without a feature branch: `git pull --rebase`
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
