@@ -234,7 +234,7 @@ export default function ExplorePage() {
                             {reviews.slice(0, 3).map((review) => (
                                 <div
                                     key={review.review_id}
-                                    className="bg-[#2d2838] rounded-lg overflow-hidden"
+                                    className="flex flex-col bg-[#231b32] rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative"
                                 >
                                     <img
                                         src={
@@ -248,62 +248,51 @@ export default function ExplorePage() {
                                         alt={review.title}
                                         className="w-full h-48 object-cover"
                                     />
-                                    <div className="p-4">
-                                        <BaseHeading
-                                            headingLevel="h3"
-                                            textColor="#ffffff"
-                                            fontWeight={700}
-                                            className="mb-2"
-                                            fontSize="large"
-                                        >
-                                            {review.title}
-                                        </BaseHeading>
-                                        {review.artist?.artist_name && (
-                                            <BaseText
-                                                textColor="#c084fc"
-                                                fontSize="small"
-                                                className="mb-2"
+                                    <div className="p-4 flex-1 flex flex-col justify-between">
+                                        <div>
+                                            <BaseHeading
+                                                headingLevel="h3"
+                                                textColor="#ffffff"
+                                                fontWeight={600}
+                                                className="mb-1"
+                                                fontSize="large"
+                                                textAlign="left"
                                             >
-                                                by {review.artist.artist_name}
-                                            </BaseText>
-                                        )}
-                                        <BaseText
-                                            textColor="#9ca3af"
-                                            fontSize="small"
-                                            className="mb-4"
-                                        >
-                                            {review.text_content.length > 100
-                                                ? `${review.text_content.substring(
-                                                      0,
-                                                      100
-                                                  )}...`
-                                                : review.text_content}
-                                        </BaseText>
-                                        <div className="flex justify-between items-center">
+                                                {review.title}
+                                            </BaseHeading>
                                             <BaseText
-                                                wrapper="span"
                                                 fontSize="small"
                                                 textColor="#9ca3af"
+                                                className="mb-2"
                                             >
-                                                {review.user?.full_name ||
-                                                    review.user?.username ||
-                                                    "Unknown User"}
-                                                ,{" "}
-                                                {new Date(
-                                                    review.created_at
-                                                ).toLocaleDateString()}
+                                                {review.artist?.slug ? (
+                                                    <a href={`/community/${review.artist.slug}`} className="hover:text-[#FA6400] transition underline">
+                                                        {review.artist?.artist_name || "Unknown Artist"}
+                                                    </a>
+                                                ) : (
+                                                    review.artist_name || review.artist?.artist_name || "Unknown Artist"
+                                                )}
                                             </BaseText>
-                                            <button
-                                                className="px-4 py-1 bg-[#ff4d4d] text-white rounded-full text-sm"
-                                                onClick={() =>
-                                                    router.push(
-                                                        `/reviews/${review.review_id}`
-                                                    )
-                                                }
+                                            <BaseText
+                                                fontSize="small"
+                                                textColor="#d1d5db"
+                                                className="line-clamp-3 mb-4"
                                             >
-                                                Read More
-                                            </button>
+                                                {review.text_content.length > 100
+                                                    ? `${review.text_content.substring(0, 100)}...`
+                                                    : review.text_content}
+                                            </BaseText>
                                         </div>
+                                        <button
+                                            className="mt-auto bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm font-semibold"
+                                            onClick={() =>
+                                                router.push(
+                                                    `/reviews/${review.review_id}`
+                                                )
+                                            }
+                                        >
+                                            Read More
+                                        </button>
                                     </div>
                                 </div>
                             ))}
