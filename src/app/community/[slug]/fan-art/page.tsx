@@ -78,6 +78,7 @@ export default function FanArtPage() {
   const [description, setDescription] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
   const [showComments, setShowComments] = useState<Set<string>>(new Set());
@@ -622,6 +623,8 @@ export default function FanArtPage() {
     }
   };
   
+  const [expandedImage, setExpandedImage] = useState<string | null>(null);
+
   const filteredPosts = posts.filter(post => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
@@ -631,6 +634,10 @@ export default function FanArtPage() {
       post.user?.username?.toLowerCase().includes(query) ||
       post.user?.full_name?.toLowerCase().includes(query)
     );
+  }).sort((a, b) => {
+    const da = new Date(a.created_at).getTime();
+    const db = new Date(b.created_at).getTime();
+    return sortOrder === 'newest' ? db - da : da - db;
   });
   
   if (loading) {
@@ -656,7 +663,7 @@ export default function FanArtPage() {
       />
       
       {/* Left Sidebar - Community Info */}
-      <div className={`bg-[#2d2838] border-r border-gray-700 flex flex-col mt-16 transition-all duration-300 ${isSidebarCollapsed ? 'w-0 overflow-hidden' : 'w-80'}`}>
+      <div className={`bg-[#2d2838] border-r border-gray-700 flex flex-col mt-16 transition-all duration-300 ${!isArtist ? 'ml-16' : ''} ${isSidebarCollapsed ? 'w-0 overflow-hidden' : 'w-80'}`}>
         {/* Community Header */}
         <div className="p-6 border-b border-gray-700">
           <div className="flex flex-col items-center text-center">
@@ -712,7 +719,7 @@ export default function FanArtPage() {
         {/* Toggle Sidebar Button */}
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          className="absolute left-2 top-20 z-10 bg-[#2d2838] text-white p-2 rounded-full hover:bg-[#3d3848] transition"
+          className={`absolute ${isArtist ? 'left-2' : 'left-[4.5rem]'} top-20 z-10 bg-[#2d2838] text-white p-2 rounded-full hover:bg-[#3d3848] transition`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {isSidebarCollapsed ? (
@@ -747,16 +754,24 @@ export default function FanArtPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="search for messages in chat"
+                placeholder="search fan art..."
                 className="px-4 py-2 bg-[#1a1625] text-white placeholder-gray-500 rounded-full w-80 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                className="px-3 py-2 bg-[#1a1625] text-white rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+              </select>
             </div>
           </div>
         </div>
       
-      {/* Fan Art Feed */}
+      {/* Fan Art Grid */}
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="w-full px-4">
           {filteredPosts.length === 0 && !loading && (
             <div className="text-center py-20">
               <p className="text-gray-400 text-lg mb-4">
@@ -773,313 +788,138 @@ export default function FanArtPage() {
             </div>
           )}
           
-          {filteredPosts.map((post, idx) => {
-            const showDate = idx === 0 || 
-              new Date(filteredPosts[idx - 1].created_at).toDateString() !== new Date(post.created_at).toDateString();
-            
-            return (
-              <div key={post.forum_post_id}>
-                {showDate && (
-                  <div className="flex items-center justify-center my-6">
-                    <div className="h-px bg-gray-700 flex-1"></div>
-                    <span className="px-4 text-gray-400 text-sm">
-                      {new Date(post.created_at).toDateString() === new Date().toDateString() 
-                        ? 'Today' 
-                        : new Date(post.created_at).toLocaleDateString()}
-                    </span>
-                    <div className="h-px bg-gray-700 flex-1"></div>
-                  </div>
-                )}
-                
-                <div className="flex gap-3 items-start">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 items-start">
+          {filteredPosts.map((post) => (
+            <div key={post.forum_post_id} className="relative rounded-xl bg-[#2d2838] border border-gray-700">
+              {/* Image */}
+              {post.media_urls?.[0] && (
+                <div className="aspect-square overflow-hidden rounded-t-xl relative group">
                   <img
-                    src={getImageUrl(post.user?.profile_picture_url || 'images/placeholder.jpg')}
-                    alt={post.user?.username || 'User'}
-                    className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
+                    src={getImageUrl(post.media_urls[0])}
+                    alt={post.title || "Fan art"}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                    onClick={() => setExpandedImage(getImageUrl(post.media_urls[0]))}
                   />
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-white font-semibold">
-                        {post.user?.full_name || post.user?.username || 'Unknown User'}
-                      </span>
-                    </div>
-                    
-                    <div className="bg-[#FA6400] p-4 rounded-2xl rounded-tl-sm max-w-2xl">
-                      {/* Image */}
-                      <div className="bg-white rounded-lg overflow-hidden mb-3">
-                        <img
-                          src={getImageUrl(post.media_urls[0])}
-                          alt={post.title}
-                          className="w-full cursor-pointer"
-                          onClick={() => window.open(getImageUrl(post.media_urls[0]), '_blank')}
-                        />
-                      </div>
-                      
-                      {/* Caption */}
-                      <p className="text-white break-words">{post.content}</p>
-                      
-                      <span className="text-xs text-white opacity-80 mt-2 block text-right">
-                        {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    
-                    {/* Reactions */}
-                    {post.reactions && Object.keys(post.reactions).length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {Object.entries(post.reactions).map(([emoji, users]) => (
-                          <button
-                            key={emoji}
-                            onClick={() => addReaction(post.forum_post_id, emoji)}
-                            className={`px-2 py-1 rounded-full text-sm flex items-center gap-1 transition ${
-                              users.includes(user?.id || '') 
-                                ? 'bg-[#FA6400] text-white' 
-                                : 'bg-[#2d2838] text-gray-300 hover:bg-[#3d3848]'
-                            }`}
-                          >
-                            <span>{emoji}</span>
-                            <span className="text-xs">{users.length}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {/* Action buttons */}
-                    <div className="flex gap-3 mt-2">
-                      <button
-                        onClick={() => toggleComments(post.forum_post_id)}
-                        className="text-sm text-gray-400 hover:text-white flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#2d2838]"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        {post.commentCount || post.comments?.length || 0} Comments
-                      </button>
-                      <div className="relative">
-                        <button
-                          onClick={() => setShowReactionPicker(showReactionPicker === post.forum_post_id ? null : post.forum_post_id)}
-                          className="text-sm text-gray-400 hover:text-white flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#2d2838]"
-                        >
-                          😀 React
-                        </button>
-                        {showReactionPicker === post.forum_post_id && (
-                          <div className="absolute bottom-full left-0 mb-2 z-10">
-                            <EmojiPicker 
-                              onEmojiClick={(emojiData) => {
-                                addReaction(post.forum_post_id, emojiData.emoji);
-                                setShowReactionPicker(null);
-                              }}
-                              height={350}
-                              width={300}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Comments Section */}
-                    {showComments.has(post.forum_post_id) && (
-                      <div className="mt-4 space-y-3">
-                        {/* Add Comment */}
-                        <div className="flex gap-2">
-                          <img
-                            src={getImageUrl(user?.photoURL || 'images/placeholder.jpg')}
-                            alt={user?.name || 'User'}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                          <div className="flex-1">
-                            <input
-                              type="text"
-                              value={commentText[post.forum_post_id] || ''}
-                              onChange={(e) => setCommentText(prev => ({ ...prev, [post.forum_post_id]: e.target.value }))}
-                              onKeyPress={(e) => e.key === 'Enter' && addComment(post.forum_post_id)}
-                              placeholder="Add a comment..."
-                              className="w-full px-3 py-2 bg-[#2d2838] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
-                          </div>
-                        </div>
-                        
-                        {/* Comments List */}
-                        {post.comments?.map((comment) => (
-                          <div key={comment.forum_post_id} className="flex gap-2">
-                            <img
-                              src={getImageUrl(comment.user?.profile_picture_url || 'images/placeholder.jpg')}
-                              alt={comment.user?.username || 'User'}
-                              className="w-8 h-8 rounded-full object-cover"
-                            />
-                            <div className="flex-1">
-                              <div className="bg-[#2d2838] px-3 py-2 rounded-lg">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-white text-sm font-semibold">
-                                    {comment.user?.username || 'Unknown'}
-                                  </span>
-                                  <span className="text-gray-500 text-xs">
-                                    {new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                  </span>
-                                </div>
-                                <p className="text-white text-sm">{comment.content}</p>
-                              </div>
-                              
-                              {/* Comment reactions */}
-                              {comment.reactions && Object.keys(comment.reactions).length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {Object.entries(comment.reactions).map(([emoji, users]) => (
-                                    <button
-                                      key={emoji}
-                                      onClick={() => addCommentReaction(comment.forum_post_id, emoji)}
-                                      className={`px-2 py-1 rounded-full text-xs flex items-center gap-1 transition ${
-                                        users.includes(user?.id || '') 
-                                          ? 'bg-[#FA6400] text-white' 
-                                          : 'bg-[#2d2838] text-gray-300 hover:bg-[#3d3848]'
-                                      }`}
-                                    >
-                                      <span>{emoji}</span>
-                                      <span className="text-xs">{users.length}</span>
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                              
-                              {/* Comment actions */}
-                              <div className="flex gap-2 mt-1">
-                                <button
-                                  onClick={() => setReplyingTo({ postId: post.forum_post_id, parentPostId: comment.forum_post_id })}
-                                  className="text-xs text-gray-400 hover:text-white"
-                                >
-                                  Reply
-                                </button>
-                                <div className="relative">
-                                  <button
-                                    onClick={() => setShowReactionPicker(showReactionPicker === comment.forum_post_id ? null : comment.forum_post_id)}
-                                    className="text-xs text-gray-400 hover:text-white"
-                                  >
-                                    😀 React
-                                  </button>
-                                  {showReactionPicker === comment.forum_post_id && (
-                                    <div className="absolute bottom-full left-0 mb-2 z-10">
-                                      <EmojiPicker 
-                                        onEmojiClick={(emojiData) => {
-                                          addCommentReaction(comment.forum_post_id, emojiData.emoji);
-                                          setShowReactionPicker(null);
-                                        }}
-                                        height={350}
-                                        width={300}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              {/* Replies */}
-                              {comment.replies && comment.replies.length > 0 && (
-                                <div className="ml-4 mt-2 space-y-2">
-                                  {comment.replies.map((reply) => (
-                                    <div key={reply.forum_post_id} className="flex gap-2">
-                                      <img
-                                        src={getImageUrl(reply.user?.profile_picture_url || 'images/placeholder.jpg')}
-                                        alt={reply.user?.username || 'User'}
-                                        className="w-6 h-6 rounded-full object-cover"
-                                      />
-                                      <div className="flex-1">
-                                        <div className="bg-[#3d3848] px-3 py-2 rounded-lg">
-                                          <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-white text-xs font-semibold">
-                                              {reply.user?.username || 'Unknown'}
-                                            </span>
-                                            <span className="text-gray-500 text-xs">
-                                              {new Date(reply.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                          </div>
-                                          <p className="text-white text-xs">{reply.content}</p>
-                                        </div>
-                                        
-                                        {/* Reply reactions */}
-                                        {reply.reactions && Object.keys(reply.reactions).length > 0 && (
-                                          <div className="flex flex-wrap gap-1 mt-1">
-                                            {Object.entries(reply.reactions).map(([emoji, users]) => (
-                                              <button
-                                                key={emoji}
-                                                onClick={() => addCommentReaction(reply.forum_post_id, emoji)}
-                                                className={`px-1.5 py-0.5 rounded-full text-xs flex items-center gap-1 transition ${
-                                                  users.includes(user?.id || '') 
-                                                    ? 'bg-[#FA6400] text-white' 
-                                                    : 'bg-[#2d2838] text-gray-300 hover:bg-[#3d3848]'
-                                                }`}
-                                              >
-                                                <span>{emoji}</span>
-                                                <span className="text-xs">{users.length}</span>
-                                              </button>
-                                            ))}
-                                          </div>
-                                        )}
-                                        
-                                        {/* Reply actions */}
-                                        <div className="relative mt-1">
-                                          <button
-                                            onClick={() => setShowReactionPicker(showReactionPicker === reply.forum_post_id ? null : reply.forum_post_id)}
-                                            className="text-xs text-gray-400 hover:text-white"
-                                          >
-                                            😀 React
-                                          </button>
-                                          {showReactionPicker === reply.forum_post_id && (
-                                            <div className="absolute bottom-full left-0 mb-2 z-10">
-                                              <EmojiPicker 
-                                                onEmojiClick={(emojiData) => {
-                                                  addCommentReaction(reply.forum_post_id, emojiData.emoji);
-                                                  setShowReactionPicker(null);
-                                                }}
-                                                height={350}
-                                                width={300}
-                                              />
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                              
-                              {/* Reply input */}
-                              {replyingTo?.parentPostId === comment.forum_post_id && (
-                                <div className="ml-4 mt-2 flex gap-2">
-                                  <img
-                                    src={getImageUrl(user?.photoURL || 'images/placeholder.jpg')}
-                                    alt={user?.name || 'User'}
-                                    className="w-6 h-6 rounded-full object-cover"
-                                  />
-                                  <div className="flex-1 flex gap-2">
-                                    <input
-                                      type="text"
-                                      value={commentText[comment.forum_post_id] || ''}
-                                      onChange={(e) => setCommentText(prev => ({ ...prev, [comment.forum_post_id]: e.target.value }))}
-                                      onKeyPress={(e) => e.key === 'Enter' && addComment(post.forum_post_id, comment.forum_post_id)}
-                                      placeholder="Write a reply..."
-                                      className="flex-1 px-3 py-1 bg-[#3d3848] text-white text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                      autoFocus
-                                    />
-                                    <button
-                                      onClick={() => setReplyingTo(null)}
-                                      className="text-gray-400 hover:text-white text-xs"
-                                    >
-                                      Cancel
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+
+                  {/* Hover overlay with actions */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-200 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 pointer-events-none">
+                    <span className="px-3 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg text-sm font-medium pointer-events-auto cursor-pointer"
+                      onClick={(e) => { e.stopPropagation(); toggleComments(post.forum_post_id); }}>
+                      💬 {post.commentCount || post.comments?.length || 0}
+                    </span>
+                    <span className="px-3 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg text-sm font-medium pointer-events-auto cursor-pointer"
+                      onClick={(e) => { e.stopPropagation(); setShowReactionPicker(showReactionPicker === post.forum_post_id ? null : post.forum_post_id); }}>
+                      😀 React
+                    </span>
                   </div>
                 </div>
+              )}
+
+              {/* Emoji picker (fixed position, above everything) */}
+              {showReactionPicker === post.forum_post_id && (
+                <div className="fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                  <div className="relative">
+                    <button onClick={() => setShowReactionPicker(null)} className="absolute -top-2 -right-2 z-10 w-6 h-6 bg-gray-700 text-white rounded-full text-xs hover:bg-gray-600">✕</button>
+                    <EmojiPicker
+                      onEmojiClick={(emojiData) => {
+                        addReaction(post.forum_post_id, emojiData.emoji);
+                        setShowReactionPicker(null);
+                      }}
+                      height={350}
+                      width={300}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Info bar */}
+              <div className="p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <img
+                    src={getImageUrl(post.user?.profile_picture_url || 'images/placeholder.jpg')}
+                    alt=""
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                  <span className="text-white text-xs font-medium truncate">
+                    {post.user?.username || post.user?.full_name || 'Unknown'}
+                  </span>
+                  <span className="text-gray-500 text-xs ml-auto">
+                    {new Date(post.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                {post.content && (
+                  <p className="text-gray-300 text-xs line-clamp-2">{post.content}</p>
+                )}
+                {/* Reactions */}
+                {post.reactions && Object.keys(post.reactions).length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {Object.entries(post.reactions).map(([emoji, users]) => (
+                      <button
+                        key={emoji}
+                        onClick={() => addReaction(post.forum_post_id, emoji)}
+                        className={`px-1.5 py-0.5 rounded-full text-xs ${
+                          users.includes(user?.id || '') ? 'bg-[#FA6400] text-white' : 'bg-[#1a1625] text-gray-300'
+                        }`}
+                      >
+                        {emoji} {users.length}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            );
-          })}
+
+              {/* Comments section (expandable) */}
+              {showComments.has(post.forum_post_id) && (
+                <div className="border-t border-gray-700 p-3 space-y-2">
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      value={commentText[post.forum_post_id] || ''}
+                      onChange={(e) => setCommentText(prev => ({ ...prev, [post.forum_post_id]: e.target.value }))}
+                      onKeyPress={(e) => e.key === 'Enter' && addComment(post.forum_post_id)}
+                      placeholder="Comment..."
+                      className="flex-1 min-w-0 px-2 py-1.5 bg-[#1a1625] text-white text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      onClick={() => addComment(post.forum_post_id)}
+                      disabled={!commentText[post.forum_post_id]?.trim()}
+                      className="px-2 py-1.5 bg-[#FA6400] text-white text-xs rounded-lg hover:bg-[#e55a00] transition disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+                    >
+                      ➤
+                    </button>
+                  </div>
+                  {(post.comments || []).map((comment: any, ci: number) => (
+                    <div key={comment.comment_id || comment.forum_post_id || ci} className="flex gap-2 items-start">
+                      <img src={getImageUrl(comment.user?.profile_picture_url || 'images/placeholder.jpg')} alt="" className="w-5 h-5 rounded-full object-cover" />
+                      <div>
+                        <span className="text-white text-xs font-medium">{comment.user?.username || 'User'}</span>
+                        <p className="text-gray-300 text-xs">{comment.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => toggleComments(post.forum_post_id)}
+                    className="text-xs text-gray-500 hover:text-gray-300 transition w-full text-center pt-1"
+                  >
+                    Hide comments
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+          </div>
         </div>
       </div>
       
+      {/* Image Lightbox */}
+      {expandedImage && (
+        <div className="fixed inset-0 z-[9998] bg-black/90 flex items-center justify-center p-8 mt-16" onClick={() => setExpandedImage(null)}>
+          <button onClick={() => setExpandedImage(null)} className="absolute top-20 right-6 text-white text-3xl hover:text-gray-300 z-10">✕</button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={expandedImage} alt="Fan art" className="max-w-full max-h-full object-contain rounded-lg" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
+
       {/* Upload Button */}
       <div className="bg-[#2d2838] p-6 border-t border-gray-700">
         <div className="max-w-5xl mx-auto flex justify-center">

@@ -249,7 +249,7 @@ export default function ArtistDashboard() {
             </div>
 
             {/* MAIN CONTENT */}
-            <div className="max-w-4xl w-full mx-auto px-6 py-8 space-y-8">
+            <div className="max-w-4xl w-full mx-auto px-6 py-8 pb-24 space-y-8">
                 {/* About */}
                 <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
                     <BaseHeading fontWeight={600} fontSize="normal" className="mb-3">About</BaseHeading>
