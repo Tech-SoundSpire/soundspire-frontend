@@ -21,7 +21,7 @@ export default function RootLayout({
                     {/* Logo */}
                     <div className="flex items-center">
                         <div className="w-28 h-28 mr-3 relative">
-                            <Link href="/artist/dashboard">
+                            <Link href="/">
                                 <img
                                     src={getLogoUrl()}
                                     alt="SoundSpire Logo"

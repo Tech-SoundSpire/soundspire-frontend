@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import CommunityHeader from "@/components/CommunityHeader";
+import Navbar from "@/components/Navbar";
 import { FaImage, FaPaperPlane, FaTimes } from "react-icons/fa";
 import { PostProps } from "@/lib/types";
 import ForumPost from "@/components/ForumPost";
@@ -20,6 +21,7 @@ export default function ArtistForumPage() {
     const { user } = useAuth();
     const params = useParams();
     const slug = params.slug as string;
+    const router = useRouter();
 
     const [posts, setPosts] = useState<PostProps[]>([]);
     const [contentText, setContentText] = useState("");
@@ -95,12 +97,12 @@ export default function ArtistForumPage() {
 
                     if (artistRes.ok) {
                         const artistData = await artistRes.json();
-                        setIsArtist(artistData.artist?.artist_id === artistId);
+                        setIsArtist(user.role === "artist" && artistData.artist?.artist_id === artistId);
                     }
 
                     if (subRes.ok) {
                         const subData = await subRes.json();
-                        setIsSubscribed(subData.communities?.some((c: any) => c.community_id === commId) || false);
+                        setIsSubscribed(subData.communities?.some((c: any) => c.id === commId || c.community_id === commId) || false);
                     }
 
                     if (profileRes.ok) {
@@ -197,8 +199,23 @@ export default function ArtistForumPage() {
         return <div className="flex items-center justify-center h-screen bg-[#1a1625] text-white">Loading...</div>;
     }
 
+    if (!isSubscribed && !isArtist) {
+        return (
+            <div className="min-h-screen bg-[#1a1625] text-white flex items-center justify-center">
+                {user?.role !== "artist" && <Navbar />}
+                <div className="text-center">
+                    <p className="text-xl mb-4">Subscribe to access the Artist Forum</p>
+                    <button onClick={() => router.push(`/community/${slug}`)} className="px-6 py-2 bg-[#FA6400] rounded-lg hover:bg-[#e55a00] transition">
+                        Go to Community
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#1a1625] text-white">
+            {user?.role !== "artist" && <Navbar />}
             <CommunityHeader
                 slug={slug}
                 communityName={communityData?.community_name || ""}
@@ -207,7 +224,7 @@ export default function ArtistForumPage() {
                 currentPage="forum"
             />
 
-            <div className="w-full px-6 pt-20 pb-8">
+            <div className="w-full px-6 pt-20 pb-8 ml-16">
                 <div className="max-w-4xl mx-auto">
                     {isArtist && (
                         <div className="bg-[#2d2838] rounded-xl p-6 mb-6 shadow-lg border border-gray-700/50">

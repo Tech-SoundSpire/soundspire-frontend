@@ -64,7 +64,7 @@ export default function ArtistCommunityProfile() {
     if (!user)
         return (
             <>
-                <Navbar></Navbar>
+                <Navbar />
                 <div>
                     <BaseHeading>User not found...</BaseHeading>
                 </div>
@@ -73,7 +73,7 @@ export default function ArtistCommunityProfile() {
     if (loading) {
         return (
             <>
-                <Navbar></Navbar>
+                {user.role !== "artist" && <Navbar />}
                 <div>
                     <BaseHeading>Loading...</BaseHeading>
                 </div>
@@ -83,7 +83,7 @@ export default function ArtistCommunityProfile() {
     if (!artist) {
         return (
             <>
-                <Navbar></Navbar>
+                {user.role !== "artist" && <Navbar />}
 
                 <div className="min-h-screen bg-[#1a1625] text-white flex flex-col items-center justify-center">
                     <BaseText>No artist data found.</BaseText>
@@ -184,7 +184,7 @@ export default function ArtistCommunityProfile() {
               }`;
     return (
         <>
-            <Navbar></Navbar>
+            {user?.role !== "artist" && <Navbar />}
             <div className="min-h-screen bg-[#1a1625] text-white flex flex-col">
                 <CommunityHeader
                     slug={slug as string}

@@ -20,6 +20,13 @@ export async function GET( request: NextRequest) {
       path: '/',
       sameSite: "lax"
     });
+    //clearing the artist_id cookie
+    response.cookies.set("artist_id", "", {
+      httpOnly: true,
+      expires: new Date(0),
+      path: '/',
+      sameSite: "lax"
+    });
 
     return response;
   } catch (error: unknown) {

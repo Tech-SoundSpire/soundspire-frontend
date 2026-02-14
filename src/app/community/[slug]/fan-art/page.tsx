@@ -8,6 +8,7 @@ import { getImageUrl } from '@/utils/userProfileImageUtils';
 import { supabase } from '@/lib/supabaseClient';
 import { useCommunityPresence } from '@/hooks/useCommunityPresence';
 import CommunityHeader from '@/components/CommunityHeader';
+import Navbar from '@/components/Navbar';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 interface Comment {
@@ -161,7 +162,7 @@ export default function FanArtPage() {
       const artistCheckRes = await fetch(`/api/artist/me`);
       if (artistCheckRes.ok) {
         const artistData = await artistCheckRes.json();
-        setIsArtist(artistData.artist?.community?.community_id === commId);
+        setIsArtist(user?.role === "artist" && artistData.artist?.community?.community_id === commId);
       }
       
       // Now fetch forums using community_id
@@ -645,6 +646,7 @@ export default function FanArtPage() {
   
   return (
     <div className="flex h-screen bg-[#1a1625]">
+      {user?.role !== "artist" && <Navbar />}
       <CommunityHeader 
         slug={slug}
         communityName={communityData?.community_name}
