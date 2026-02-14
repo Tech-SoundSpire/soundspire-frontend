@@ -38,6 +38,7 @@ interface Review {
         artist_id: string;
         artist_name: string;
         profile_picture_url: string;
+        slug?: string;
     };
 }
 
@@ -270,7 +271,7 @@ export default function ExplorePage() {
                                                         {review.artist?.artist_name || "Unknown Artist"}
                                                     </a>
                                                 ) : (
-                                                    review.artist_name || review.artist?.artist_name || "Unknown Artist"
+                                                    review.artist?.artist_name || "Unknown Artist"
                                                 )}
                                             </BaseText>
                                             <BaseText
