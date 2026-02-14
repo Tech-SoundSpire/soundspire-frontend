@@ -42,6 +42,7 @@ export async function GET(
         return NextResponse.json({
             artist: {
                 artist_id: artist.artist_id,
+                user_id: artist.user_id,
                 artist_name: artist.artist_name,
                 bio: artist.bio,
                 profile_picture_url: artist.profile_picture_url,
