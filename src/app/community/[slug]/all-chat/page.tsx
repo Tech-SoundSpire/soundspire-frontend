@@ -8,6 +8,7 @@ import { RealtimeChannel } from "@supabase/supabase-js";
 import { getImageUrl } from "@/utils/userProfileImageUtils";
 import { useCommunityPresence } from "@/hooks/useCommunityPresence";
 import CommunityHeader from "@/components/CommunityHeader";
+import Navbar from "@/components/Navbar";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 interface Message {
@@ -166,7 +167,7 @@ export default function AllChatPage() {
                 if (artistCheckRes.ok) {
                     const artistData = await artistCheckRes.json();
                     setIsArtist(
-                        artistData.artist?.community?.community_id === commId
+                        user?.role === "artist" && artistData.artist?.community?.community_id === commId
                     );
                 }
 
@@ -589,6 +590,7 @@ export default function AllChatPage() {
 
     return (
         <div className="flex h-screen bg-[#1a1625]">
+            {user?.role !== "artist" && <Navbar />}
             <CommunityHeader
                 slug={slug}
                 communityName={communityData?.community_name}

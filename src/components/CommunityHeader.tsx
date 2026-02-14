@@ -80,8 +80,14 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
         </button>
         
         <button 
-          onClick={() => handleNavigation('forum', false)}
-          className={`transition ${currentPage === 'forum' ? 'text-[#FA6400] font-semibold' : 'hover:text-[#FA6400]'}`}
+          onClick={() => handleNavigation('forum', true)}
+          className={`transition ${
+            currentPage === 'forum' 
+              ? 'text-[#FA6400] font-semibold' 
+              : (isSubscribed || isArtist)
+                ? 'hover:text-[#FA6400] cursor-pointer' 
+                : 'opacity-50 cursor-not-allowed pointer-events-none'
+          }`}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
             Artist Forum
@@ -94,10 +100,9 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
             currentPage === 'all-chat' 
               ? 'text-[#FA6400] font-semibold' 
               : (isSubscribed || isArtist)
-                ? 'hover:text-[#FA6400]' 
-                : 'opacity-50 cursor-not-allowed'
+                ? 'hover:text-[#FA6400] cursor-pointer' 
+                : 'opacity-50 cursor-not-allowed pointer-events-none'
           }`}
-          disabled={!isSubscribed && !isArtist}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
             All Chat
@@ -110,10 +115,9 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
             currentPage === 'fan-art' 
               ? 'text-[#FA6400] font-semibold' 
               : (isSubscribed || isArtist)
-                ? 'hover:text-[#FA6400]' 
-                : 'opacity-50 cursor-not-allowed'
+                ? 'hover:text-[#FA6400] cursor-pointer' 
+                : 'opacity-50 cursor-not-allowed pointer-events-none'
           }`}
-          disabled={!isSubscribed && !isArtist}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
             Fan Art
