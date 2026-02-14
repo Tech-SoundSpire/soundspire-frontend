@@ -21,7 +21,7 @@ export async function GET() {
         {
           model: Artist,
           as: "artist",
-          attributes: ["artist_id", "artist_name", "profile_picture_url"],
+          attributes: ["artist_id", "artist_name", "profile_picture_url", "slug"],
         },
       ],
       order: [["created_at", "DESC"]],

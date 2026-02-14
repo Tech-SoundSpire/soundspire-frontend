@@ -49,6 +49,7 @@ export default function ArtistDashboard() {
     const { logout, switchRole } = useAuth();
     const [artist, setArtist] = useState<ArtistData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [reviews, setReviews] = useState<any[]>([]);
 
     // Edit state
     const [editing, setEditing] = useState(false);
@@ -65,6 +66,14 @@ export default function ArtistDashboard() {
                 if (!res.ok) throw new Error("Unable to fetch artist data");
                 const data = await res.json();
                 setArtist(data.artist);
+                // Fetch reviews for this artist
+                try {
+                    const revRes = await fetch(`/api/reviews/by-artist?artistId=${data.artist.artist_id}`);
+                    if (revRes.ok) {
+                        const revData = await revRes.json();
+                        setReviews(revData.reviews || []);
+                    }
+                } catch { /* ignore */ }
             } catch (err: any) {
                 toast.error(err.message || "Failed to load dashboard");
                 router.replace("/find-artist-profile");
@@ -304,24 +313,28 @@ export default function ArtistDashboard() {
                 {/* Reviews Section */}
                 <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
                     <BaseHeading headingLevel="h2" fontSize="normal" fontWeight={600} className="mb-6">Reviews by the SoundSpire Team</BaseHeading>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="bg-[#1a1625] border border-gray-700 rounded-xl p-5 shadow-lg hover:shadow-xl transition space-y-3">
-                                <div className="w-full h-32 rounded-lg overflow-hidden">
-                                    <img src={profileImg} alt="Artist" className="w-full h-full object-cover" />
-                                </div>
-                                <BaseText textColor="#d1d5db" fontSize="small">
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed feugiat nunc vitae mi facilisis.
-                                </BaseText>
-                                <BaseText textColor="#fa6400" fontSize="very small" fontWeight={500}>
-                                    Ashish Paul • 20 Dec
-                                </BaseText>
-                                <button className="bg-[#FA6400] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#ff832e] transition">
-                                    Read More
-                                </button>
-                            </div>
-                        ))}
-                    </div>
+                    {reviews.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {reviews.map((r: any) => (
+                                <a key={r.review_id} href={`/reviews/${r.review_id}`} className="bg-[#1a1625] border border-gray-700 rounded-xl p-5 shadow-lg hover:shadow-xl hover:border-[#FA6400]/50 transition space-y-3 block">
+                                    {r.image_urls?.[0] && (
+                                        <div className="w-full h-32 rounded-lg overflow-hidden">
+                                            <img src={getImageUrl(r.image_urls[0])} alt={r.title} className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
+                                    <BaseHeading fontSize="small" fontWeight={600}>{r.title}</BaseHeading>
+                                    <BaseText textColor="#d1d5db" fontSize="small">
+                                        {r.text_content.length > 150 ? r.text_content.slice(0, 150) + "..." : r.text_content}
+                                    </BaseText>
+                                    <BaseText textColor="#fa6400" fontSize="very small" fontWeight={500}>
+                                        {r.author || r.user?.full_name || "SoundSpire Team"} • {new Date(r.review_date || r.created_at).toLocaleDateString("en-US", { day: "numeric", month: "short" })}
+                                    </BaseText>
+                                </a>
+                            ))}
+                        </div>
+                    ) : (
+                        <BaseText textColor="#6b7280">No reviews yet. Reviews by the SoundSpire team will appear here.</BaseText>
+                    )}
                 </div>
             </div>
         </div>

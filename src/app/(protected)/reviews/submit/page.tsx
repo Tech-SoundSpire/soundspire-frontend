@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { validateFile } from "@/utils/fileUtils";
@@ -32,6 +32,24 @@ export default function SubmitReviewPage() {
     });
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+    // Artist search state
+    const [allArtists, setAllArtists] = useState<any[]>([]);
+    const [selectedArtistId, setSelectedArtistId] = useState<string | null>(null);
+    const [showArtistDropdown, setShowArtistDropdown] = useState(false);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const res = await fetch("/api/explore/artists?q=");
+                if (res.ok) setAllArtists(await res.json());
+            } catch { /* ignore */ }
+        })();
+    }, []);
+
+    const artistResults = formData.artist
+        ? allArtists.filter((a: any) => a.artist_name.toLowerCase().includes(formData.artist.toLowerCase()))
+        : allArtists;
 
     // Check if user has @soundspire.online email
     const canSubmitReview = user?.email?.endsWith("@soundspire.online");
@@ -129,7 +147,7 @@ export default function SubmitReviewPage() {
             return;
         }
 
-        if (!formData.title || !formData.content || !formData.artist) {
+        if (!formData.title || !formData.content) {
             toast.error("Please fill in all required fields");
             return;
         }
@@ -146,6 +164,7 @@ export default function SubmitReviewPage() {
                     date: formData.date,
                     type: formData.type,
                     artist: formData.artist,
+                    artist_id: selectedArtistId,
                     author: formData.author,
                     imageUrl: imageUrl,
                 }),
@@ -240,19 +259,41 @@ export default function SubmitReviewPage() {
                                 />
                             </div>
 
-                            <div>
+                            <div className="relative">
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Artist *
+                                    Artist
                                 </label>
                                 <input
                                     type="text"
                                     name="artist"
                                     value={formData.artist}
-                                    onChange={handleInputChange}
+                                    onChange={(e) => {
+                                        handleInputChange(e);
+                                        setShowArtistDropdown(true);
+                                        setSelectedArtistId(null);
+                                    }}
+                                    onFocus={() => setShowArtistDropdown(true)}
                                     className="w-full px-3 py-2 bg-[#2a2139] border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                    placeholder="Artist name"
-                                    required
+                                    placeholder="Search for an artist (optional)"
+                                    autoComplete="off"
                                 />
+                                {showArtistDropdown && artistResults.length > 0 && (
+                                    <ul className="absolute z-50 w-full mt-1 max-h-40 overflow-y-auto rounded-md border border-gray-600 bg-[#2a2139] shadow-lg">
+                                        {artistResults.map((a: any) => (
+                                            <li
+                                                key={a.artist_id}
+                                                onClick={() => {
+                                                    setFormData((prev: any) => ({ ...prev, artist: a.artist_name }));
+                                                    setSelectedArtistId(a.artist_id);
+                                                    setShowArtistDropdown(false);
+                                                }}
+                                                className="px-3 py-2 cursor-pointer hover:bg-[#3a3248] text-gray-100 text-sm"
+                                            >
+                                                {a.artist_name}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                             </div>
 
                             <div>

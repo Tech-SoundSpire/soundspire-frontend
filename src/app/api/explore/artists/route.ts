@@ -1,13 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import Artist from "@/models/Artist";
+import { Op } from "sequelize";
 import "@/models/index";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
+        const q = request.nextUrl.searchParams.get("q");
+
+        const where: any = q
+            ? { artist_name: { [Op.iLike]: `%${q}%` } }
+            : q === ""
+            ? {} // empty string = return all
+            : { featured: true };
+
         const artists = await Artist.findAll({
-            where: {
-                featured: true,
-            },
+            where,
             attributes: [
                 "artist_id",
                 "artist_name",
@@ -16,7 +23,7 @@ export async function GET() {
                 "slug",
             ],
             order: [["created_at", "DESC"]],
-            limit: 8, // Limit to 8 artists for the explore page
+            limit: q ? 20 : 8,
         });
 
         return NextResponse.json(artists);
