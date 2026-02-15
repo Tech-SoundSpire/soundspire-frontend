@@ -98,7 +98,7 @@ export default function ForumPost(props: { post: PostProps; user_id: string; use
                 </button>
                 <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition" onClick={() => setShowComments(!showComments)}>
                     <FaRegComments size={20} />
-                    <span className="text-sm font-medium">Comment</span>
+                    <span className="text-sm font-medium">Comment {comments.length > 0 && `(${comments.length})`}</span>
                 </button>
                 <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition">
                     <FaRegPaperPlane size={20} />
@@ -129,7 +129,7 @@ export default function ForumPost(props: { post: PostProps; user_id: string; use
                     </div>
 
                     {/* Comments List */}
-                    <div className="space-y-3 [&_*]:text-gray-900">
+                    <div className="space-y-3 text-gray-900">
                         {comments.map((comment: CommentProps, index: number) => (
                             <Comment key={index} comment={comment} user_id={user_id} post_id={post.post_id} />
                         ))}
