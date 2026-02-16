@@ -38,12 +38,11 @@ export default function ArtistOnboardingPage() {
     const router = useRouter();
 
     const handleRoleSelection = (roleId: string) => {
-        setSelectedRole(roleId);
-        // Navigate based on the selected role
-        if (roleId === "artist") {
-            router.push("/find-artist-profile");
+        if (roleId !== "artist") {
+            return; // Manager and Record Label are coming soon
         }
-        // Add navigation logic for other roles as needed
+        setSelectedRole(roleId);
+        router.push("/find-artist-profile");
     };
 
     const handleArtistLogin = () => {
@@ -97,12 +96,21 @@ export default function ArtistOnboardingPage() {
                             <div
                                 key={card.id}
                                 onClick={() => handleRoleSelection(card.id)}
-                                className={`bg-[#2d2838] rounded-lg p-6 cursor-pointer transition-all duration-300 hover:scale-105 ${
+                                className={`bg-[#2d2838] rounded-lg p-6 transition-all duration-300 relative ${
+                                    card.id === "artist"
+                                        ? "cursor-pointer hover:scale-105"
+                                        : "opacity-60 cursor-not-allowed"
+                                } ${
                                     selectedRole === card.id
                                         ? "ring-2 ring-[#FA6400]"
                                         : ""
                                 }`}
                             >
+                                {card.id !== "artist" && (
+                                    <div className="absolute top-3 right-3 bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full">
+                                        Coming Soon
+                                    </div>
+                                )}
                                 <div className="text-center">
                                     <div className="w-16 h-16 bg-[#FA6400] rounded-full flex items-center justify-center mx-auto mb-4">
                                         <card.icon className="text-white text-2xl" />

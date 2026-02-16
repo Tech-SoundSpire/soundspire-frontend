@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import Post from "@/components/Posts/Post";
-import { PostProps, CommentProps } from "@/lib/types";
+import { PostProps } from "@/lib/types";
 import styles from "./feed.module.css";
 import SearchDropdown from "@/components/ui/SearchDropdown";
 import {
@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import BaseText from "@/components/BaseText/BaseText";
 import Link from "next/link";
 import { type communityDataFromAPI } from "@/types/communityGetAllAPIData";
+
 export default function Page() {
   const [posts, setPosts] = useState<PostProps[]>([]);
   const { user } = useAuth();

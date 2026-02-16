@@ -161,6 +161,19 @@ export async function POST(request: NextRequest) {
                 { status: 400 },
             );
         }
+
+        // Prevent artist from subscribing to their own community
+        const community = await Community.findByPk(community_id);
+        if (community) {
+            const artist = await Artist.findOne({ where: { artist_id: community.get("artist_id") } });
+            if (artist && artist.user_id === user_id) {
+                return NextResponse.json(
+                    { error: "You cannot subscribe to your own community!" },
+                    { status: 400 },
+                );
+            }
+        }
+
         let subscription = await CommunitySubscription.findOne({
             where: { user_id, community_id },
         });

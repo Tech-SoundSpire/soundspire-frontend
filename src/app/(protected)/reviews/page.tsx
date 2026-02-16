@@ -23,6 +23,7 @@ interface Review {
     image_urls: string[] | null;
     created_at: string;
     updated_at: string;
+    artist?: { artist_id: string; artist_name: string; slug: string } | null;
 }
 
 const carouselImages = [
@@ -121,7 +122,13 @@ export default function ReviewsPage() {
                                     textColor="#9ca3af"
                                     className="mb-2"
                                 >
-                                    {review.artist_name || "Unknown Artist"}
+                                    {review.artist?.slug ? (
+                                        <a href={`/community/${review.artist.slug}`} className="hover:text-[#FA6400] transition underline">
+                                            {review.artist?.artist_name || review.artist_name || "Unknown Artist"}
+                                        </a>
+                                    ) : (
+                                        review.artist_name || "Unknown Artist"
+                                    )}
                                 </BaseText>
                                 <BaseText
                                     fontSize="small"

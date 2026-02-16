@@ -33,6 +33,13 @@ export async function POST(request: NextRequest) {
     }
     console.log("User Exists");
 
+    if (!user.is_verified) {
+      return NextResponse.json(
+        { message: "Please verify your email before logging in" },
+        { status: 403 },
+      );
+    }
+
     if (!user.password_hash) {
       return NextResponse.json(
         {

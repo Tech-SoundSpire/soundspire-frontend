@@ -8,6 +8,7 @@ import { User } from "@/models";
 import Genres from "@/models/Genres";
 import Social from "@/models/Social";
 import { createArtistSlug } from "@/utils/createArtistSlug";
+import { sendEmail } from "@/utils/mailer";
 
 interface DecodedToken {
     id: string;
@@ -74,6 +75,13 @@ export async function POST(request: NextRequest) {
                 where: { email },
             });
 
+            if (user && !user.is_artist) {
+                return NextResponse.json(
+                    { error: "A fan account already exists with this email. Please use a different email for your artist account." },
+                    { status: 400 },
+                );
+            }
+
             if (!user) {
                 const existingUsername = await User.findOne({
                     where: { username, is_artist: true },
@@ -128,18 +136,17 @@ export async function POST(request: NextRequest) {
 
             userId = user.user_id;
 
-            const token = jwt.sign(
-                { id: userId, role: "artist" },
+            // Send verification email instead of setting auth token
+            const verificationToken = jwt.sign(
+                { userId },
                 process.env.JWT_SECRET!,
-                { expiresIn: "30d" },
+                { expiresIn: "20m" },
             );
-            cookieStore.set({
-                name: "token",
-                value: token,
-                httpOnly: true,
-                path: "/",
-                maxAge: 7 * 24 * 60 * 60,
-                sameSite: "lax",
+            const verificationUrl = `${process.env.DOMAIN}/verifyemail?token=${verificationToken}`;
+            await sendEmail({
+                email,
+                emailType: "VERIFY",
+                link: verificationUrl,
             });
         }
 
@@ -251,9 +258,10 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json({
-            message: "Artist created successfully!",
+            message: "Artist created successfully! Please verify your email to log in.",
             success: true,
             artist,
+            requiresVerification: true,
             redirect: `/payout?artistId=${artist.artist_id}`,
         });
     } catch (error: unknown) {

@@ -8,6 +8,7 @@ export async function POST() {
   // Clear all auth-related cookies
   response.cookies.set('user', '', { maxAge: 0 });
   response.cookies.set('oauth_state', '', { maxAge: 0 });
+  response.cookies.set('artist_id', '', { maxAge: 0, path: '/' });
   
   response.cookies.set('token', '', {
     httpOnly: true,

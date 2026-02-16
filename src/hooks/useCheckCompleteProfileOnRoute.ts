@@ -45,14 +45,17 @@ const useCheckCompleteProfileOnRoute = (): UseCheckCompleteProfileReturn => {
                 const res = await axios.get(`/api/profile?email=${encodeURIComponent(user.email)}`);
                 const profile = res.data;
 
-                const requiredFields = [
-                    profile.full_name,
-                    profile.gender,
-                    profile.mobile_number,
-                    profile.date_of_birth,
-                    profile.city,
-                    profile.country,
-                ];
+                // For artist-turned-fan, only gender and DOB are required extras
+                const requiredFields = user.isAlsoArtist
+                    ? [profile.gender, profile.date_of_birth]
+                    : [
+                        profile.full_name,
+                        profile.gender,
+                        profile.mobile_number,
+                        profile.date_of_birth,
+                        profile.city,
+                        profile.country,
+                    ];
 
                 const complete = requiredFields.every((f) => f && String(f).trim() !== '');
                 setIsProfileComplete(complete);

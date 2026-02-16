@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    // Enable Turbopack explicitly for Next.js 16
+    turbopack: {},
+    
     // Ensure environment variables are available at build time
     env: {
         SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
@@ -90,11 +93,6 @@ const nextConfig = {
 
     // Server external packages for S3
     serverExternalPackages: ["@aws-sdk/client-s3"],
-
-    webpack: (config) => {
-        config.module.exprContextCritical = false;
-        return config;
-    },
 };
 
 module.exports = nextConfig;

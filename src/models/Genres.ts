@@ -17,8 +17,8 @@ export class Genres
   extends Model<GenresAttributes, GenresCreationAttributes>
   implements GenresAttributes
 {
-  public genre_id!: string;
-  public name!: string;
+  declare genre_id: string;
+  declare name: string;
 
   static associate(models: Models) {
     // Add associations if needed

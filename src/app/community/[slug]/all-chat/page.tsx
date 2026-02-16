@@ -8,6 +8,7 @@ import { RealtimeChannel } from "@supabase/supabase-js";
 import { getImageUrl } from "@/utils/userProfileImageUtils";
 import { useCommunityPresence } from "@/hooks/useCommunityPresence";
 import CommunityHeader from "@/components/CommunityHeader";
+import Navbar from "@/components/Navbar";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 interface Message {
@@ -35,6 +36,7 @@ interface CommunityData {
     subscriber_count: number;
     online_count: number;
     socials: Array<{ platform: string; url: string }>;
+    artist_user_id?: string;
 }
 
 export default function AllChatPage() {
@@ -69,6 +71,18 @@ export default function AllChatPage() {
         [key: string]: Message[];
     }>({});
     const [searchQuery, setSearchQuery] = useState("");
+    const [searchMatchIndex, setSearchMatchIndex] = useState(0);
+    const searchMatchRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+    const highlightText = (text: string, query: string) => {
+        if (!query.trim() || !text) return text;
+        const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+        return parts.map((part, i) =>
+            part.toLowerCase() === query.toLowerCase()
+                ? <mark key={i} className="bg-yellow-400 text-black rounded px-0.5">{part}</mark>
+                : part
+        );
+    };
 
     const {
         onlineUsers,
@@ -158,6 +172,7 @@ export default function AllChatPage() {
                         subscriber_count: subscriberCount,
                         online_count: 0,
                         socials: artistData.artist?.socials || [],
+                        artist_user_id: artistData.artist?.user_id,
                     });
                 }
 
@@ -166,7 +181,7 @@ export default function AllChatPage() {
                 if (artistCheckRes.ok) {
                     const artistData = await artistCheckRes.json();
                     setIsArtist(
-                        artistData.artist?.community?.community_id === commId
+                        user?.role === "artist" && artistData.artist?.community?.community_id === commId
                     );
                 }
 
@@ -589,6 +604,7 @@ export default function AllChatPage() {
 
     return (
         <div className="flex h-screen bg-[#1a1625]">
+            {user?.role !== "artist" && <Navbar />}
             <CommunityHeader
                 slug={slug}
                 communityName={communityData?.community_name}
@@ -617,8 +633,14 @@ export default function AllChatPage() {
                         <h2 className="text-white text-xl font-bold mb-2">
                             {communityData?.community_name || "Community"}
                         </h2>
-                        <p className="text-white text-lg">
+                        <p className="text-white text-lg flex items-center gap-2">
                             #{communityData?.artist_name || "Loading..."}
+                            {communityData?.artist_user_id && onlineUsers.has(communityData.artist_user_id) && (
+                                <span className="inline-flex items-center gap-1 text-xs text-green-400">
+                                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                                    Online
+                                </span>
+                            )}
                         </p>
                         <div className="flex items-center gap-4 mt-3 text-sm">
                             <span className="text-gray-400">
@@ -786,14 +808,37 @@ export default function AllChatPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
                             <input
                                 type="text"
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => { setSearchQuery(e.target.value); setSearchMatchIndex(0); }}
                                 placeholder="search for messages in chat"
                                 className="px-4 py-2 bg-[#1a1625] text-white placeholder-gray-500 rounded-full w-80 focus:outline-none focus:ring-2 focus:ring-purple-500"
                             />
+                            {searchQuery.trim() && filteredMessages.length > 0 && (
+                                <>
+                                    <span className="text-gray-400 text-xs whitespace-nowrap">
+                                        {Math.min(searchMatchIndex + 1, filteredMessages.length)}/{filteredMessages.length}
+                                    </span>
+                                    <button
+                                        onClick={() => {
+                                            const prev = (searchMatchIndex - 1 + filteredMessages.length) % filteredMessages.length;
+                                            setSearchMatchIndex(prev);
+                                            searchMatchRefs.current[prev]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        }}
+                                        className="text-gray-400 hover:text-white text-sm px-1"
+                                    >▲</button>
+                                    <button
+                                        onClick={() => {
+                                            const next = (searchMatchIndex + 1) % filteredMessages.length;
+                                            setSearchMatchIndex(next);
+                                            searchMatchRefs.current[next]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        }}
+                                        className="text-gray-400 hover:text-white text-sm px-1"
+                                    >▼</button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -828,7 +873,7 @@ export default function AllChatPage() {
                             const replyCount = msg.replyCount || replies.length;
 
                             return (
-                                <div key={msg.forum_post_id}>
+                                <div key={msg.forum_post_id} ref={(el) => { searchMatchRefs.current[idx] = el; }} className={searchQuery.trim() && idx === searchMatchIndex ? "ring-2 ring-yellow-400 rounded-lg" : ""}>
                                     {showDate && (
                                         <div className="flex items-center justify-center my-6">
                                             <div className="h-px bg-gray-700 flex-1"></div>
@@ -867,9 +912,9 @@ export default function AllChatPage() {
                                             {showAvatar && (
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className="text-white font-semibold">
-                                                        {msg.user?.full_name ||
+                                                        {msg.user?.username ||
                                                             msg.user
-                                                                ?.username ||
+                                                                ?.full_name ||
                                                             "Unknown User"}
                                                     </span>
                                                     {msg.user_id !==
@@ -920,7 +965,7 @@ export default function AllChatPage() {
                                                 <div className="bg-[#FA6400] text-white px-4 py-3 rounded-2xl rounded-tl-sm inline-block max-w-2xl">
                                                     {msg.content && (
                                                         <p className="break-words">
-                                                            {msg.content}
+                                                            {highlightText(msg.content, searchQuery)}
                                                         </p>
                                                     )}
                                                     {msg.media_urls &&

@@ -73,7 +73,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             message: "Verification email sent. Please check your inbox.",
-            redirect: "/PreferenceSelectionPage",
             userId: newUser.user_id,
         });
     } catch (error) {

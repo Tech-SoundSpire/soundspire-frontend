@@ -33,14 +33,15 @@ export async function POST(request: NextRequest) {
       date,
       type,
       artist,
+      artist_id,
       author,
       imageUrl
     } = body;
 
     // Validate required fields
-    if (!title || !content || !type || !artist) {
+    if (!title || !content || !type) {
       return NextResponse.json(
-        { error: 'Title, content, type, and artist are required' },
+        { error: 'Title, content, and type are required' },
         { status: 400 }
       );
     }
@@ -63,6 +64,7 @@ export async function POST(request: NextRequest) {
       text_content: content,
       rating: 5, // Default rating, can be made configurable later
       artist_name: artist,
+      artist_id: artist_id || null,
       author: author || user.full_name || user.username,
       review_date: date ? new Date(date) : new Date(),
       review_type: type,

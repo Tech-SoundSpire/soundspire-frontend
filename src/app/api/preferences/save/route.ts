@@ -16,31 +16,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    // Validate and convert genre names to IDs
+    // Store raw names as-is (npm package data may not exist in DB tables)
+    // Also try to match DB records for backward compatibility
     let genreIds: string[] = [];
     if (genres && genres.length > 0) {
-      const genreRecords = await Genres.findAll({
-        where: { name: genres }
-      });
+      const genreRecords = await Genres.findAll({ where: { name: genres } });
       genreIds = genreRecords.map(g => g.genre_id);
     }
 
-    // Validate and convert language names to IDs
     let languageIds: string[] = [];
     if (languages && languages.length > 0) {
-      const languageRecords = await Languages.findAll({
-        where: { name: languages }
-      });
+      const languageRecords = await Languages.findAll({ where: { name: languages } });
       languageIds = languageRecords.map(l => l.language_id);
     }
 
     // Validate and convert artist names to IDs from the artists table
     let artistIds: string[] = [];
+    let soundchartsArtists: object[] = [];
     if (favoriteArtists && favoriteArtists.length > 0) {
-      const artistRecords = await Artist.findAll({
-        where: { artist_name: favoriteArtists }
-      });
-      artistIds = artistRecords.map(a => a.artist_id);
+      // New format: [{name, soundcharts_uuid, imageUrl}]
+      if (typeof favoriteArtists[0] === "object") {
+        soundchartsArtists = favoriteArtists;
+        // Also try to match any that exist in our DB
+        const names = favoriteArtists.map((a: any) => a.name);
+        const artistRecords = await Artist.findAll({
+          where: { artist_name: names }
+        });
+        artistIds = artistRecords.map(a => a.artist_id);
+      } else {
+        // Legacy format: string array of names
+        const artistRecords = await Artist.findAll({
+          where: { artist_name: favoriteArtists }
+        });
+        artistIds = artistRecords.map(a => a.artist_id);
+      }
     }
 
     // Check if user already has preferences
@@ -48,22 +57,19 @@ export async function POST(request: NextRequest) {
       where: { user_id: userId }
     });
 
+    const prefData = {
+      genres: genreIds,
+      languages: languageIds,
+      favorite_artists: artistIds,
+      favorite_soundcharts_artists: soundchartsArtists,
+      genre_names: genres || [],
+      language_names: languages || [],
+    };
+
     if (existingPreferences) {
-      // Update existing preferences
-      await existingPreferences.update({
-        genres: genreIds,
-        languages: languageIds,
-        favorite_artists: artistIds,
-        updated_at: new Date()
-      });
+      await existingPreferences.update({ ...prefData, updated_at: new Date() });
     } else {
-      // Create new preferences
-      await UserPreferences.create({
-        user_id: userId,
-        genres: genreIds,
-        languages: languageIds,
-        favorite_artists: artistIds
-      });
+      await UserPreferences.create({ user_id: userId, ...prefData });
     }
 
     return NextResponse.json({
