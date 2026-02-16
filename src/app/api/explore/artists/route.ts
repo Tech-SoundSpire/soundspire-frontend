@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { Op } from "sequelize";
 import Artist from "@/models/Artist";
-import { Op } from "sequelize";
 import "@/models/index";
 
 export async function GET(req: Request) {
@@ -39,7 +38,7 @@ export async function GET(req: Request) {
                 "slug",
             ],
             order: [["created_at", "DESC"]],
-            limit: q ? 20 : 8,
+            limit: 8,
         });
 
         return NextResponse.json(artists);
