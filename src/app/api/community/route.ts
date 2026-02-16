@@ -78,7 +78,7 @@ export async function POST(req: Request) {
             subscription_interval: "monthly",
         });
 
-        // Create default forums
+         // Automatically create All Chat and Fan Art forums for new community
         try {
             await Forum.create({
                 community_id: community.community_id,
