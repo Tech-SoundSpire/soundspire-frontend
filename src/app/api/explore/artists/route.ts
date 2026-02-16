@@ -1,20 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import Artist from "@/models/Artist";
+import { NextResponse } from "next/server";
 import { Op } from "sequelize";
+import Artist from "@/models/Artist";
 import "@/models/index";
 
-export async function GET(request: NextRequest) {
+export async function GET(req: Request) {
     try {
-        const q = request.nextUrl.searchParams.get("q");
+        const { searchParams } = new URL(req.url);
+        const search = searchParams.get("search");
 
-        const where: any = q
-            ? { artist_name: { [Op.iLike]: `%${q}%` } }
-            : q === ""
-            ? {} // empty string = return all
-            : { featured: true };
+        const whereClause: any = {
+            featured: true,
+        };
+
+        // ✅ Search logic (only when search param exists)
+        if (search && search.trim().length > 0) {
+            whereClause[Op.or] = [
+                {
+                    artist_name: {
+                        [Op.iLike]: `%${search}%`,
+                    },
+                },
+                {
+                    bio: {
+                        [Op.iLike]: `%${search}%`,
+                    },
+                },
+            ];
+        }
 
         const artists = await Artist.findAll({
-            where,
+            where: whereClause,
             attributes: [
                 "artist_id",
                 "artist_name",
@@ -23,7 +38,7 @@ export async function GET(request: NextRequest) {
                 "slug",
             ],
             order: [["created_at", "DESC"]],
-            limit: q ? 20 : 8,
+            limit: 8,
         });
 
         return NextResponse.json(artists);
