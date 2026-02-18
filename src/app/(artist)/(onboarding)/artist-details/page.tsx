@@ -72,6 +72,7 @@ function ArtistDetailsContent() {
     const [showGenreDropdown, setShowGenreDropdown] = useState(false);
     const genreDropdownRef = useRef<HTMLDivElement>(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [passwordErrors, setPasswordErrors] = useState<string[]>([]); //state for password validation errors
 
     // Build flat genre list from music-genres package
     const allGenreNames = useMemo(() => {
@@ -325,6 +326,9 @@ function ArtistDetailsContent() {
             ...prev,
             [name]: type === "checkbox" ? checked : value,
         }));
+        if (name === "password_hash") {
+            setPasswordErrors([]);
+        }
     };
 
     const handleImageChange = (e: any, type: "profile" | "cover") => {
@@ -395,6 +399,32 @@ function ArtistDetailsContent() {
                         ? `Phone must be ${phoneLen.min} digits for this country`
                         : `Phone must be ${phoneLen.min}-${phoneLen.max} digits for this country`
                 );
+            }
+        }
+
+        if (!isLoggedIn) {
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            const errors: string[] = [];
+            if (!passwordRegex.test(formData.password_hash)) {
+                if (formData.password_hash.length < 8) {
+                    errors.push("Must include at least 8 characters long.");
+                }
+                if (!/(?=.*[a-z])/.test(formData.password_hash)) {
+                    errors.push("Must include atleast one lowercase letter");
+                }
+                if (!/(?=.*[A-Z])/.test(formData.password_hash)) {
+                    errors.push("Must include atleast one uppercase letter");
+                }
+                if (!/(?=.*\d)/.test(formData.password_hash)) {
+                    errors.push("Must include atleast one number letter");
+                }
+                if (!/(?=.*[@$!%*?&])/.test(formData.password_hash)) {
+                    errors.push("Must include atleast one special character like #,@,$,&.");
+                }
+            }
+            setPasswordErrors(errors);
+            if (errors.length > 0) {
+                return;
             }
         }
 
@@ -915,6 +945,34 @@ function ArtistDetailsContent() {
                                     }}
                                     className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                                 />
+                                {/* Mapthe errors below password  */}
+                                {passwordErrors.length > 0 && (
+                                    <div className="mt-2">
+                                        {passwordErrors.map((error, index) => (
+                                            <div key={index} className="flex items-center">
+                                            <span className="mr-2">
+                                                {/* <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M18 6L6 18M6 6l12 12" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg> */}
+                                                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16" height="16" viewBox="0,0,256,256">
+                                                    <g fill="#dc0000" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" className="mix-blend-normal"><g transform="scale(5.33333,5.33333)"><path d="M24,4c-11.02793,0 -20,8.97207 -20,20c0,11.02793 8.97207,20 20,20c11.02793,0 20,-8.97207 20,-20c0,-11.02793 -8.97207,-20 -20,-20zM24,7c9.40662,0 17,7.59339 17,17c0,9.40661 -7.59338,17 -17,17c-9.40661,0 -17,-7.59339 -17,-17c0,-9.40661 7.59339,-17 17,-17zM30.48633,15.97852c-0.39614,0.00935 -0.77249,0.17506 -1.04687,0.46094l-5.43945,5.43945l-5.43945,-5.43945c-0.28248,-0.2909 -0.67069,-0.45506 -1.07617,-0.45508c-0.61065,0.00015 -1.16026,0.37042 -1.38978,0.93629c-0.22952,0.56587 -0.09314,1.21439 0.34486,1.63988l5.43945,5.43945l-5.43945,5.43945c-0.39185,0.37623 -0.54969,0.9349 -0.41265,1.46055c0.13704,0.52565 0.54754,0.93616 1.07319,1.07319c0.52565,0.13704 1.08432,-0.0208 1.46055,-0.41265l5.43945,-5.43945l5.43945,5.43945c0.37623,0.39185 0.9349,0.54969 1.46055,0.41265c0.52565,-0.13704 0.93616,-0.54754 1.07319,-1.07319c0.13704,-0.52565 -0.0208,-1.08432 -0.41265,-1.46055l-5.43945,-5.43945l5.43945,-5.43945c0.44646,-0.42851 0.58398,-1.08719 0.34628,-1.65854c-0.2377,-0.57135 -0.80184,-0.93811 -1.4205,-0.92349z"></path></g></g>
+                                                </svg>
+                                                {/* <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256">
+                                                    <g fill="#dc0000" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="scale(5.33333,5.33333)"><path d="M24,4c-11.02793,0 -20,8.97207 -20,20c0,11.02793 8.97207,20 20,20c11.02793,0 20,-8.97207 20,-20c0,-11.02793 -8.97207,-20 -20,-20zM24,7c9.40662,0 17,7.59339 17,17c0,9.40661 -7.59338,17 -17,17c-9.40661,0 -17,-7.59339 -17,-17c0,-9.40661 7.59339,-17 17,-17zM30.48633,15.97852c-0.39614,0.00935 -0.77249,0.17506 -1.04687,0.46094l-5.43945,5.43945l-5.43945,-5.43945c-0.28248,-0.2909 -0.67069,-0.45506 -1.07617,-0.45508c-0.61065,0.00015 -1.16026,0.37042 -1.38978,0.93629c-0.22952,0.56587 -0.09314,1.21439 0.34486,1.63988l5.43945,5.43945l-5.43945,5.43945c-0.39185,0.37623 -0.54969,0.9349 -0.41265,1.46055c0.13704,0.52565 0.54754,0.93616 1.07319,1.07319c0.52565,0.13704 1.08432,-0.0208 1.46055,-0.41265l5.43945,-5.43945l5.43945,5.43945c0.37623,0.39185 0.9349,0.54969 1.46055,0.41265c0.52565,-0.13704 0.93616,-0.54754 1.07319,-1.07319c0.13704,-0.52565 -0.0208,-1.08432 -0.41265,-1.46055l-5.43945,-5.43945l5.43945,-5.43945c0.44646,-0.42851 0.58398,-1.08719 0.34628,-1.65854c-0.2377,-0.57135 -0.80184,-0.93811 -1.4205,-0.92349z"></path></g></g>
+                                                </svg> */}
+                                            </span>
+                                            <BaseText
+
+                                                textColor="#ef4444"
+                                                fontSize="small"
+                                                className="block"
+                                            >
+                                                {error}
+                                            </BaseText>
+                                        </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
 

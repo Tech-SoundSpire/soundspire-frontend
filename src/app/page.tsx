@@ -58,7 +58,7 @@ export default function SignupPage() {
     const [buttonDisabled, setButtonDisabled] = useState(true);
     const [loading, setLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-    const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+    const [formErrors, setFormErrors] = useState<{ [key: string]: string[] }>({});
 
     useEffect(() => {
         if (authLoading || profileLoading || preferencesLoading) return;
@@ -108,23 +108,39 @@ export default function SignupPage() {
     ]);
 
     const validateForm = () => {
-        const errors: { [key: string]: string } = {};
+        const errors: { [key: string]: string[] } = {};
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (user.username.trim().length < 3) {
-            errors.username = "Username must be at least 3 characters";
+            errors.username = ["Username must be at least 3 characters"];
         }
 
         if (!emailRegex.test(user.email)) {
-            errors.email = "Invalid email format";
+            errors.email = ["Invalid email format"];
         }
 
-        if (user.password_hash.length < 6) {
-            errors.password_hash = "Password must be at least 6 characters";
+        const passwordErrors: string[] = [];
+        if (user.password_hash.length < 8) {
+            passwordErrors.push("Must include at least 8 characters long.");
+        }
+        if (!/(?=.*[a-z])/.test(user.password_hash)) {
+            passwordErrors.push("Must include atleast one lowercase letter");
+        }
+        if (!/(?=.*[A-Z])/.test(user.password_hash)) {
+            passwordErrors.push("Must include atleast one uppercase letter");
+        }
+        if (!/(?=.*\d)/.test(user.password_hash)) {
+            passwordErrors.push("Must include atleast one number letter");
+        }
+        if (!/(?=.*[@$!%*?&])/.test(user.password_hash)) {
+            passwordErrors.push("Must include atleast one special character like #,@,$,&.");
+        }
+        if (passwordErrors.length > 0) {
+            errors.password_hash = passwordErrors;
         }
 
         if (user.password_hash !== user.confirm_password) {
-            errors.confirm_password = "Passwords do not match";
+            errors.confirm_password = ["Passwords do not match"];
         }
 
         setFormErrors(errors);
@@ -269,12 +285,17 @@ export default function SignupPage() {
                                 type={field.type}
                                 value={user[field.name as keyof typeof user]}
                                 placeholder={field.placeholder}
-                                onChange={(e) =>
+                                onChange={(e) => {
                                     setUser((prev) => ({
                                         ...prev,
                                         [field.name]: e.target.value,
-                                    }))
-                                }
+                                    }));
+                                    // Clear errors for this field
+                                    setFormErrors((prev) => ({
+                                        ...prev,
+                                        [field.name]: [],
+                                    }));
+                                }}
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter" && !buttonDisabled && !loading) {
                                         onSignup();
@@ -283,14 +304,33 @@ export default function SignupPage() {
                                 className="w-full px-4 py-2 rounded-lg border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#FF4E27]"
                                 style={{ borderRadius: "8px" }}
                             />
-                            {formErrors[field.name] && (
-                                <BaseText
-                                    textColor="#ef4444"
-                                    fontSize="small"
-                                    className="mt-1"
-                                >
-                                    {formErrors[field.name]}
-                                </BaseText>
+                            {formErrors[field.name] && formErrors[field.name].length > 0 && (
+                                <div className="mt-1">
+                                    {formErrors[field.name].map((error, index) => (
+                                        <div key={index} className="flex items-center">
+                                            <span className="mr-2">
+                                                {/* <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M18 6L6 18M6 6l12 12" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg> */}
+                                                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16" height="16" viewBox="0,0,256,256">
+                                                    <g fill="#dc0000" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" className="mix-blend-normal"><g transform="scale(5.33333,5.33333)"><path d="M24,4c-11.02793,0 -20,8.97207 -20,20c0,11.02793 8.97207,20 20,20c11.02793,0 20,-8.97207 20,-20c0,-11.02793 -8.97207,-20 -20,-20zM24,7c9.40662,0 17,7.59339 17,17c0,9.40661 -7.59338,17 -17,17c-9.40661,0 -17,-7.59339 -17,-17c0,-9.40661 7.59339,-17 17,-17zM30.48633,15.97852c-0.39614,0.00935 -0.77249,0.17506 -1.04687,0.46094l-5.43945,5.43945l-5.43945,-5.43945c-0.28248,-0.2909 -0.67069,-0.45506 -1.07617,-0.45508c-0.61065,0.00015 -1.16026,0.37042 -1.38978,0.93629c-0.22952,0.56587 -0.09314,1.21439 0.34486,1.63988l5.43945,5.43945l-5.43945,5.43945c-0.39185,0.37623 -0.54969,0.9349 -0.41265,1.46055c0.13704,0.52565 0.54754,0.93616 1.07319,1.07319c0.52565,0.13704 1.08432,-0.0208 1.46055,-0.41265l5.43945,-5.43945l5.43945,5.43945c0.37623,0.39185 0.9349,0.54969 1.46055,0.41265c0.52565,-0.13704 0.93616,-0.54754 1.07319,-1.07319c0.13704,-0.52565 -0.0208,-1.08432 -0.41265,-1.46055l-5.43945,-5.43945l5.43945,-5.43945c0.44646,-0.42851 0.58398,-1.08719 0.34628,-1.65854c-0.2377,-0.57135 -0.80184,-0.93811 -1.4205,-0.92349z"></path></g></g>
+                                                </svg>
+                                                {/* <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256">
+                                                    <g fill="#dc0000" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="scale(5.33333,5.33333)"><path d="M24,4c-11.02793,0 -20,8.97207 -20,20c0,11.02793 8.97207,20 20,20c11.02793,0 20,-8.97207 20,-20c0,-11.02793 -8.97207,-20 -20,-20zM24,7c9.40662,0 17,7.59339 17,17c0,9.40661 -7.59338,17 -17,17c-9.40661,0 -17,-7.59339 -17,-17c0,-9.40661 7.59339,-17 17,-17zM30.48633,15.97852c-0.39614,0.00935 -0.77249,0.17506 -1.04687,0.46094l-5.43945,5.43945l-5.43945,-5.43945c-0.28248,-0.2909 -0.67069,-0.45506 -1.07617,-0.45508c-0.61065,0.00015 -1.16026,0.37042 -1.38978,0.93629c-0.22952,0.56587 -0.09314,1.21439 0.34486,1.63988l5.43945,5.43945l-5.43945,5.43945c-0.39185,0.37623 -0.54969,0.9349 -0.41265,1.46055c0.13704,0.52565 0.54754,0.93616 1.07319,1.07319c0.52565,0.13704 1.08432,-0.0208 1.46055,-0.41265l5.43945,-5.43945l5.43945,5.43945c0.37623,0.39185 0.9349,0.54969 1.46055,0.41265c0.52565,-0.13704 0.93616,-0.54754 1.07319,-1.07319c0.13704,-0.52565 -0.0208,-1.08432 -0.41265,-1.46055l-5.43945,-5.43945l5.43945,-5.43945c0.44646,-0.42851 0.58398,-1.08719 0.34628,-1.65854c-0.2377,-0.57135 -0.80184,-0.93811 -1.4205,-0.92349z"></path></g></g>
+                                                </svg> */}
+                                            </span>
+                                            <BaseText
+
+                                                textColor="#ef4444"
+                                                fontSize="small"
+                                                className="block"
+                                            >
+                                                {error}
+                                            </BaseText>
+                                        </div>
+
+                                    ))}
+                                </div>
                             )}
                         </div>
                     ))}
