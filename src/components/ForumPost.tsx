@@ -118,7 +118,7 @@ export default function ForumPost(props: { post: PostProps; user_id: string; use
                         />
                         <input
                             placeholder="Write a comment..."
-                            className="flex-1 bg-white text-gray-900 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-gray-300"
+                            className="flex-1 bg-white text-gray-900 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF4E27] border border-gray-300"
                             value={commentText}
                             onChange={(e) => setCommentText(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && onComment()}

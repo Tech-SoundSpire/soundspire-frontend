@@ -66,7 +66,7 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
       <Link href={isArtist ? "/artist/dashboard" : `/community/${slug}`} className="flex items-center gap-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={getLogoUrl()} alt="SoundSpire" width={36} height={36} className="object-contain" />
-        <span className="text-[#FA6400] font-bold text-lg hidden md:inline">SoundSpire</span>
+        {isArtist && <span className="text-[#FF4E27] font-bold text-lg hidden md:inline">SoundSpire</span>}
       </Link>
 
       <nav className="flex items-center justify-center gap-8">

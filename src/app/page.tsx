@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FaGoogle } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
@@ -201,7 +201,7 @@ export default function SignupPage() {
             </div>
 
             {/* Left Side */}
-            <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
+            <div className="hidden md:flex w-1/2 p-8 flex-col justify-between" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
                 <div>
                     <img
                         src={getLogoUrl()}
@@ -251,6 +251,7 @@ export default function SignupPage() {
                         className="mb-4 self-start"
                         textColor="black"
                         textAlign="left"
+                        fontName="montserrat"
                     >
                         {loading ? "Processing..." : "Sign Up"}
                     </BaseHeading>
@@ -279,7 +280,8 @@ export default function SignupPage() {
                                         onSignup();
                                     }
                                 }}
-                                className="w-full px-4 py-2 rounded-md border border-blue-400/75 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#FF4E27]"
+                                style={{ borderRadius: "8px" }}
                             />
                             {formErrors[field.name] && (
                                 <BaseText
@@ -296,17 +298,19 @@ export default function SignupPage() {
                     <button
                         onClick={onSignup}
                         disabled={buttonDisabled || loading}
-                        className="w-full py-3 my-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold disabled:opacity-85 disabled:cursor-not-allowed transition"
+                        className="w-full py-3 my-2 rounded-lg text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        style={{ backgroundColor: "#FF4E27", borderRadius: "8px" }}
                     >
-                        {loading ? "Signing Up..." : "Sign Up"}
+                        {loading ? "Signing Up..." : "Sign Up  →"}
                     </button>
 
                     <button
                         onClick={handleGoogleLogin}
                         disabled={isGoogleLoading}
-                        className="w-full py-3 flex justify-center items-center bg-red-600 hover:bg-red-700 rounded text-white font-semibold opacity-85 transition"
+                        className="w-full py-3 flex justify-center items-center bg-gray-900 hover:bg-gray-800 border-2 border-[#FF4E27] rounded-lg text-white font-semibold transition"
+                        style={{ borderRadius: "8px" }}
                     >
-                        <FaGoogle className="mr-2" />
+                        <FcGoogle className="mr-2 w-5 h-5" />
                         {isGoogleLoading
                             ? "Signing in with Google..."
                             : "Continue with Google"}
@@ -323,7 +327,7 @@ export default function SignupPage() {
                         Already have an account?{" "}
                         <Link
                             href="/login"
-                            className="text-orange-400 hover:text-orange-300"
+                            className="text-[#FF4E27] hover:text-[#e5431f]"
                         >
                             Login
                         </Link>

@@ -2,6 +2,7 @@ import Artist from "@/models/Artist";
 import Community from "@/models/Community";
 import CommunitySubscription from "@/models/CommunitySubscription";
 import { User } from "@/models/User";
+import Genres from "@/models/Genres";
 import { type communityDataFromAPI } from "@/types/communityGetAllAPIData";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { NextRequest, NextResponse } from "next/server";
@@ -111,9 +112,19 @@ export async function GET(request: NextRequest) {
         const userInfo = await User.findByPk(user_id, {
             attributes: ["username", "profile_picture_url", "full_name"],
         });
-        const subscribedCommunities = allSubscriptions.map((element) => {
+        const subscribedCommunities = await Promise.all(allSubscriptions.map(async (element) => {
             const community = element.community;
             const artist = community?.artist;
+            // Get subscriber count for this community
+            const subCount = await CommunitySubscription.count({ where: { community_id: element.community_id } });
+            // Get genres for this artist
+            let genreNames: string[] = [];
+            if (artist?.artist_id) {
+                const artistWithGenres = await Artist.findByPk(artist.artist_id, {
+                    include: [{ model: Genres, as: "genres", attributes: ["name"], through: { attributes: [] } }],
+                });
+                genreNames = (artistWithGenres as any)?.genres?.map((g: any) => g.name) || [];
+            }
             return {
                 id: element.community_id,
                 name: community?.name,
@@ -122,8 +133,10 @@ export async function GET(request: NextRequest) {
                 artist_profile_picture_url: artist?.profile_picture_url,
                 artist_cover_photo_url: artist?.cover_photo_url,
                 artist_slug: artist?.slug,
-            } satisfies communityDataFromAPI;
-        });
+                subscriber_count: subCount,
+                genres: genreNames,
+            };
+        }));
         return NextResponse.json(
             {
                 status: "SUCCESS",

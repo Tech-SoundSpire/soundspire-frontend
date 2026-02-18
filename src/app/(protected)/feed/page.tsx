@@ -109,7 +109,7 @@ export default function Page() {
                                 <input
                                     type="text"
                                     placeholder="Search..."
-                                    className="w-[80%] px-4 py-2 pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-[80%] px-4 py-2 pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
                                 />
                                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                             </div>

@@ -5,7 +5,7 @@
 // import ArtistCard from '@/components/ArtistCard';
 // import ReviewCard from '@/components/ReviewCard';
 // import GenreCard from '@/components/GenreCard';
-import { FaSearch, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -85,6 +85,8 @@ export default function ExplorePage() {
     const [suggestedArtists, setSuggestedArtists] = useState<any[]>([]);
     const [genres, setGenres] = useState<Genre[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showAllArtists, setShowAllArtists] = useState(false);
+    const [allArtists, setAllArtists] = useState<any[]>([]);
     const { user, setUser } = useAuth();
     const router = useRouter();
 
@@ -142,7 +144,7 @@ export default function ExplorePage() {
                             <input
                                 type="text"
                                 placeholder="Search..."
-                                className="w-full px-4 py-2 pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                className="w-full px-4 py-2 pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
                             />
                             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         </div>
@@ -162,18 +164,50 @@ export default function ExplorePage() {
                         >
                             SUGGESTED ARTISTS
                         </BaseHeading>
-                        <div className="flex space-x-2">
-                            <button className="p-2 rounded-full bg-[#2d2838] text-white hover:bg-purple-700">
-                                <FaChevronLeft />
-                            </button>
-                            <button className="p-2 rounded-full bg-[#2d2838] text-white hover:bg-purple-700">
-                                <FaChevronRight />
-                            </button>
-                        </div>
+                        <button
+                            onClick={async () => {
+                                if (!showAllArtists && allArtists.length === 0) {
+                                    try {
+                                        const [dbRes, sugRes] = await Promise.all([
+                                            fetch("/api/explore/artists?q="),
+                                            user?.id ? fetch(`/api/explore/suggested?userId=${user.id}`) : Promise.resolve(null),
+                                        ]);
+                                        const dbData = dbRes.ok ? await dbRes.json() : [];
+                                        const sugData = sugRes?.ok ? (await sugRes.json()).artists || [] : [];
+                                        // Merge: suggested first, then DB artists not already in suggested
+                                        const sugIds = new Set(sugData.map((a: any) => a.artist_id));
+                                        const merged = [...sugData, ...dbData.filter((a: any) => !sugIds.has(a.artist_id)).map((a: any) => ({
+                                            artist_id: a.artist_id, name: a.artist_name, imageUrl: a.profile_picture_url, slug: a.slug, onSoundSpire: true,
+                                        }))];
+                                        setAllArtists(merged);
+                                    } catch { /* ignore */ }
+                                }
+                                setShowAllArtists(!showAllArtists);
+                            }}
+                            className="text-[#FF4E27] hover:text-[#e5431f] text-sm font-medium"
+                        >
+                            {showAllArtists ? "Show Less" : "See More"}
+                        </button>
                     </div>
                     {loading ? (
                         <div className="flex justify-center items-center h-32">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                        </div>
+                    ) : showAllArtists ? (
+                        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 pb-4">
+                            {allArtists.map((artist: any) => {
+                                const href = artist.onSoundSpire === false
+                                    ? `/community/sc/${artist.soundcharts_uuid}`
+                                    : `/community/${artist.slug}/`;
+                                const imgSrc = artist.imageUrl || artist.profile_picture_url || getImageUrl(DEFAULT_PROFILE_IMAGE);
+                                const name = artist.name || artist.artist_name;
+                                return (
+                                    <Link key={artist.artist_id} className="text-center" href={href}>
+                                        <img src={imgSrc} alt={name} className="w-20 h-20 rounded-full object-cover mb-2 mx-auto" />
+                                        <BaseText textColor="#ffffff" fontSize="small" fontWeight={500} className="truncate">{name}</BaseText>
+                                    </Link>
+                                );
+                            })}
                         </div>
                     ) : (
                         <div className="flex gap-6 overflow-x-auto pb-4">
@@ -222,9 +256,9 @@ export default function ExplorePage() {
                         >
                             REVIEWS
                         </BaseHeading>
-                        <a href="#" className="text-gray-400 hover:text-white">
-                            See All
-                        </a>
+                        <Link href="/reviews" className="text-[#FF4E27] hover:text-[#e5431f] text-sm font-medium">
+                            See More
+                        </Link>
                     </div>
                     {loading ? (
                         <div className="flex justify-center items-center h-32">
@@ -285,7 +319,7 @@ export default function ExplorePage() {
                                             </BaseText>
                                         </div>
                                         <button
-                                            className="mt-auto bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm font-semibold"
+                                            className="mt-auto bg-[#FF4E27] hover:bg-[#e5431f] text-white px-4 py-2 rounded-lg text-sm font-semibold"
                                             onClick={() =>
                                                 router.push(
                                                     `/reviews/${review.review_id}`
@@ -312,9 +346,6 @@ export default function ExplorePage() {
                         >
                             DISCOVER BY GENRE
                         </BaseHeading>
-                        <a href="#" className="text-gray-400 hover:text-white">
-                            See More
-                        </a>
                     </div>
                     {loading ? (
                         <div className="flex justify-center items-center h-32">
@@ -340,7 +371,7 @@ export default function ExplorePage() {
                                             fontSize="large"
                                             fontWeight={700}
                                         >
-                                            {genre.name}
+                                            {genre.name.toUpperCase()}
                                         </BaseHeading>
                                     </div>
                                 </div>

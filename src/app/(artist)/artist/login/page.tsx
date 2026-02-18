@@ -97,7 +97,7 @@ export default function ArtistLoginPage() {
     return (
         <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white">
             {/* Left Side: Artist Branding */}
-            <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#1a1625] via-[#2d2838] to-[#1a1625] p-8 flex-col justify-between relative overflow-hidden">
+            <div className="hidden md:flex w-1/2 p-8 flex-col justify-between relative overflow-hidden" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
                     <div className="grid grid-cols-6 gap-2 transform rotate-12 scale-110">
@@ -166,32 +166,24 @@ export default function ArtistLoginPage() {
                     {/* Back Button */}
                     <Link
                         href="/artist-onboarding"
-                        className="inline-flex items-center gap-2 text-gray-600 hover:text-[#FA6400] transition-colors duration-200"
+                        className="inline-flex items-center gap-2 text-gray-600 hover:text-[#FF4E27] transition-colors duration-200"
                     >
                         <FaArrowLeft />
                         <BaseText fontSize="small">Back to Onboarding</BaseText>
                     </Link>
 
                     {/* Page Title */}
-                    <div className="text-center mb-8">
+                    <div className="mb-8">
                         <BaseHeading
                             fontWeight={700}
                             fontSize="large"
                             headingLevel="h2"
                             textColor="#111827"
-                            textAlign="center"
+                            textAlign="left"
+                            fontName="montserrat"
                         >
                             {loading ? "Logging you in..." : "Artist Login"}
                         </BaseHeading>
-
-                        <BaseText
-                            className="mt-2"
-                            textColor="#4b5563"
-                            fontSize="small"
-                            textAlign="center"
-                        >
-                            Access your artist dashboard
-                        </BaseText>
                     </div>
 
                     {/* Form Fields */}
@@ -216,7 +208,8 @@ export default function ArtistLoginPage() {
                                         }))
                                     }
                                     onKeyPress={handleKeyPress}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FA6400] focus:border-transparent transition-all duration-200"
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4E27] focus:border-transparent transition-all duration-200"
+                                    style={{ borderRadius: "8px" }}
                                 />
                             </div>
                         ))}
@@ -225,7 +218,7 @@ export default function ArtistLoginPage() {
                         <div className="flex justify-start pl-1">
                             <Link
                                 href="/forgot-password"
-                                className="text-sm text-[#FA6400] hover:text-[#e55a00] hover:underline transition-colors duration-200"
+                                className="text-sm text-gray-600 hover:text-gray-800 hover:underline transition-colors duration-200"
                             >
                                 Forgot Password?
                             </Link>
@@ -236,9 +229,10 @@ export default function ArtistLoginPage() {
                     <button
                         onClick={handleLogin}
                         disabled={buttonDisabled || loading}
-                        className="w-full py-3 px-4 bg-[#FA6400] hover:bg-[#e55a00] disabled:bg-orange-300 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#FA6400] focus:ring-offset-2"
+                        className="w-full py-3 px-4 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        style={{ backgroundColor: buttonDisabled || loading ? undefined : "#FF4E27", borderRadius: "8px" }}
                     >
-                        {loading ? "Logging in..." : "Login"}
+                        {loading ? "Logging in..." : "Login  →"}
                     </button>
 
                     {/* Google Login */}
@@ -252,7 +246,8 @@ export default function ArtistLoginPage() {
                     </div>
                     <a
                         href="/api/auth/google"
-                        className="w-full py-3 px-4 border border-gray-300 text-gray-700 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
+                        className="w-full py-3 px-4 bg-gray-900 hover:bg-gray-800 border-2 border-[#FF4E27] text-white font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors"
+                        style={{ borderRadius: "8px" }}
                     >
                         <svg className="w-5 h-5" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -289,7 +284,7 @@ export default function ArtistLoginPage() {
                         >
                             <Link
                                 href="/artist-onboarding"
-                                className="text-[#FA6400] hover:text-[#e55a00] font-medium hover:underline transition-colors duration-200"
+                                className="text-[#FF4E27] hover:text-[#e5431f] font-medium hover:underline transition-colors duration-200"
                             >
                                 Create your artist profile
                             </Link>

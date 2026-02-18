@@ -39,7 +39,8 @@
     "react-toastify": "^11.0.5",
     "sequelize": "^6.37.7",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.9",
@@ -59,6 +60,7 @@
   },
   "overrides": {
     "brace-expansion": "2.0.2",
-    "fast-xml-parser": "^5.3.4"
+    "fast-xml-parser": "^5.3.4",
+    "ajv": "^8.18.0"
   }
 }

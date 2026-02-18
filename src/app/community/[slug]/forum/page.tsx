@@ -232,7 +232,7 @@ export default function ArtistForumPage() {
                                 value={contentText}
                                 onChange={(e) => setContentText(e.target.value)}
                                 placeholder="Share something with your community..."
-                                className="w-full bg-[#1a1625] text-white rounded-lg p-4 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400 border border-gray-700"
+                className="w-full bg-[#1a1625] text-white rounded-lg p-4 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-[#FF4E27] placeholder-gray-400 border border-gray-700"
                                 rows={3}
                             />
 
