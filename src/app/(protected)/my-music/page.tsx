@@ -90,7 +90,7 @@ export default function MyMusicPage() {
                             <input
                                 type="text"
                                 placeholder="Search..."
-                                className="w-full sm:w-56 md:w-72 lg:w-80 xl:w-96 px-3 sm:px-4 py-2 pl-9 sm:pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+                                className="w-full sm:w-56 md:w-72 lg:w-80 xl:w-96 px-3 sm:px-4 py-2 pl-9 sm:pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-[#FF4E27] text-sm sm:text-base"
                             />
                             <FaSearch className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm sm:text-base" />
                         </div>

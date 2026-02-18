@@ -144,9 +144,10 @@ export default function MyCommunities() {
                                                 fontSize="normal"
                                                 textColor="#f0f0f0"
                                             >
-                                                75,983
+                                                {(community as any).subscriber_count || 0} subscribers
                                             </BaseText>
                                         </div>
+                                        {(community as any).genres?.length > 0 && (
                                         <div className={styles["genres"]}>
                                             <div
                                                 className={styles["design"]}
@@ -156,9 +157,10 @@ export default function MyCommunities() {
                                                 fontSize="normal"
                                                 textColor="#f0f0f0"
                                             >
-                                                Hip Hop, Jazz
+                                                {(community as any).genres.join(", ")}
                                             </BaseText>
                                         </div>
+                                        )}
                                     </div>
 
                                     <Link

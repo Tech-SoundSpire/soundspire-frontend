@@ -208,7 +208,7 @@ export default function SubmitReviewPage() {
                         </BaseText>
                         <button
                             onClick={() => router.push("/reviews")}
-                            className="mt-6 bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded font-semibold"
+                            className="mt-6 bg-[#FF4E27] hover:bg-[#e5431f] text-white px-6 py-2 rounded-lg font-semibold"
                         >
                             Back to Reviews
                         </button>
@@ -375,7 +375,7 @@ export default function SubmitReviewPage() {
                                 type="file"
                                 accept="image/*"
                                 onChange={handleImageChange}
-                                className="w-full px-3 py-2 bg-[#2a2139] border border-gray-600 rounded-md text-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-orange-500 file:text-white hover:file:bg-orange-600"
+                                className="w-full px-3 py-2 bg-[#2a2139] border border-gray-600 rounded-md text-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#FF4E27] file:text-white hover:file:bg-[#e5431f]"
                             />
                             <BaseText
                                 fontSize="very small"
@@ -412,7 +412,7 @@ export default function SubmitReviewPage() {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex-1 px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-400 text-white rounded-md font-semibold transition-colors"
+                            className="flex-1 px-6 py-3 bg-[#FF4E27] hover:bg-[#e5431f] disabled:opacity-50 text-white rounded-lg font-semibold transition-colors"
                         >
                             {isSubmitting ? "Submitting..." : "Submit Review"}
                         </button>

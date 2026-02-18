@@ -75,7 +75,7 @@ export default function ReviewsPage() {
                 </BaseHeading>
                 <button
                     onClick={() => router.push("/reviews/submit")}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded font-semibold transition-colors"
+                    className="bg-[#FF4E27] hover:bg-[#e5431f] text-white px-6 py-2 rounded-lg font-semibold transition-colors"
                 >
                     Submit Review
                 </button>
@@ -149,7 +149,7 @@ export default function ReviewsPage() {
                                 </BaseText>
                             </div>
                             <button
-                                className="mt-auto bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm font-semibold"
+                                className="mt-auto bg-[#FF4E27] hover:bg-[#e5431f] text-white px-4 py-2 rounded-lg text-sm font-semibold"
                                 onClick={() =>
                                     router.push(`/reviews/${review.review_id}`)
                                 }

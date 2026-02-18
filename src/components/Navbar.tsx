@@ -18,11 +18,12 @@ import { useState } from "react";
 import BaseText from "./BaseText/BaseText";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 const Navbar = () => {
     const { user, switchRole } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
     const [isExpanded, setIsExpanded] = useState(false);
 
     const menuItems = [
@@ -92,11 +93,17 @@ const Navbar = () => {
 
                 {/* Navigation Items */}
                 <div className="flex flex-col space-y-2">
-                    {menuItems.map((item, index) => (
+                    {menuItems.map((item, index) => {
+                        const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                        return (
                         <Link
                             key={index}
                             href={item.href}
-                            className={`grid items-center text-gray-300 hover:text-white hover:bg-gray-800 transition-all duration-300 ${
+                            className={`grid items-center transition-all duration-300 ${
+                                isActive
+                                    ? "text-[#FF4E27]"
+                                    : "text-gray-400 hover:text-white hover:bg-[#3d2b5a]"
+                            } ${
                                 isExpanded
                                     ? "grid-cols-[1fr_5fr]"
                                     : "grid-cols-[1fr_0fr]"
@@ -124,7 +131,7 @@ const Navbar = () => {
                                 {item.label}
                             </BaseText>
                         </Link>
-                    ))}
+                    )})}
                 </div>
 
                 {/* Role Switch Button */}
@@ -137,7 +144,7 @@ const Navbar = () => {
                                 await switchRole(newRole);
                                 router.push(newRole === "artist" ? "/artist/dashboard" : "/explore");
                             }}
-                            className={`grid items-center text-orange-400 hover:text-orange-300 hover:bg-gray-800 transition-all duration-300 mb-4 ${
+                            className={`grid items-center text-orange-400 hover:text-orange-300 hover:bg-[#3d2b5a] transition-all duration-300 mb-4 ${
                                 isExpanded
                                     ? "grid-cols-[1fr_5fr]"
                                     : "grid-cols-[1fr_0fr]"

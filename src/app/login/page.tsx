@@ -6,7 +6,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
-import { FaGoogle } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "@/context/AuthContext";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
@@ -127,7 +127,7 @@ function LoginPageInner() {
     return (
         <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white">
             {/* Left Side: Branding & Welcome */}
-            <div className="hidden md:flex w-1/2 bg-gradient-to-bt from-[#0f0c29] via-[#302b63] to-[#24243e] p-8 flex-col justify-between">
+            <div className="hidden md:flex w-1/2 p-8 flex-col justify-between" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
                 {/* Logo at Top */}
                 <Link href="/">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -176,25 +176,17 @@ function LoginPageInner() {
             <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white text-black">
                 <div className="w-full max-w-md space-y-6">
                     {/* Page Title */}
-                    <div className="text-center mb-8">
+                    <div className="mb-8">
                         <BaseHeading
                             fontWeight={700}
                             fontSize="large"
                             headingLevel="h2"
                             textColor="#111827"
-                            textAlign="center"
+                            textAlign="left"
+                            fontName="montserrat"
                         >
                             {loading ? "Logging you in..." : "Login"}
                         </BaseHeading>
-
-                        <BaseText
-                            className="mt-2"
-                            textColor="#4b5563"
-                            fontSize="small"
-                            textAlign="center"
-                        >
-                            Welcome back to SoundSpire
-                        </BaseText>
                     </div>
 
                     {/* Form Fields */}
@@ -223,7 +215,8 @@ function LoginPageInner() {
                                             onLogin();
                                         }
                                     }}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4E27] focus:border-transparent transition-all duration-200"
+                                    style={{ borderRadius: "8px" }}
                                 />
                             </div>
                         ))}
@@ -232,7 +225,7 @@ function LoginPageInner() {
                         <div className="flex justify-start pl-1">
                             <Link
                                 href="/forgot-password"
-                                className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200"
+                                className="text-sm text-gray-600 hover:text-gray-800 hover:underline transition-colors duration-200"
                             >
                                 Forgot Password?
                             </Link>
@@ -243,9 +236,10 @@ function LoginPageInner() {
                     <button
                         onClick={onLogin}
                         disabled={buttonDisabled || loading}
-                        className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        className="w-full py-3 px-4 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        style={{ backgroundColor: buttonDisabled || loading ? undefined : "#FF4E27", borderRadius: "8px" }}
                     >
-                        {loading ? "Logging in..." : "Login"}
+                        {loading ? "Logging in..." : "Login  →"}
                     </button>
 
                     {/* Divider */}
@@ -269,9 +263,10 @@ function LoginPageInner() {
                     <button
                         onClick={handleGoogleLogin}
                         disabled={googleLoading}
-                        className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex items-center justify-center space-x-2"
+                        className="w-full py-3 px-4 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-lg transition-colors duration-200 disabled:cursor-not-allowed border-2 border-[#FF4E27] flex items-center justify-center space-x-2"
+                        style={{ borderRadius: "8px" }}
                     >
-                        <FaGoogle className="w-5 h-5" />
+                        <FcGoogle className="w-5 h-5" />
                         <BaseText wrapper="span" fontName="arial">
                             {googleLoading
                                 ? "Signing in with Google..."
@@ -289,7 +284,7 @@ function LoginPageInner() {
                             Don&apos;t have an account yet?{" "}
                             <Link
                                 href="/"
-                                className="text-orange-600 hover:text-orange-700 font-medium hover:underline transition-colors duration-200"
+                                className="text-[#FF4E27] hover:text-[#e5431f] font-medium hover:underline transition-colors duration-200"
                             >
                                 Sign up
                             </Link>

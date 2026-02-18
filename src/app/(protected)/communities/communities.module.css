@@ -63,6 +63,9 @@
     background-color: #2d233e;
     padding: 0.1rem 1rem;
 }
+.search-bar:focus-within {
+    border-color: #FF4E27;
+}
 .search-bar input {
     background-color: transparent;
     font-size: var(--large-text);

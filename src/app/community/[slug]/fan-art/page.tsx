@@ -755,12 +755,12 @@ export default function FanArtPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="search fan art..."
-                className="px-4 py-2 bg-[#1a1625] text-white placeholder-gray-500 rounded-full w-80 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="px-4 py-2 bg-[#1a1625] text-white placeholder-gray-500 rounded-full w-80 focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
               />
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                className="px-3 py-2 bg-[#1a1625] text-white rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="px-3 py-2 bg-[#1a1625] text-white rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
               >
                 <option value="newest">Newest</option>
                 <option value="oldest">Oldest</option>
@@ -878,7 +878,7 @@ export default function FanArtPage() {
                       onChange={(e) => setCommentText(prev => ({ ...prev, [post.forum_post_id]: e.target.value }))}
                       onKeyPress={(e) => e.key === 'Enter' && addComment(post.forum_post_id)}
                       placeholder="Comment..."
-                      className="flex-1 min-w-0 px-2 py-1.5 bg-[#1a1625] text-white text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="flex-1 min-w-0 px-2 py-1.5 bg-[#1a1625] text-white text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
                     />
                     <button
                       onClick={() => addComment(post.forum_post_id)}

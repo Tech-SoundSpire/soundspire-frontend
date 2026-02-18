@@ -814,7 +814,7 @@ export default function AllChatPage() {
                                 value={searchQuery}
                                 onChange={(e) => { setSearchQuery(e.target.value); setSearchMatchIndex(0); }}
                                 placeholder="search for messages in chat"
-                                className="px-4 py-2 bg-[#1a1625] text-white placeholder-gray-500 rounded-full w-80 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                className="px-4 py-2 bg-[#1a1625] text-white placeholder-gray-500 rounded-full w-80 focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
                             />
                             {searchQuery.trim() && filteredMessages.length > 0 && (
                                 <>
