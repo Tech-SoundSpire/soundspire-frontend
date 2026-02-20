@@ -43,9 +43,6 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@types/bluebird": "^3.5.42",
-    "@types/continuation-local-storage": "^3.2.7",
-    "@types/debug": "^4.1.12",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^20",
     "@types/nodemailer": "^6.4.17",
