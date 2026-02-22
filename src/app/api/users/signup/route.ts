@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
                 { status: 400 },
             );
         }
-
         // 2️⃣ Check if username already exists
         const existingUsername = await User.findOne({
             where: { username, is_artist: false },
@@ -38,10 +37,44 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 3️⃣ Hash password
+        //3️⃣check if password validation before hashing
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+        if (!passwordRegex.test(password_hash)) {
+            let errorMessage = "Password does not meet requirements: ";
+            const errors = [];
+            if (password_hash.length < 8) {
+                errors.push("at least 8 characters long");
+            }
+            if (!/(?=.*[a-z])/.test(password_hash)) {
+                errors.push("one lowercase letter");
+            }
+            if (!/(?=.*[A-Z])/.test(password_hash)) {
+                errors.push("one uppercase letter");
+            }
+            if (!/(?=.*\d)/.test(password_hash)) {
+                errors.push("one number");
+            }
+            if (!/(?=.*[@$!%*?&#])/.test(password_hash)) {
+                errors.push("one special character (@$!%*?&#)");
+            }
+            //check for invalids characters
+            if (!/^[A-Za-z\d@$!%*?&#]+$/.test(password_hash)) {
+                errors.push("Password contains invalid characters");
+            }
+            
+            errorMessage += errors.join(", ");
+            return NextResponse.json(
+                { error: errorMessage },
+                { status: 400 }
+            );
+        }
+        
+        console.log(password_hash);
+
+        // 4️⃣ Hash password
         const hashedPassword = await bcryptjs.hash(password_hash, 10);
 
-        // 4️⃣ Create new user (✅ correct field name)
+        // 5️⃣ Create new user (✅ correct field name)
         const newUser = await User.create({
             username,
             email,
@@ -54,7 +87,7 @@ export async function POST(request: NextRequest) {
                 : getDefaultProfileImageUrl(),
         });
 
-        // 5️⃣ Create JWT token for email verification
+        // 6️⃣ Create JWT token for email verification
         const token = jwt.sign(
             { userId: newUser.user_id },
             process.env.JWT_SECRET!,
@@ -63,7 +96,7 @@ export async function POST(request: NextRequest) {
 
         const verificationUrl = `${process.env.DOMAIN}/verifyemail?token=${token}`;
 
-        // 6️⃣ Send verification email
+        // 7️⃣ Send verification email
         await sendEmail({
             email,
             emailType: "VERIFY",

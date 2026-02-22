@@ -13,7 +13,7 @@ import { sendEmail } from "@/utils/mailer";
 interface DecodedToken {
     id: string;
 }
-
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
 export async function POST(request: NextRequest) {
     try {
         await connectionTestingAndHelper();
@@ -94,6 +94,40 @@ export async function POST(request: NextRequest) {
                     );
                 }
 
+                
+                //validating password before hashing
+                if (!passwordRegex.test(password_hash)) {
+                    let errorMessage = "Password does not meet requirements: ";
+                    const errors = [];
+                    if(password_hash.length < 8) {
+                        errors.push("at least 8 characters long");
+                    }
+                    if (!/(?=.*[a-z])/.test(password_hash)){
+                        errors.push("one lowercase letter");
+                    }
+                    if (!/(?=.*[A-Z])/.test(password_hash)) {
+                        errors.push("one uppercase letter");
+                    }
+                    if(!/(?=.*\d)/.test(password_hash)) {
+                        errors.push("one number");
+                    }
+                    if(!/(?=.*[@$!%*?&#])/.test(password_hash)) {
+                        errors.push("one special character (@$!%*?&#)");
+                    }
+                    // check for invalid characters
+                    if (!/^[A-Za-z\d@$!%*?&#]+$/.test(password_hash)){
+                        errors.push("Password contains invalid characters. Only letters, numbers, and @$!%*?&# are allowed.");
+                    }
+                    if(errors.length === 0){
+                        errors.push("Password contains invalid characters. Only letters, numbers, and @$!%*?&# are allowed.");
+                    }
+                    errorMessage += errors.join(", ");
+                    return NextResponse.json(
+                        { error: errorMessage },
+                        { status: 400 }
+                    );
+                }
+
                 const hashed = await bcryptjs.hash(password_hash, 10);
                 user = await User.create({
                     username,
@@ -111,6 +145,13 @@ export async function POST(request: NextRequest) {
                 });
             } else {
                 if (!user.password_hash && password_hash) {
+                    //upgrading existing user need validation
+                    if (!passwordRegex.test(password_hash)) {
+                        return NextResponse.json(
+                            { error: "Password does not meet requirements" },
+                            { status: 400 }
+                        );
+                    }
                     const hashed = await bcryptjs.hash(password_hash, 10);
                     await user.update({ password_hash: hashed });
                 }
