@@ -12,6 +12,7 @@ import {
 } from "@/utils/userProfileImageUtils";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
+import ErrorIcon from "@/components/ErrorIcon";
 import { sanitizeURL } from "@/utils/sanitizeURL";
 import { City, Country, ICity, ICountry } from "country-state-city";
 import { getPhoneLength } from "@/lib/countryPhoneLength";
@@ -72,6 +73,7 @@ function ArtistDetailsContent() {
     const [showGenreDropdown, setShowGenreDropdown] = useState(false);
     const genreDropdownRef = useRef<HTMLDivElement>(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [passwordErrors, setPasswordErrors] = useState<string[]>([]); //state for password validation errors
 
     // Build flat genre list from music-genres package
     const allGenreNames = useMemo(() => {
@@ -325,6 +327,9 @@ function ArtistDetailsContent() {
             ...prev,
             [name]: type === "checkbox" ? checked : value,
         }));
+        if (name === "password_hash") {
+            setPasswordErrors([]);
+        }
     };
 
     const handleImageChange = (e: any, type: "profile" | "cover") => {
@@ -398,6 +403,36 @@ function ArtistDetailsContent() {
             }
         }
 
+        if (!isLoggedIn) {
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+            const errors: string[] = [];
+            if (!passwordRegex.test(formData.password_hash)) {
+                if (formData.password_hash.length < 8) {
+                    errors.push("Must be at least 8 characters long");
+                }
+                if (!/(?=.*[a-z])/.test(formData.password_hash)) {
+                    errors.push("Must include at least one lowercase letter");
+                }
+                if (!/(?=.*[A-Z])/.test(formData.password_hash)) {
+                    errors.push("Must include at least one uppercase letter");
+                }
+                if (!/(?=.*\d)/.test(formData.password_hash)) {
+                    errors.push("Must include at least one number");
+                }
+                if (!/(?=.*[@$!%*?&#])/.test(formData.password_hash)) {
+                    errors.push("Must include atleast one special character like #,@,$,&.");
+                }
+                //invalids checking
+                if (!/^[A-Za-z\d@$!%*?&#]+$/.test(formData.password_hash)) {
+                        errors.push("Password contains invalid characters");
+                }
+            }
+            setPasswordErrors(errors);
+            if(errors.length > 0) {
+                return toast.error("Password does not meet requirements");
+            }
+        }
+
         if (
             !isLoggedIn &&
             formData.password_hash !== formData.confirm_password
@@ -468,8 +503,7 @@ function ArtistDetailsContent() {
                 `${formData.artist_name?.trim() || "My"}'s Community`;
             const communityDescription =
                 formData.community_description?.trim() ||
-                `Welcome to ${
-                    formData.artist_name || "this artist"
+                `Welcome to ${formData.artist_name || "this artist"
                 }'s official community!`;
 
             const communityRes = await fetch("/api/community", {
@@ -752,20 +786,20 @@ function ArtistDetailsContent() {
                                     "youtube",
                                     "x",
                                 ].includes(platform) && (
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setSocialFields(
-                                                socialFields.filter(
-                                                    (f) => f !== platform
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setSocialFields(
+                                                    socialFields.filter(
+                                                        (f) => f !== platform
+                                                    )
                                                 )
-                                            )
-                                        }
-                                        className="absolute right-3 top-9 text-gray-400 hover:text-red-500"
-                                    >
-                                        ✕
-                                    </button>
-                                )}
+                                            }
+                                            className="absolute right-3 top-9 text-gray-400 hover:text-red-500"
+                                        >
+                                            ✕
+                                        </button>
+                                    )}
                             </div>
                         ))}
                     </div>
@@ -915,6 +949,23 @@ function ArtistDetailsContent() {
                                     }}
                                     className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                                 />
+                                {/* Mapthe errors below password  */}
+                                {passwordErrors.length > 0 && (
+                                    <div className="mt-2">
+                                        {passwordErrors.map((error, index) => (
+                                            <div key={index} className="flex items-center">
+                                                <ErrorIcon className="mr-2" />
+                                                <BaseText
+                                                    textColor="#ef4444"
+                                                    fontSize="small"
+                                                    className="block"
+                                                >
+                                                    {error}
+                                                </BaseText>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
 

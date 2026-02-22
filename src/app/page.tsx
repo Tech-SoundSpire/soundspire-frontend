@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
+import ErrorIcon from "@/components/ErrorIcon";
 
 const fields = [
     {
@@ -58,7 +59,7 @@ export default function SignupPage() {
     const [buttonDisabled, setButtonDisabled] = useState(true);
     const [loading, setLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-    const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+    const [formErrors, setFormErrors] = useState<{ [key: string]: string[] }>({});
 
     useEffect(() => {
         if (authLoading || profileLoading || preferencesLoading) return;
@@ -108,26 +109,52 @@ export default function SignupPage() {
     ]);
 
     const validateForm = () => {
-        const errors: { [key: string]: string } = {};
+        const errors: { [key: string]: string[] } = {};
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (user.username.trim().length < 3) {
-            errors.username = "Username must be at least 3 characters";
+            errors.username = ["Username must be at least 3 characters"];
         }
 
         if (!emailRegex.test(user.email)) {
-            errors.email = "Invalid email format";
+            errors.email = ["Invalid email format"];
         }
 
-        if (user.password_hash.length < 6) {
-            errors.password_hash = "Password must be at least 6 characters";
+        const passwordErrors: string[] = [];
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+        if (!passwordRegex.test(user.password_hash)) {
+            if (user.password_hash.length < 8) {
+                passwordErrors.push("Must be at least 8 characters long");
+            }
+            if (!/(?=.*[a-z])/.test(user.password_hash)) {
+                passwordErrors.push("Must include at least one lowercase letter");
+            }
+            if (!/(?=.*[A-Z])/.test(user.password_hash)) {
+                passwordErrors.push("Must include at least one uppercase letter");
+            }
+            if (!/(?=.*\d)/.test(user.password_hash)) {
+                passwordErrors.push("Must include at least one number");
+            }
+            if (!/(?=.*[@$!%*?&#])/.test(user.password_hash)) {
+                passwordErrors.push("Must include atleast one special character like #,@,$,&");
+            }
+            //invalid characters checking
+            if (!/^[A-Za-z\d@$!%*?&#]+$/.test(user.password_hash)) {
+                passwordErrors.push("Password contains invalid characters");
+            }
+        }
+        if (passwordErrors.length > 0) {
+            errors.password_hash = passwordErrors;
         }
 
         if (user.password_hash !== user.confirm_password) {
-            errors.confirm_password = "Passwords do not match";
+            errors.confirm_password = ["Passwords do not match"];
         }
 
         setFormErrors(errors);
+        // if(passwordErrors.length > 0) {
+        //         return toast.error("Password does not meet requirements");
+        // }
         return Object.keys(errors).length === 0;
     };
 
@@ -269,12 +296,17 @@ export default function SignupPage() {
                                 type={field.type}
                                 value={user[field.name as keyof typeof user]}
                                 placeholder={field.placeholder}
-                                onChange={(e) =>
+                                onChange={(e) => {
                                     setUser((prev) => ({
                                         ...prev,
                                         [field.name]: e.target.value,
-                                    }))
-                                }
+                                    }));
+                                    // Clear errors for this field
+                                    setFormErrors((prev) => ({
+                                        ...prev,
+                                        [field.name]: [],
+                                    }));
+                                }}
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter" && !buttonDisabled && !loading) {
                                         onSignup();
@@ -283,14 +315,23 @@ export default function SignupPage() {
                                 className="w-full px-4 py-2 rounded-lg border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#FF4E27]"
                                 style={{ borderRadius: "8px" }}
                             />
-                            {formErrors[field.name] && (
-                                <BaseText
-                                    textColor="#ef4444"
-                                    fontSize="small"
-                                    className="mt-1"
-                                >
-                                    {formErrors[field.name]}
-                                </BaseText>
+                            {formErrors[field.name] && formErrors[field.name].length > 0 && (
+                                <div className="mt-1">
+                                    {formErrors[field.name].map((error, index) => (
+                                        <div key={index} className="flex items-center">
+                                            <ErrorIcon className="mr-2" />
+                                            <BaseText
+
+                                                textColor="#ef4444"
+                                                fontSize="small"
+                                                className="block"
+                                            >
+                                                {error}
+                                            </BaseText>
+                                        </div>
+
+                                    ))}
+                                </div>
                             )}
                         </div>
                     ))}
