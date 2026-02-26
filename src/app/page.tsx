@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
+import ErrorIcon from "@/components/ErrorIcon";
 
 const fields = [
     {
@@ -40,6 +41,31 @@ const fields = [
     },
 ];
 
+const getPasswordErrors = (password: string) => {
+    const errors: string[] = [];
+
+    if (password.length < 8) {
+        errors.push("Must be at least 8 characters long");
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+        errors.push("Must include at least one lowercase letter");
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+        errors.push("Must include at least one uppercase letter");
+    }
+    if (!/(?=.*\d)/.test(password)) {
+        errors.push("Must include at least one number");
+    }
+    if (!/(?=.*[@$!%*?&#])/.test(password)) {
+        errors.push("Must include at least one special character like #,@,$,&");
+    }
+    if (!/^[A-Za-z\d@$!%*?&#]*$/.test(password)) {
+        errors.push("Password contains invalid characters");
+    }
+
+    return errors;
+};
+
 export default function SignupPage() {
     const router = useRouter();
     const { user: authUser, isLoading: authLoading } = useAuth();
@@ -58,7 +84,7 @@ export default function SignupPage() {
     const [buttonDisabled, setButtonDisabled] = useState(true);
     const [loading, setLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-    const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+    const [formErrors, setFormErrors] = useState<{ [key: string]: string[] }>({});
 
     useEffect(() => {
         if (authLoading || profileLoading || preferencesLoading) return;
@@ -108,26 +134,30 @@ export default function SignupPage() {
     ]);
 
     const validateForm = () => {
-        const errors: { [key: string]: string } = {};
+        const errors: { [key: string]: string[] } = {};
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (user.username.trim().length < 3) {
-            errors.username = "Username must be at least 3 characters";
+            errors.username = ["Username must be at least 3 characters"];
         }
 
         if (!emailRegex.test(user.email)) {
-            errors.email = "Invalid email format";
+            errors.email = ["Invalid email format"];
         }
 
-        if (user.password_hash.length < 6) {
-            errors.password_hash = "Password must be at least 6 characters";
+        const passwordErrors = getPasswordErrors(user.password_hash);
+        if(passwordErrors.length > 0){
+            errors.password_hash = passwordErrors;
         }
 
         if (user.password_hash !== user.confirm_password) {
-            errors.confirm_password = "Passwords do not match";
+            errors.confirm_password = ["Passwords do not match"];
         }
 
         setFormErrors(errors);
+        // if(passwordErrors.length > 0) {
+        //         return toast.error("Password does not meet requirements");
+        // }
         return Object.keys(errors).length === 0;
     };
 
@@ -269,12 +299,41 @@ export default function SignupPage() {
                                 type={field.type}
                                 value={user[field.name as keyof typeof user]}
                                 placeholder={field.placeholder}
-                                onChange={(e) =>
-                                    setUser((prev) => ({
+                                onChange={(e) => {
+                                    const value = e.target.value;
+
+                                    setUser(prev => ({
                                         ...prev,
-                                        [field.name]: e.target.value,
-                                    }))
-                                }
+                                        [field.name]: value,
+                                    }));
+
+                                    // dynamic validation for password
+                                    if (field.name === "password_hash") {
+                                        const errors = getPasswordErrors(value);
+
+                                        setFormErrors(prev => ({
+                                            ...prev,
+                                            password_hash: errors,
+                                            confirm_password:
+                                                user.confirm_password && value !== user.confirm_password
+                                                    ? ["Passwords do not match"]
+                                                    : []
+                                        }));
+                                    } else if (field.name === "confirm_password") {
+                                        setFormErrors(prev => ({
+                                            ...prev,
+                                            confirm_password:
+                                                value !== user.password_hash
+                                                    ? ["Passwords do not match"]
+                                                    : []
+                                        }));
+                                    } else {
+                                        setFormErrors(prev => ({
+                                            ...prev,
+                                            [field.name]: [],
+                                        }));
+                                    }
+                                }}
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter" && !buttonDisabled && !loading) {
                                         onSignup();
@@ -283,14 +342,23 @@ export default function SignupPage() {
                                 className="w-full px-4 py-2 rounded-lg border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#FF4E27]"
                                 style={{ borderRadius: "8px" }}
                             />
-                            {formErrors[field.name] && (
-                                <BaseText
-                                    textColor="#ef4444"
-                                    fontSize="small"
-                                    className="mt-1"
-                                >
-                                    {formErrors[field.name]}
-                                </BaseText>
+                            {formErrors[field.name] && formErrors[field.name].length > 0 && (
+                                <div className="mt-1">
+                                    {formErrors[field.name].map((error, index) => (
+                                        <div key={index} className="flex items-center">
+                                            <ErrorIcon className="mr-2" />
+                                            <BaseText
+
+                                                textColor="#ef4444"
+                                                fontSize="small"
+                                                className="block"
+                                            >
+                                                {error}
+                                            </BaseText>
+                                        </div>
+
+                                    ))}
+                                </div>
                             )}
                         </div>
                     ))}
