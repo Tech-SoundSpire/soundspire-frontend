@@ -69,8 +69,6 @@ export async function POST(request: NextRequest) {
             );
         }
         
-        console.log(password_hash);
-
         // 4️⃣ Hash password
         const hashedPassword = await bcryptjs.hash(password_hash, 10);
 

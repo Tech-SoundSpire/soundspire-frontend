@@ -21,6 +21,32 @@ import musicGenres from "music-genres";
 // const DEFAULT_PLACEHOLDER = "https://soundspirewebsiteassets.s3.amazonaws.com/images/placeholder.jpg";
 const DEFAULT_PLACEHOLDER = getImageUrl(DEFAULT_PROFILE_IMAGE);
 
+
+const getPasswordErrors = (password: string) => {
+    const errors: string[] = [];
+
+    if (password.length < 8) {
+        errors.push("Must be at least 8 characters long");
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+        errors.push("Must include at least one lowercase letter");
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+        errors.push("Must include at least one uppercase letter");
+    }
+    if (!/(?=.*\d)/.test(password)) {
+        errors.push("Must include at least one number");
+    }
+    if (!/(?=.*[@$!%*?&#])/.test(password)) {
+        errors.push("Must include at least one special character like #,@,$,&");
+    }
+    if (!/^[A-Za-z\d@$!%*?&#]*$/.test(password)) {
+        errors.push("Password contains invalid characters");
+    }
+
+    return errors;
+};
+
 function ArtistDetailsContent() {
     const router = useRouter();
     const params = useSearchParams();
@@ -74,7 +100,7 @@ function ArtistDetailsContent() {
     const genreDropdownRef = useRef<HTMLDivElement>(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [passwordErrors, setPasswordErrors] = useState<string[]>([]); //state for password validation errors
-
+    const [confirmError, setConfirmError] = useState("");
     // Build flat genre list from music-genres package
     const allGenreNames = useMemo(() => {
         const obj = musicGenres.getAllGenres();
@@ -323,12 +349,29 @@ function ArtistDetailsContent() {
 
     const handleChange = (e: any) => {
         const { name, value, type, checked } = e.target;
+
         setFormData((prev: any) => ({
             ...prev,
             [name]: type === "checkbox" ? checked : value,
         }));
+
         if (name === "password_hash") {
-            setPasswordErrors([]);
+            const errors = getPasswordErrors(value);
+            setPasswordErrors(errors);
+
+            if (formData.confirm_password && value !== formData.confirm_password) {
+                setConfirmError("Passwords do not match");
+            } else {
+                setConfirmError("");
+            }
+        }
+
+        if (name === "confirm_password") {
+            if (value !== formData.password_hash) {
+                setConfirmError("Passwords do not match");
+            } else {
+                setConfirmError("");
+            }
         }
     };
 
@@ -404,31 +447,10 @@ function ArtistDetailsContent() {
         }
 
         if (!isLoggedIn) {
-            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
-            const errors: string[] = [];
-            if (!passwordRegex.test(formData.password_hash)) {
-                if (formData.password_hash.length < 8) {
-                    errors.push("Must be at least 8 characters long");
-                }
-                if (!/(?=.*[a-z])/.test(formData.password_hash)) {
-                    errors.push("Must include at least one lowercase letter");
-                }
-                if (!/(?=.*[A-Z])/.test(formData.password_hash)) {
-                    errors.push("Must include at least one uppercase letter");
-                }
-                if (!/(?=.*\d)/.test(formData.password_hash)) {
-                    errors.push("Must include at least one number");
-                }
-                if (!/(?=.*[@$!%*?&#])/.test(formData.password_hash)) {
-                    errors.push("Must include atleast one special character like #,@,$,&.");
-                }
-                //invalids checking
-                if (!/^[A-Za-z\d@$!%*?&#]+$/.test(formData.password_hash)) {
-                        errors.push("Password contains invalid characters");
-                }
-            }
+            const errors = getPasswordErrors(formData.password_hash);
             setPasswordErrors(errors);
-            if(errors.length > 0) {
+
+            if (errors.length > 0) {
                 return toast.error("Password does not meet requirements");
             }
         }
@@ -988,7 +1010,16 @@ function ArtistDetailsContent() {
                                     }}
                                     className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                                 />
+                                {confirmError && (
+                                    <div className="flex items-center mt-2">
+                                        <ErrorIcon className="mr-2" />
+                                        <BaseText textColor="#ef4444" fontSize="small">
+                                            {confirmError}
+                                        </BaseText>
+                                    </div>
+                                )}
                             </div>
+
                         )}
                     </div>
                 </div>

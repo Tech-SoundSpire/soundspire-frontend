@@ -41,6 +41,31 @@ const fields = [
     },
 ];
 
+const getPasswordErrors = (password: string) => {
+    const errors: string[] = [];
+
+    if (password.length < 8) {
+        errors.push("Must be at least 8 characters long");
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+        errors.push("Must include at least one lowercase letter");
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+        errors.push("Must include at least one uppercase letter");
+    }
+    if (!/(?=.*\d)/.test(password)) {
+        errors.push("Must include at least one number");
+    }
+    if (!/(?=.*[@$!%*?&#])/.test(password)) {
+        errors.push("Must include at least one special character like #,@,$,&");
+    }
+    if (!/^[A-Za-z\d@$!%*?&#]*$/.test(password)) {
+        errors.push("Password contains invalid characters");
+    }
+
+    return errors;
+};
+
 export default function SignupPage() {
     const router = useRouter();
     const { user: authUser, isLoading: authLoading } = useAuth();
@@ -120,30 +145,8 @@ export default function SignupPage() {
             errors.email = ["Invalid email format"];
         }
 
-        const passwordErrors: string[] = [];
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
-        if (!passwordRegex.test(user.password_hash)) {
-            if (user.password_hash.length < 8) {
-                passwordErrors.push("Must be at least 8 characters long");
-            }
-            if (!/(?=.*[a-z])/.test(user.password_hash)) {
-                passwordErrors.push("Must include at least one lowercase letter");
-            }
-            if (!/(?=.*[A-Z])/.test(user.password_hash)) {
-                passwordErrors.push("Must include at least one uppercase letter");
-            }
-            if (!/(?=.*\d)/.test(user.password_hash)) {
-                passwordErrors.push("Must include at least one number");
-            }
-            if (!/(?=.*[@$!%*?&#])/.test(user.password_hash)) {
-                passwordErrors.push("Must include atleast one special character like #,@,$,&");
-            }
-            //invalid characters checking
-            if (!/^[A-Za-z\d@$!%*?&#]+$/.test(user.password_hash)) {
-                passwordErrors.push("Password contains invalid characters");
-            }
-        }
-        if (passwordErrors.length > 0) {
+        const passwordErrors = getPasswordErrors(user.password_hash);
+        if(passwordErrors.length > 0){
             errors.password_hash = passwordErrors;
         }
 
@@ -297,15 +300,39 @@ export default function SignupPage() {
                                 value={user[field.name as keyof typeof user]}
                                 placeholder={field.placeholder}
                                 onChange={(e) => {
-                                    setUser((prev) => ({
+                                    const value = e.target.value;
+
+                                    setUser(prev => ({
                                         ...prev,
-                                        [field.name]: e.target.value,
+                                        [field.name]: value,
                                     }));
-                                    // Clear errors for this field
-                                    setFormErrors((prev) => ({
-                                        ...prev,
-                                        [field.name]: [],
-                                    }));
+
+                                    // dynamic validation for password
+                                    if (field.name === "password_hash") {
+                                        const errors = getPasswordErrors(value);
+
+                                        setFormErrors(prev => ({
+                                            ...prev,
+                                            password_hash: errors,
+                                            confirm_password:
+                                                user.confirm_password && value !== user.confirm_password
+                                                    ? ["Passwords do not match"]
+                                                    : []
+                                        }));
+                                    } else if (field.name === "confirm_password") {
+                                        setFormErrors(prev => ({
+                                            ...prev,
+                                            confirm_password:
+                                                value !== user.password_hash
+                                                    ? ["Passwords do not match"]
+                                                    : []
+                                        }));
+                                    } else {
+                                        setFormErrors(prev => ({
+                                            ...prev,
+                                            [field.name]: [],
+                                        }));
+                                    }
                                 }}
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter" && !buttonDisabled && !loading) {
