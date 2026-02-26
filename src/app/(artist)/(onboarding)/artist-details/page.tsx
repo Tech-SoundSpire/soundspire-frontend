@@ -12,6 +12,7 @@ import {
 } from "@/utils/userProfileImageUtils";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
+import ErrorIcon from "@/components/ErrorIcon";
 import { sanitizeURL } from "@/utils/sanitizeURL";
 import { City, Country, ICity, ICountry } from "country-state-city";
 import { getPhoneLength } from "@/lib/countryPhoneLength";
@@ -19,6 +20,32 @@ import musicGenres from "music-genres";
 
 // const DEFAULT_PLACEHOLDER = "https://soundspirewebsiteassets.s3.amazonaws.com/images/placeholder.jpg";
 const DEFAULT_PLACEHOLDER = getImageUrl(DEFAULT_PROFILE_IMAGE);
+
+
+const getPasswordErrors = (password: string) => {
+    const errors: string[] = [];
+
+    if (password.length < 8) {
+        errors.push("Must be at least 8 characters long");
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+        errors.push("Must include at least one lowercase letter");
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+        errors.push("Must include at least one uppercase letter");
+    }
+    if (!/(?=.*\d)/.test(password)) {
+        errors.push("Must include at least one number");
+    }
+    if (!/(?=.*[@$!%*?&#])/.test(password)) {
+        errors.push("Must include at least one special character like #,@,$,&");
+    }
+    if (!/^[A-Za-z\d@$!%*?&#]*$/.test(password)) {
+        errors.push("Password contains invalid characters");
+    }
+
+    return errors;
+};
 
 function ArtistDetailsContent() {
     const router = useRouter();
@@ -72,7 +99,8 @@ function ArtistDetailsContent() {
     const [showGenreDropdown, setShowGenreDropdown] = useState(false);
     const genreDropdownRef = useRef<HTMLDivElement>(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-
+    const [passwordErrors, setPasswordErrors] = useState<string[]>([]); //state for password validation errors
+    const [confirmError, setConfirmError] = useState("");
     // Build flat genre list from music-genres package
     const allGenreNames = useMemo(() => {
         const obj = musicGenres.getAllGenres();
@@ -321,10 +349,30 @@ function ArtistDetailsContent() {
 
     const handleChange = (e: any) => {
         const { name, value, type, checked } = e.target;
+
         setFormData((prev: any) => ({
             ...prev,
             [name]: type === "checkbox" ? checked : value,
         }));
+
+        if (name === "password_hash") {
+            const errors = getPasswordErrors(value);
+            setPasswordErrors(errors);
+
+            if (formData.confirm_password && value !== formData.confirm_password) {
+                setConfirmError("Passwords do not match");
+            } else {
+                setConfirmError("");
+            }
+        }
+
+        if (name === "confirm_password") {
+            if (value !== formData.password_hash) {
+                setConfirmError("Passwords do not match");
+            } else {
+                setConfirmError("");
+            }
+        }
     };
 
     const handleImageChange = (e: any, type: "profile" | "cover") => {
@@ -398,6 +446,15 @@ function ArtistDetailsContent() {
             }
         }
 
+        if (!isLoggedIn) {
+            const errors = getPasswordErrors(formData.password_hash);
+            setPasswordErrors(errors);
+
+            if (errors.length > 0) {
+                return toast.error("Password does not meet requirements");
+            }
+        }
+
         if (
             !isLoggedIn &&
             formData.password_hash !== formData.confirm_password
@@ -468,8 +525,7 @@ function ArtistDetailsContent() {
                 `${formData.artist_name?.trim() || "My"}'s Community`;
             const communityDescription =
                 formData.community_description?.trim() ||
-                `Welcome to ${
-                    formData.artist_name || "this artist"
+                `Welcome to ${formData.artist_name || "this artist"
                 }'s official community!`;
 
             const communityRes = await fetch("/api/community", {
@@ -752,20 +808,20 @@ function ArtistDetailsContent() {
                                     "youtube",
                                     "x",
                                 ].includes(platform) && (
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setSocialFields(
-                                                socialFields.filter(
-                                                    (f) => f !== platform
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setSocialFields(
+                                                    socialFields.filter(
+                                                        (f) => f !== platform
+                                                    )
                                                 )
-                                            )
-                                        }
-                                        className="absolute right-3 top-9 text-gray-400 hover:text-red-500"
-                                    >
-                                        ✕
-                                    </button>
-                                )}
+                                            }
+                                            className="absolute right-3 top-9 text-gray-400 hover:text-red-500"
+                                        >
+                                            ✕
+                                        </button>
+                                    )}
                             </div>
                         ))}
                     </div>
@@ -915,6 +971,23 @@ function ArtistDetailsContent() {
                                     }}
                                     className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                                 />
+                                {/* Mapthe errors below password  */}
+                                {passwordErrors.length > 0 && (
+                                    <div className="mt-2">
+                                        {passwordErrors.map((error, index) => (
+                                            <div key={index} className="flex items-center">
+                                                <ErrorIcon className="mr-2" />
+                                                <BaseText
+                                                    textColor="#ef4444"
+                                                    fontSize="small"
+                                                    className="block"
+                                                >
+                                                    {error}
+                                                </BaseText>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -937,7 +1010,16 @@ function ArtistDetailsContent() {
                                     }}
                                     className="w-full p-3 bg-[#2d2838] rounded-lg text-white focus:ring-2 focus:ring-[#FA6400]"
                                 />
+                                {confirmError && (
+                                    <div className="flex items-center mt-2">
+                                        <ErrorIcon className="mr-2" />
+                                        <BaseText textColor="#ef4444" fontSize="small">
+                                            {confirmError}
+                                        </BaseText>
+                                    </div>
+                                )}
                             </div>
+
                         )}
                     </div>
                 </div>
