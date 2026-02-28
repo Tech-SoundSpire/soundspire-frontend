@@ -1,7 +1,7 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { FaHeart, FaRegHeart, FaTimes } from 'react-icons/fa';
 import { getImageUrl } from '@/utils/userProfileImageUtils';
@@ -61,6 +61,10 @@ export default function FanArtPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
+  const fanArtSearchParams = useSearchParams();
+  const highlightId = fanArtSearchParams.get("highlight");
+  const [highlightedPost, setHighlightedPost] = useState<string | null>(highlightId);
+  const postHighlightRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
   const [posts, setPosts] = useState<FanArtPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -625,6 +629,17 @@ export default function FanArtPage() {
   
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
+  // Scroll to highlighted fan-art post
+  useEffect(() => {
+    if (highlightedPost && posts.length > 0) {
+      const el = postHighlightRefs.current[highlightedPost];
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => setHighlightedPost(null), 3000);
+      }
+    }
+  }, [highlightedPost, posts]);
+
   const filteredPosts = posts.filter(post => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
@@ -790,7 +805,7 @@ export default function FanArtPage() {
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 items-start">
           {filteredPosts.map((post) => (
-            <div key={post.forum_post_id} className="relative rounded-xl bg-[#2d2838] border border-gray-700">
+            <div key={post.forum_post_id} ref={(el) => { postHighlightRefs.current[post.forum_post_id] = el; }} className={`relative rounded-xl bg-[#2d2838] border ${highlightedPost === post.forum_post_id ? "border-[#FF4E27] ring-2 ring-[#FF4E27] ring-offset-2 ring-offset-[#1a1625] transition-all duration-500" : "border-gray-700"}`}>
               {/* Image */}
               {post.media_urls?.[0] && (
                 <div className="aspect-square overflow-hidden rounded-t-xl relative group">

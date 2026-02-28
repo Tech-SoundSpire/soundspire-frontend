@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import CommunityHeader from "@/components/CommunityHeader";
 import Navbar from "@/components/Navbar";
@@ -22,6 +22,10 @@ export default function ArtistForumPage() {
     const params = useParams();
     const slug = params.slug as string;
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const highlightId = searchParams.get("highlight");
+    const [highlightedPost, setHighlightedPost] = useState<string | null>(highlightId);
+    const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
     const [posts, setPosts] = useState<PostProps[]>([]);
     const [contentText, setContentText] = useState("");
@@ -34,6 +38,17 @@ export default function ArtistForumPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Scroll to and highlight post from notification
+    useEffect(() => {
+        if (highlightedPost && posts.length > 0) {
+            const el = postRefs.current[highlightedPost];
+            if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+                setTimeout(() => setHighlightedPost(null), 3000);
+            }
+        }
+    }, [highlightedPost, posts]);
 
     // Fetch posts function
     const fetchPosts = async (commId: string) => {
@@ -284,12 +299,17 @@ export default function ArtistForumPage() {
 
                     <div className="space-y-5">
                         {posts.map((post) => (
+                            <div
+                                key={post.post_id}
+                                ref={(el) => { postRefs.current[post.post_id] = el; }}
+                                className={highlightedPost === post.post_id ? "ring-2 ring-[#FF4E27] ring-offset-4 ring-offset-[#1a1625] rounded-xl transition-all duration-500" : ""}
+                            >
                             <ForumPost 
-                                key={post.post_id} 
                                 post={post} 
                                 user_id={user?.id || ""} 
                                 userProfilePicture={userProfile?.profile_picture_url || user?.photoURL}
                             />
+                            </div>
                         ))}
                     </div>
 

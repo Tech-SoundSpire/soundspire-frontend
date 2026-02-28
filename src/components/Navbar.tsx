@@ -14,17 +14,66 @@ import {
 import { MdOutlineDynamicFeed } from "react-icons/md";
 import Link from "next/link";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import BaseText from "./BaseText/BaseText";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
     const { user, switchRole } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const [isExpanded, setIsExpanded] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    // Fetch unread count
+    const fetchUnread = useCallback(async () => {
+        if (!user?.id) return;
+        try {
+            const res = await fetch("/api/notifications", { credentials: "include" });
+            if (res.ok) {
+                const data = await res.json();
+                setUnreadCount(data.unreadCount ?? 0);
+            }
+        } catch { /* ignore */ }
+    }, [user?.id]);
+
+    useEffect(() => { fetchUnread(); }, [fetchUnread]);
+
+    // Listen for read events from notifications page
+    useEffect(() => {
+        const handler = () => setUnreadCount(0);
+        window.addEventListener("notifications-read", handler);
+        return () => window.removeEventListener("notifications-read", handler);
+    }, []);
+
+    // Realtime: listen for new notifications
+    useEffect(() => {
+        if (!user) return;
+        const channel = supabase
+            .channel(`notifications:${user.id}`)
+            .on("postgres_changes", {
+                event: "INSERT",
+                schema: "public",
+                table: "notifications",
+                filter: `user_id=eq.${user.id}`,
+            }, (payload: any) => {
+                setUnreadCount((prev) => prev + 1);
+                // Persistent toast with close button
+                toast((t) => (
+                    <div className="flex items-center gap-3 max-w-sm">
+                        <span className="flex-1 text-sm">{payload.new.message}</span>
+                        <button onClick={() => { toast.dismiss(t.id); router.push(payload.new.link); }} className="text-[#FF4E27] font-semibold text-sm whitespace-nowrap">View</button>
+                        <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white text-lg leading-none ml-1">×</button>
+                    </div>
+                ), { duration: 3000, style: { background: "#1a1625", color: "#fff", border: "1px solid #FF4E27", padding: "12px 16px" } });
+            })
+            .subscribe();
+        return () => { channel.unsubscribe(); };
+    }, [user, router]);
 
     const menuItems = [
         // { icon: FaHome, label: 'Home', href: '/' },
@@ -109,11 +158,18 @@ const Navbar = () => {
                                     : "grid-cols-[1fr_0fr]"
                             } p-3`}
                         >
-                            <item.icon
-                                className={`w-5 h-5 ${
-                                    isExpanded ? "mr-4" : ""
-                                }`}
-                            />
+                            <div className="relative">
+                                <item.icon
+                                    className={`w-5 h-5 ${
+                                        isExpanded ? "mr-4" : ""
+                                    }`}
+                                />
+                                {item.label === "Notifications" && unreadCount > 0 && (
+                                    <span className="absolute -top-1.5 -right-1.5 bg-[#FF4E27] text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center leading-none px-0.5">
+                                        {unreadCount > 9 ? "9+" : unreadCount}
+                                    </span>
+                                )}
+                            </div>
                             <BaseText
                                 wrapper="span"
                                 className={`whitespace-nowrap overflow-hidden will-change-[opacity] transition-opacity duration-300 ${

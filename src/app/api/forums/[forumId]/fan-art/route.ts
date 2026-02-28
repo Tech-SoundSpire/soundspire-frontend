@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ForumPost, Forum, User, Like, CommunitySubscription, Community, Artist } from '@/models';
 import { getDataFromToken } from '@/utils/getDataFromToken';
 import { Op } from 'sequelize';
+import { notifyCommunitySubscribers } from '@/utils/notifications';
 
 // GET - List fan art posts
 export async function GET(
@@ -217,6 +218,19 @@ export async function POST(
         attributes: ['user_id', 'username', 'full_name', 'profile_picture_url']
       }]
     });
+
+    // Notify community subscribers about new fan art
+    try {
+      const uploader = await User.findByPk(userId, { attributes: ["username"] });
+      const art = await Artist.findByPk(community.artist_id);
+      await notifyCommunitySubscribers(
+        forum.community_id,
+        userId,
+        `${uploader?.username || "Someone"} uploaded new fan art`,
+        `/community/${art?.slug || community.artist_id}/fan-art?highlight=${post.forum_post_id}`,
+        "fanart_comment"
+      );
+    } catch (err) { console.error("Notification error:", err); }
 
     return NextResponse.json({ post: postWithUser }, { status: 201 });
   } catch (error) {

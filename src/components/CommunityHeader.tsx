@@ -1,9 +1,12 @@
 import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
 import BaseText from '@/components/BaseText/BaseText';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { getLogoUrl } from '@/utils/userProfileImageUtils';
 import { useAuth } from '@/context/AuthContext';
+import { FaBell } from 'react-icons/fa';
+import { supabase } from '@/lib/supabaseClient';
 
 interface CommunityHeaderProps {
   slug: string;
@@ -17,7 +20,58 @@ interface CommunityHeaderProps {
 
 export default function CommunityHeader({ slug, communityName, isSubscribed, isArtist = false, currentPage, onLogout, onSwitchToFan }: CommunityHeaderProps) {
   const router = useRouter();
-  const { logout, switchRole } = useAuth();
+  const { user, logout, switchRole } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifPanel, setShowNotifPanel] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+
+  // Fetch unread count for artists
+  const fetchUnread = useCallback(async () => {
+    if (!isArtist || !user?.id) return;
+    try {
+      const res = await fetch("/api/notifications", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setUnreadCount(data.unreadCount ?? 0);
+        setNotifications(data.notifications ?? []);
+      }
+    } catch { /* ignore */ }
+  }, [isArtist, user?.id]);
+
+  useEffect(() => { fetchUnread(); }, [fetchUnread]);
+
+  // Realtime notifications for artists
+  useEffect(() => {
+    if (!isArtist || !user?.id) return;
+    const channel = supabase
+      .channel(`artist-notif:${user.id}`)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "notifications",
+        filter: `user_id=eq.${user.id}`,
+      }, (payload: any) => {
+        setUnreadCount((prev) => prev + 1);
+                setNotifications((prev) => [payload.new, ...prev]);
+        toast((t) => (
+          <div className="flex items-center gap-3 max-w-sm">
+            <span className="flex-1 text-sm">{payload.new.message}</span>
+            <button onClick={async () => {
+              toast.dismiss(t.id);
+              const link = payload.new.link;
+              const isOwnCommunity = link.includes(`/community/${slug}/`);
+              if (!isOwnCommunity && (link.startsWith("/feed") || link.startsWith("/community/"))) {
+                await switchRole("user");
+              }
+              router.push(link);
+            }} className="text-[#FF4E27] font-semibold text-sm whitespace-nowrap">View</button>
+            <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white text-lg leading-none ml-1">×</button>
+          </div>
+        ), { duration: 3000, style: { background: "#1a1625", color: "#fff", border: "1px solid #FF4E27", padding: "12px 16px" } });
+      })
+      .subscribe();
+    return () => { channel.unsubscribe(); };
+  }, [isArtist, user?.id, router]);
 
   const defaultLogout = async () => {
     await logout();
@@ -146,6 +200,52 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
 
       {isArtist && (
         <div className="flex items-center gap-3">
+          <div className="relative">
+            <button onClick={() => {
+              setShowNotifPanel(!showNotifPanel);
+              if (!showNotifPanel && unreadCount > 0) {
+                fetch("/api/notifications", { method: "PATCH", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ notificationIds: "all" }) }).catch(() => {});
+                setUnreadCount(0);
+              }
+            }} className="relative p-2 hover:bg-[#3d2b5a] rounded-lg transition">
+              <FaBell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#FF4E27] text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center leading-none px-0.5">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+            {showNotifPanel && (
+              <div className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto bg-[#1a1625] border border-gray-700 rounded-xl shadow-2xl z-50">
+                <div className="p-3 border-b border-gray-700 flex justify-between items-center">
+                  <span className="text-sm font-semibold">Notifications</span>
+                  <button onClick={() => setShowNotifPanel(false)} className="text-gray-400 hover:text-white text-sm">✕</button>
+                </div>
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500 text-sm">No notifications</div>
+                ) : (
+                  notifications.slice(0, 20).map((n: any) => (
+                    <div
+                      key={n.notification_id}
+                      onClick={async () => {
+                        setShowNotifPanel(false);
+                        // If link goes to /feed or a community that's not ours, switch to fan first
+                        const isOwnCommunity = n.link.includes(`/community/${slug}/`);
+                        if (!isOwnCommunity && (n.link.startsWith("/feed") || n.link.startsWith("/community/"))) {
+                          await switchRole("user");
+                        }
+                        router.push(n.link);
+                      }}
+                      className={`px-4 py-3 cursor-pointer hover:bg-[#2d2838] transition border-b border-gray-800 last:border-0 ${!n.is_read ? "bg-[#2d2838]/40" : ""}`}
+                    >
+                      <p className="text-sm text-white">{n.message}</p>
+                      <p className="text-xs text-gray-500 mt-1">{new Date(n.created_at).toLocaleString()}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
           <button onClick={onLogout || defaultLogout} className="px-4 py-1.5 bg-[#FA6400] hover:bg-[#e55a00] text-white font-bold rounded-lg transition text-sm">
             Logout
           </button>

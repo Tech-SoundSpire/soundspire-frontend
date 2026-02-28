@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FaSearch } from "react-icons/fa";
 import Post from "@/components/Posts/Post";
 import { PostProps } from "@/lib/types";
@@ -11,12 +11,28 @@ import toast from "react-hot-toast";
 import BaseText from "@/components/BaseText/BaseText";
 import Link from "next/link";
 import { type communityDataFromAPI } from "@/types/communityGetAllAPIData";
+import { useSearchParams } from "next/navigation";
 
 export default function Page() {
     const [posts, setPosts] = useState<PostProps[]>([]);
     const { user } = useAuth();
     const [subscriptions, setSubscriptions] = useState<communityDataFromAPI[] | null>(null);
     const [userProfile, setUserProfile] = useState<any>(null);
+    const searchParams = useSearchParams();
+    const highlightId = searchParams.get("highlight");
+    const [highlightedPost, setHighlightedPost] = useState<string | null>(highlightId);
+    const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+    // Scroll to highlighted post and clear after 3s
+    useEffect(() => {
+        if (highlightedPost && posts.length > 0) {
+            const el = postRefs.current[highlightedPost];
+            if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+                setTimeout(() => setHighlightedPost(null), 3000);
+            }
+        }
+    }, [highlightedPost, posts]);
 
     // Fetch posts function
     const fetchPosts = async (userId: string) => {
@@ -116,13 +132,18 @@ export default function Page() {
                         </div>
                     </div>
                     <div className="flex flex-col items-center justify-center">
-                        {posts.map((post: PostProps, index: number) => (
+                        {posts.map((post: PostProps) => (
+                            <div
+                                key={post.post_id}
+                                ref={(el) => { postRefs.current[post.post_id] = el; }}
+                                className={`contents ${highlightedPost === post.post_id ? "[&>*]:ring-2 [&>*]:ring-[#FF4E27] [&>*]:ring-offset-4 [&>*]:ring-offset-[#1a1625] [&>*]:rounded-xl [&>*]:transition-all [&>*]:duration-500" : ""}`}
+                            >
                             <Post 
-                                key={post.post_id} 
                                 post={post} 
                                 user_id={userId} 
                                 userProfilePicture={userProfile?.profile_picture_url || user?.photoURL}
                             />
+                            </div>
                         ))}
                     </div>
                 </main>
