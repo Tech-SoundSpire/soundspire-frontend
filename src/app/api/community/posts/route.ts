@@ -5,6 +5,7 @@ import Community from '@/models/Community';
 import { User } from '@/models/User';
 import Comment from '@/models/Comment';
 import Like from '@/models/Like';
+import { notifyCommunitySubscribers } from '@/utils/notifications';
 
 export async function GET(request: NextRequest) {
   try {
@@ -131,6 +132,18 @@ export async function POST(request: NextRequest) {
         }
       ]
     });
+
+    // Notify subscribers
+    const artist = await Artist.findByPk(artist_id);
+    const artistUserId = artist?.user_id;
+    try {
+      await notifyCommunitySubscribers(
+        community_id,
+        artistUserId || "",
+        `${community.name || "A community"} has a new post`,
+        `/feed?highlight=${post.post_id}`
+      );
+    } catch (err) { console.error("Notification error:", err); }
 
     return NextResponse.json(fullPost, { status: 201 });
   } catch (error) {

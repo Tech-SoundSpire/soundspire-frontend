@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { supabase } from "@/lib/supabaseClient";
+import { notifyUser } from "@/utils/notifications";
+import { User } from "@/models/User";
+import { Forum, Community, Artist } from "@/models";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ postId: string }> }
+  { params }: { params: Promise<{ forumId: string; postId: string }> }
 ) {
   try {
     await connectionTestingAndHelper();
     
-    const { postId } = await params;
+    const { forumId, postId } = await params;
     const { userId, emoji } = await request.json();
     
     if (!userId || !emoji) {
@@ -50,6 +53,29 @@ export async function POST(
       .eq('forum_post_id', postId);
 
     if (error) throw error;
+
+    // Notify post owner about reaction (only when adding, not removing)
+    if (reactions[emoji]?.includes(userId)) {
+      try {
+        const { data: postData } = await supabase.from("forum_posts").select("user_id, media_type").eq("forum_post_id", postId).single();
+        if (postData && postData.user_id !== userId) {
+          const reactor = await User.findByPk(userId, { attributes: ["username"] });
+          let link = "/feed";
+          const forum = await Forum.findByPk(forumId);
+          if (forum) {
+            const comm = await Community.findByPk(forum.community_id);
+            if (comm) {
+              const art = await Artist.findByPk(comm.artist_id);
+              if (art) {
+                const page = postData.media_type === "image" ? "fan-art" : "all-chat";
+                link = `/community/${art.slug}/${page}?highlight=${postId}`;
+              }
+            }
+          }
+          await notifyUser(postData.user_id, `${reactor?.username || "Someone"} reacted ${emoji} to your post`, link, "fanart_like");
+        }
+      } catch (err) { console.error("Notification error:", err); }
+    }
 
     return NextResponse.json({ success: true, reactions });
   } catch (error: any) {

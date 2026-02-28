@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
 import { RealtimeChannel } from "@supabase/supabase-js";
@@ -44,8 +44,24 @@ export default function AllChatPage() {
     const params = useParams();
     const router = useRouter();
     const slug = params.slug as string;
+    const searchParamsHook = useSearchParams();
+    const highlightId = searchParamsHook.get("highlight");
+    const [highlightedMsg, setHighlightedMsg] = useState<string | null>(highlightId);
+    const msgRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
     const [messages, setMessages] = useState<Message[]>([]);
+
+    // Scroll to highlighted message
+    useEffect(() => {
+        if (highlightedMsg && messages.length > 0) {
+            const el = msgRefs.current[highlightedMsg];
+            if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+                setTimeout(() => setHighlightedMsg(null), 3000);
+            }
+        }
+    }, [highlightedMsg, messages]);
+
     const [inputMessage, setInputMessage] = useState("");
     const [isConnected, setIsConnected] = useState(false);
     const [forumId, setForumId] = useState<string | null>(null);
@@ -457,6 +473,21 @@ export default function AllChatPage() {
             setInputMessage("");
             setSelectedFiles([]);
             setReplyingTo(null);
+
+            // Notify community subscribers
+            if (communityId && communityData && data) {
+                fetch("/api/notifications/send", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        communityId,
+                        message: `New message in ${communityData.community_name || "All Chat"}`,
+                        link: `/community/${slug}/all-chat?highlight=${data.forum_post_id}`,
+                        type: "new_post",
+                    }),
+                }).catch(() => {});
+            }
         } catch (error: any) {
             console.error("Error sending message:", error);
             toast.error("Failed to send message");
@@ -873,7 +904,7 @@ export default function AllChatPage() {
                             const replyCount = msg.replyCount || replies.length;
 
                             return (
-                                <div key={msg.forum_post_id} ref={(el) => { searchMatchRefs.current[idx] = el; }} className={searchQuery.trim() && idx === searchMatchIndex ? "ring-2 ring-yellow-400 rounded-lg" : ""}>
+                                <div key={msg.forum_post_id} ref={(el) => { searchMatchRefs.current[idx] = el; msgRefs.current[msg.forum_post_id] = el; }} className={`${searchQuery.trim() && idx === searchMatchIndex ? "ring-2 ring-yellow-400 rounded-lg" : ""} ${highlightedMsg === msg.forum_post_id ? "ring-2 ring-[#FF4E27] ring-offset-2 ring-offset-[#1a1625] rounded-lg transition-all duration-500" : ""}`}>
                                     {showDate && (
                                         <div className="flex items-center justify-center my-6">
                                             <div className="h-px bg-gray-700 flex-1"></div>

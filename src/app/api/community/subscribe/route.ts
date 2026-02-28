@@ -3,6 +3,7 @@ import Community from "@/models/Community";
 import CommunitySubscription from "@/models/CommunitySubscription";
 import { User } from "@/models/User";
 import Genres from "@/models/Genres";
+import { notifyUser } from "@/utils/notifications";
 import { type communityDataFromAPI } from "@/types/communityGetAllAPIData";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { NextRequest, NextResponse } from "next/server";
@@ -214,6 +215,18 @@ export async function POST(request: NextRequest) {
             );
         }
         const subData = subscription.get({ plain: true });
+
+        // Notify the artist about new subscriber
+        try {
+            if (community) {
+                const artist = await Artist.findOne({ where: { artist_id: community.get("artist_id") } });
+                if (artist?.user_id) {
+                    const subscriber = await User.findByPk(user_id, { attributes: ["username"] });
+                    await notifyUser(artist.user_id, `${subscriber?.username || "Someone"} subscribed to your community`, `/artist/dashboard`, "new_post");
+                }
+            }
+        } catch (err) { console.error("Notification error:", err); }
+
         return NextResponse.json({ subscription: subData });
     } catch (err) {
         console.error("❌ Error updating subscription:", err);
