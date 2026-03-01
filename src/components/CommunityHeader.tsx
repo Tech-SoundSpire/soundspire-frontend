@@ -18,6 +18,18 @@ interface CommunityHeaderProps {
   onSwitchToFan?: () => void;
 }
 
+function timeAgo(date: string) {
+  const diff = Date.now() - new Date(date).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(date).toLocaleDateString();
+}
+
 export default function CommunityHeader({ slug, communityName, isSubscribed, isArtist = false, currentPage, onLogout, onSwitchToFan }: CommunityHeaderProps) {
   const router = useRouter();
   const { user, logout, switchRole } = useAuth();
@@ -239,7 +251,7 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
                       className={`px-4 py-3 cursor-pointer hover:bg-[#2d2838] transition border-b border-gray-800 last:border-0 ${!n.is_read ? "bg-[#2d2838]/40" : ""}`}
                     >
                       <p className="text-sm text-white">{n.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">{new Date(n.created_at).toLocaleString()}</p>
+                      <p className="text-xs text-gray-500 mt-1">{timeAgo(n.created_at)}</p>
                     </div>
                   ))
                 )}
