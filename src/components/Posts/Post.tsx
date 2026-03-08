@@ -80,8 +80,8 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
     }
 
     return (
-        <div className="post rounded-xl bg-white w-[80%] mb-10 shadow-lg" id="me">
-            <div className="post-header flex items-center p-5">
+        <div className="post rounded-xl bg-white w-[80%] mb-4 shadow-lg" id="me">
+            <div className="post-header flex items-center p-4">
                 <img
                     src={
                         post.artist.profile_picture_url
@@ -98,13 +98,13 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
                 </BaseText>
             </div>
 
-            <div className="post-body mb-2">
+            <div className="post-body mb-1">
                 {post.media_urls && post.media_urls.length > 0 && (
                     <MediaCarousel mediaUrls={post.media_urls} />
                 )}
                 {!post.media_urls || post.media_urls.length === 0 ? (
                     post.content_text && (
-                        <div className="p-5">
+                        <div className="p-4">
                             <BaseText fontSize="small">
                                 {post.content_text}
                             </BaseText>
@@ -112,7 +112,7 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
                     )
                 ) : null}
             </div>
-            <div className="post-interactions flex pl-4 py-5 text-lg">
+            <div className="post-interactions flex pl-4 py-3 text-lg">
                 <button className="flex items-center mr-4">
                     {!liked ? (
                         <FaRegHeart
@@ -161,7 +161,7 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
                 </button>
             </div>
             {post.media_urls && post.media_urls.length > 0 && post.content_text && (
-                <div className="post-details flex px-5 pb-5 flex-wrap">
+                <div className="post-details flex px-4 pb-2 flex-wrap">
                     <BaseText
                         fontWeight={400}
                         fontName="arial"
@@ -180,8 +180,8 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
                     </BaseText>
                 </div>
             )}
-            <div className="post-comments-preview p-4">
-                {showComments ? (
+            {showComments && (
+            <div className="post-comments-preview px-4 pb-3">
                     <div className="post-comment flex items-center gap-3 py-2">
                         <img
                             src={userProfilePicture ? getImageUrl(userProfilePicture) : getImageUrl(DEFAULT_PROFILE_IMAGE)}
@@ -206,21 +206,16 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
                             Post
                         </button>
                     </div>
-                ) : null}
-                {showComments
-                    ? comments.map((comment: CommentProps, index: number) => {
-                          console.log("Post comments:", comment);
-                          return (
-                              <Comment
-                                  key={index}
-                                  comment={comment}
-                                  user_id={effectiveUserId}
-                                  post_id={post.post_id}
-                              />
-                          );
-                      })
-                    : null}
+                {comments.map((comment: CommentProps, index: number) => (
+                    <Comment
+                        key={index}
+                        comment={comment}
+                        user_id={effectiveUserId}
+                        post_id={post.post_id}
+                    />
+                ))}
             </div>
+            )}
         </div>
     );
 }

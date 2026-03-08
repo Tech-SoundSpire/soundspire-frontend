@@ -147,7 +147,7 @@ export default function Page() {
                         ))}
                     </div>
                 </main>
-                <div className="fixed right-0 bg-slate-950 p-2 w-[23%] h-full">
+                <div className="fixed right-0 bg-[#1a0a2e] p-2 w-[23%] h-full">
                     <div className="flex flex-col items-center">
                         <BaseHeading
                             headingLevel="h2"

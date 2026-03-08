@@ -187,7 +187,7 @@ export default function SubmitReviewPage() {
 
     if (!canSubmitReview) {
         return (
-            <div className="min-h-screen bg-[#1a1625] ml-16 px-8 py-6">
+            <div className="min-h-screen ml-16 px-8 py-6">
                 <div className="max-w-2xl mx-auto">
                     <div className="bg-[#231b32] rounded-lg p-8 text-center">
                         <BaseHeading
@@ -219,7 +219,7 @@ export default function SubmitReviewPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#1a1625] ml-16 px-8 py-6">
+        <div className="min-h-screen ml-16 px-8 py-6">
             <div className="max-w-2xl mx-auto">
                 <BaseHeading
                     headingLevel="h1"

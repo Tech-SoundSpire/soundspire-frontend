@@ -58,7 +58,7 @@ export default function ReviewsPage() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#1a1625] ml-16 px-8 py-6">
+        <div className="min-h-screen ml-16 px-8 py-6">
             <div className="max-w-4xl mx-auto mb-12">
                 {/* <Carousel images={carouselImages} /> */}
                 <ImageCarousel images={carouselImages}></ImageCarousel>
