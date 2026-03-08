@@ -129,7 +129,7 @@ export default function SoundChartsArtistPage() {
     return (
         <>
             <Navbar />
-            <div className="h-screen flex flex-col bg-[#1a1625] text-white overflow-hidden">
+            <div className="h-screen flex flex-col text-white overflow-hidden" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
                 {/* Banner + Profile photo */}
                 <div className="relative flex-shrink-0">
                     <button

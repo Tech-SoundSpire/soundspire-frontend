@@ -194,7 +194,7 @@ export default function ArtistCommunityProfile() {
     return (
         <>
             {user?.role !== "artist" && <Navbar />}
-            <div className="min-h-screen bg-[#1a1625] text-white flex flex-col">
+            <div className="min-h-screen text-white flex flex-col" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
                 <CommunityHeader
                     slug={slug as string}
                     communityName={artist.community?.name}

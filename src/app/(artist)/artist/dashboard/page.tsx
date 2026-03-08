@@ -183,7 +183,7 @@ export default function ArtistDashboard() {
     const coverImg = artist.cover_photo_url ? getImageUrl(artist.cover_photo_url) : getImageUrl(DEFAULT_PROFILE_IMAGE);
 
     return (
-        <div className="min-h-screen bg-[#1a1625] text-white flex flex-col">
+        <div className="min-h-screen text-white flex flex-col" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
             {/* Hidden file inputs */}
             <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, "profile")} />
             <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, "cover")} />

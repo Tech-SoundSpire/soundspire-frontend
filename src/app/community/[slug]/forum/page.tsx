@@ -229,7 +229,7 @@ export default function ArtistForumPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#1a1625] text-white">
+        <div className="min-h-screen text-white" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
             {user?.role !== "artist" && <Navbar />}
             <CommunityHeader
                 slug={slug}
