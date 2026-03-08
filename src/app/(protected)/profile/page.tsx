@@ -351,7 +351,7 @@ export default function ProfilePage() {
 
     if (!user) {
         return (
-            <div className="min-h-screen bg-[#1a1625] flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center">
                 <BaseText textColor="#ffffff" fontSize="normal">
                     Loading profile...
                 </BaseText>
@@ -360,7 +360,7 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#1a1625]">
+        <div className="min-h-screen">
             <Navbar />
             <main className="ml-16 px-8 py-6">
                 <div className="max-w-5xl mx-auto">
@@ -418,7 +418,7 @@ export default function ProfilePage() {
 
                     {/* Profile Image with Username and Full Name */}
                     <div className="mb-12">
-                        <div className="flex flex-col md:flex-row items-start gap-8">
+                        <div className="flex flex-col md:flex-row items-start gap-8 min-h-[200px]">
                             <div className="w-full md:w-auto flex flex-col items-center">
                                 <div
                                     className={`relative w-28 h-28 rounded-full overflow-hidden mb-4 ${
@@ -474,7 +474,7 @@ export default function ProfilePage() {
                                         <label className="block text-gray-400 mb-1">
                                             Full Name
                                         </label>
-                                        <div className="px-4 py-2 bg-[#1a1625] text-white border border-gray-800 rounded-md">
+                                        <div className="px-4 py-2 bg-[#1a1625] text-white border border-transparent rounded-md">
                                             {profile.fullName}
                                         </div>
                                     </div>
@@ -494,7 +494,7 @@ export default function ProfilePage() {
                                                 placeholder="Username"
                                             />
                                         ) : (
-                                            <div className="px-4 py-2 bg-[#1a1625] text-white border border-gray-800 rounded-md">
+                                            <div className="px-4 py-2 bg-[#1a1625] text-white border border-transparent rounded-md">
                                                 @{profile.userName}
                                             </div>
                                         )}
@@ -511,7 +511,7 @@ export default function ProfilePage() {
                                 </div>
                             </div>
 
-                            <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6" style={{ minHeight: "fit-content" }}>
                                 <div>
                                     <label className="block text-gray-400 mb-2">
                                         Gender

@@ -98,7 +98,7 @@ const handleToggleReviewLike = async (currentlyLiked: boolean) => {
 
   if (!review) return <div className="text-white">Loading...</div>;
   return (
-    <div className="min-h-screen bg-[#1a1625] ml-16 px-8 py-6">
+    <div className="min-h-screen ml-16 px-8 py-6">
       <button
         className="mb-6 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded font-semibold"
         onClick={() => router.push('/reviews')}

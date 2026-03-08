@@ -92,21 +92,21 @@
 }
 .communities {
     display: grid;
-    align-items: center;
+    align-items: stretch;
     justify-items: start;
     grid-template-columns: repeat(4, 1fr);
     gap: 4rem;
     width: 100%;
 }
 .community-card {
-    height: auto;
+    min-height: 320px;
     background-color: #2e2041;
     width: 100%;
     border-radius: 1vw;
     display: flex;
     overflow: hidden;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     flex-direction: column;
 }
 .community-card .cover-image {
@@ -122,11 +122,12 @@
 .community-card .card-content {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     flex-direction: column;
     width: 100%;
     gap: 1rem;
     padding: 1rem;
+    flex: 1;
 }
 .reference {
     display: flex;

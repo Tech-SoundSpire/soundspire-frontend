@@ -57,9 +57,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <>
+        <div className="min-h-screen" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
             <Navbar />
             {children}
-        </>
+        </div>
     );
 }

@@ -135,7 +135,7 @@ export default function ExplorePage() {
     }, [user?.id]);
 
     return (
-        <div className="min-h-screen bg-[#1a1625]">
+        <div className="min-h-screen">
             <main className="ml-16 px-8 py-6">
                 {/* Search Bar and Logout */}
                 <div className="flex justify-between items-center mb-8">
