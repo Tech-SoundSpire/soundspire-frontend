@@ -13,8 +13,11 @@ import { communityDataFromAPI } from "@/types/communityGetAllAPIData";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 import BaseText from "@/components/BaseText/BaseText";
+import SearchDropdown from "@/components/ui/SearchDropdown";
 export default function MyCommunities() {
     const [searchValue, setSearchValue] = useState("");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
     const [userProfilePicture, setUserProfilePicture] = useState<null | string>(
         null,
     );
@@ -23,6 +26,22 @@ export default function MyCommunities() {
         communityDataFromAPI[]
     >([]);
     const [loadingCommunities, setLoadingCommunities] = useState(true);
+
+    // Search all communities
+    useEffect(() => {
+        if (!searchValue.trim()) { setSearchResults([]); setIsSearching(false); return; }
+        setIsSearching(true);
+        const timer = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/communities/search?search=${encodeURIComponent(searchValue)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setSearchResults(data.communities || []);
+                }
+            } catch { /* ignore */ }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchValue]);
     useEffect(() => {
         if (!user) return;
         (async () => {
@@ -70,7 +89,7 @@ export default function MyCommunities() {
                             type="text"
                             value={searchValue}
                             onChange={(e) => setSearchValue(e.target.value)}
-                            placeholder="Search"
+                            placeholder="Search all communities..."
                         ></input>
                     </div>
                     <div className={styles["profile-picture"]}>
@@ -84,6 +103,38 @@ export default function MyCommunities() {
                     </div>
                 </div>
             </header>
+            {/* Search Results */}
+            {isSearching && searchResults.length > 0 && (
+                <div className="w-full px-8" style={{ paddingLeft: "calc(var(--navbar-collapsed) + 2rem)" }}>
+                    <BaseHeading headingLevel="h2" fontSize="large" fontWeight={600} textColor="#ddaca6" className="mb-4">
+                        Search Results
+                    </BaseHeading>
+                    <div className={styles.communities}>
+                        {searchResults.map((c: any) => (
+                            <div key={c.community_id} className={styles["community-card"]}>
+                                <div className={styles["cover-image"]}>
+                                    <img src={getImageUrl(c.artist_profile_picture_url) || getDefaultProfileImageUrl()} alt={c.name} />
+                                </div>
+                                <div className={styles["card-content"]}>
+                                    <div className={styles["reference"]}>
+                                        <BaseHeading headingLevel="h2" fontSize="sub heading" fontWeight={500} textColor="#f0f0f0">{c.name}</BaseHeading>
+                                        <BaseText wrapper="span" fontSize="normal" textColor="#817f85">{c.artist_name || "Artist"}</BaseText>
+                                    </div>
+                                    <Link href={`/community/${c.artist_slug}`} className={styles["community-link"]}>
+                                        <BaseText wrapper="span" fontSize="inherit" textColor="inherit">Go to Community</BaseText>
+                                        <FaArrowRightLong />
+                                    </Link>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {isSearching && searchResults.length === 0 && searchValue.trim() && (
+                <div className="w-full text-center py-8" style={{ paddingLeft: "calc(var(--navbar-collapsed) + 2rem)" }}>
+                    <BaseText textColor="#6b7280" fontSize="large">No communities found for &quot;{searchValue}&quot;</BaseText>
+                </div>
+            )}
             <main className={styles.communities}>
                 {loadingCommunities ? (
                     <div className="flex justify-center items-center h-32">

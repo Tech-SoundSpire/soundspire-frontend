@@ -18,6 +18,7 @@ import BaseHeading from "@/components/BaseHeading/BaseHeading";
 
 import BaseText from "@/components/BaseText/BaseText";
 import Link from "next/link";
+import SearchDropdown from "@/components/ui/SearchDropdown";
 
 import { ArtistAttributes } from "@/models/Artist";
 
@@ -139,15 +140,8 @@ export default function ExplorePage() {
             <main className="ml-16 px-8 py-6">
                 {/* Search Bar and Logout */}
                 <div className="flex justify-between items-center mb-8">
-                    <div className="relative w-full max-w-2xl items-center mx-auto">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                className="w-full px-4 py-2 pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
-                            />
-                            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        </div>
+                    <div className="w-full max-w-2xl mx-auto">
+                        <SearchDropdown apiEndpoint="/api/search" placeholder="Search artists, reviews, communities..." />
                     </div>
                 </div>
 
