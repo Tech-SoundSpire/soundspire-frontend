@@ -634,7 +634,7 @@ export default function AllChatPage() {
     }
 
     return (
-        <div className="flex h-screen bg-[#1a1625]">
+        <div className="flex h-screen" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
             {user?.role !== "artist" && <Navbar />}
             <CommunityHeader
                 slug={slug}
@@ -646,7 +646,7 @@ export default function AllChatPage() {
 
             {/* Left Sidebar - Community Info */}
             <div
-                className={`bg-[#2d2838] border-r border-gray-700 flex flex-col mt-16 transition-all duration-300 ${
+                className={`bg-[#1a0a2e] border-r border-gray-700 flex flex-col mt-16 transition-all duration-300 ${
                     isSidebarCollapsed ? "w-0 overflow-hidden" : "w-80"
                 }`}
             >
@@ -813,7 +813,7 @@ export default function AllChatPage() {
                 </button>
 
                 {/* Chat Header with User Info */}
-                <div className="bg-[#2d2838] p-6 border-b border-gray-700">
+                <div className="bg-[#1a0a2e] p-6 border-b border-gray-700">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <img
@@ -1390,7 +1390,7 @@ export default function AllChatPage() {
                 </div>
 
                 {/* Input Area */}
-                <div className="bg-[#2d2838] p-6 border-t border-gray-700">
+                <div className="bg-[#1a0a2e] p-6 border-t border-gray-700">
                     <div className="max-w-5xl mx-auto">
                         {/* Reply indicator */}
                         {replyingTo && (
