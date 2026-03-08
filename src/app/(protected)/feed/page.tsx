@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { FaSearch } from "react-icons/fa";
 import Post from "@/components/Posts/Post";
 import { PostProps } from "@/lib/types";
@@ -12,6 +12,7 @@ import BaseText from "@/components/BaseText/BaseText";
 import Link from "next/link";
 import { type communityDataFromAPI } from "@/types/communityGetAllAPIData";
 import { useSearchParams } from "next/navigation";
+import SearchDropdown from "@/components/ui/SearchDropdown";
 
 export default function Page() {
     const [posts, setPosts] = useState<PostProps[]>([]);
@@ -22,6 +23,7 @@ export default function Page() {
     const highlightId = searchParams.get("highlight");
     const [highlightedPost, setHighlightedPost] = useState<string | null>(highlightId);
     const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    const [feedSearchQuery, setFeedSearchQuery] = useState("");
 
     // Scroll to highlighted post and clear after 3s
     useEffect(() => {
@@ -120,19 +122,24 @@ export default function Page() {
                         >
                             Posts
                         </BaseHeading>
-                        <div className="relative w-full max-w-2xl items-center mx-auto">
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Search..."
-                                    className="w-[80%] px-4 py-2 pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
-                                />
-                                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                            </div>
+                        <div className="w-full max-w-2xl mx-auto">
+                            <SearchDropdown
+                                apiEndpoint=""
+                                placeholder="Search posts..."
+                                mode="filter"
+                                onFilter={useCallback((q: string) => setFeedSearchQuery(q), [])}
+                            />
                         </div>
                     </div>
                     <div className="flex flex-col items-center justify-center">
-                        {posts.map((post: PostProps) => (
+                        {posts.filter((post: PostProps) => {
+                            if (!feedSearchQuery.trim()) return true;
+                            const q = feedSearchQuery.toLowerCase();
+                            return (
+                                post.content_text?.toLowerCase().includes(q) ||
+                                post.artist?.artist_name?.toLowerCase().includes(q)
+                            );
+                        }).map((post: PostProps) => (
                             <div
                                 key={post.post_id}
                                 ref={(el) => { postRefs.current[post.post_id] = el; }}
