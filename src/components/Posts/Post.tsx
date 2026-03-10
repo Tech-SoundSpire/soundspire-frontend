@@ -80,7 +80,7 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
     }
 
     return (
-        <div className="post rounded-xl bg-white w-[80%] mb-4 shadow-lg" id="me">
+        <div className="post rounded-xl bg-white w-[768px] max-w-full mb-4 shadow-lg" id="me">
             <div className="post-header flex items-center p-4">
                 <img
                     src={
@@ -100,7 +100,9 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
 
             <div className="post-body mb-1">
                 {post.media_urls && post.media_urls.length > 0 && (
-                    <MediaCarousel mediaUrls={post.media_urls} />
+                    <div className="max-h-[446px] overflow-hidden">
+                        <MediaCarousel mediaUrls={post.media_urls} />
+                    </div>
                 )}
                 {!post.media_urls || post.media_urls.length === 0 ? (
                     post.content_text && (

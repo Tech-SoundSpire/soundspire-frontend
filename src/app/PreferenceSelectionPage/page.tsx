@@ -748,7 +748,7 @@ const PreferenceSelectionPage: React.FC = () => {
                             <button
                                 onClick={savePreferences}
                                 disabled={isLoading}
-                                className="bg-orange-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="bg-orange-500 text-white font-bold py-3 px-10 rounded-lg hover:bg-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                             >
                                 {isLoading ? "Saving..." : "Complete Setup"}
                             </button>

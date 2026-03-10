@@ -221,8 +221,8 @@ export async function POST(request: NextRequest) {
             if (community) {
                 const artist = await Artist.findOne({ where: { artist_id: community.get("artist_id") } });
                 if (artist?.user_id) {
-                    const subscriber = await User.findByPk(user_id, { attributes: ["username"] });
-                    await notifyUser(artist.user_id, `${subscriber?.username || "Someone"} subscribed to your community`, `/artist/dashboard`, "new_post");
+                    const subscriber = await User.findByPk(user_id, { attributes: ["username", "profile_picture_url"] });
+                    await notifyUser(artist.user_id, `${subscriber?.username || "Someone"} subscribed to your community`, `/artist/dashboard`, "new_post", { actorImage: subscriber?.profile_picture_url });
                 }
             }
         } catch (err) { console.error("Notification error:", err); }

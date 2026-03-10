@@ -50,7 +50,7 @@ export async function POST(request:NextRequest) {
 
        // Notify on comment/reply
        try {
-           const commenter = await User.findByPk(user_id, { attributes: ["username"] });
+           const commenter = await User.findByPk(user_id, { attributes: ["username", "profile_picture_url"] });
            const name = commenter?.username || "Someone";
            if (parent_comment_id) {
                // Reply — notify parent comment owner
@@ -68,7 +68,7 @@ export async function POST(request:NextRequest) {
                            link = `/community/${art.slug}/forum?highlight=${post_id}`;
                        }
                    }
-                   await notifyUser(parent.user_id, `${name} replied to your comment`, link, "comment_reply");
+                   await notifyUser(parent.user_id, `${name} replied to your comment`, link, "comment_reply", { actorImage: commenter?.profile_picture_url });
                }
            } else {
                // Top-level comment — notify the post's artist → route to forum
@@ -79,7 +79,7 @@ export async function POST(request:NextRequest) {
                if (postData?.artist_id) {
                    const artist = await Artist.findByPk(postData.artist_id);
                    if (artist?.user_id && artist.user_id !== user_id) {
-                       await notifyUser(artist.user_id, `${name} commented on your post`, `/community/${artist.slug}/forum?highlight=${post_id}`, "comment_reply");
+                       await notifyUser(artist.user_id, `${name} commented on your post`, `/community/${artist.slug}/forum?highlight=${post_id}`, "comment_reply", { actorImage: commenter?.profile_picture_url });
                    }
                }
            }

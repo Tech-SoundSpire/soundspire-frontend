@@ -39,7 +39,7 @@ export async function POST(
       // Notify post owner
       try {
         const post = await ForumPost.findByPk(postId);
-        const liker = await User.findByPk(userId, { attributes: ["username"] });
+        const liker = await User.findByPk(userId, { attributes: ["username", "profile_picture_url"] });
         if (post && post.user_id !== userId) {
           let link = "/feed";
           const forum = await Forum.findByPk(post.forum_id);
@@ -50,7 +50,7 @@ export async function POST(
               if (art) link = `/community/${art.slug}/fan-art?highlight=${postId}`;
             }
           }
-          await notifyUser(post.user_id, `${liker?.username || "Someone"} liked your fan art`, link, "fanart_like");
+          await notifyUser(post.user_id, `${liker?.username || "Someone"} liked your fan art`, link, "fanart_like", { actorImage: liker?.profile_picture_url });
         }
       } catch (err) { console.error("Notification error:", err); }
       return NextResponse.json({ 

@@ -128,10 +128,10 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
   };
 
   return (
-    <header className="w-full bg-[#1a1625]/90 backdrop-blur-md py-3 px-8 flex items-center justify-between fixed top-0 left-0 z-50 text-white border-b border-gray-800">
+    <header className={`w-full bg-[#1a1625]/90 backdrop-blur-md py-3 px-8 flex items-center justify-between fixed top-0 z-50 text-white border-b border-gray-800 ${isArtist ? "left-0" : "left-[54px]"}`} style={{ width: isArtist ? "100%" : "calc(100% - 54px)" }}>
       <Link href={isArtist ? "/artist/dashboard" : `/community/${slug}`} className="flex items-center gap-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={getLogoUrl()} alt="SoundSpire" width={36} height={36} className="object-contain" />
+        {isArtist && <img src={getLogoUrl()} alt="SoundSpire" width={36} height={36} className="object-contain" />}
         {isArtist && <span className="text-[#FF4E27] font-bold text-lg hidden md:inline">SoundSpire</span>}
       </Link>
 

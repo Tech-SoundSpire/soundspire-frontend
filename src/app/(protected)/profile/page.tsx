@@ -1,20 +1,18 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import Navbar from "@/components/Navbar";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { countriesWithCities } from "@/lib/locationData";
 import { toast } from "react-toastify";
-import styles from "./profile.module.css";
 import "react-toastify/dist/ReactToastify.css";
 import {
     getImageUrl,
     getDefaultProfileImageUrl,
     DEFAULT_PROFILE_IMAGE,
 } from "@/utils/userProfileImageUtils";
-import BaseText from "@/components/BaseText/BaseText";
-import BaseHeading from "@/components/BaseHeading/BaseHeading";
+import { getFontClass } from "@/utils/getFontClass";
+import { FaArrowLeftLong, FaPen } from "react-icons/fa6";
 import Link from "next/link";
 import { communityDataFromAPI } from "@/types/communityGetAllAPIData";
 
@@ -349,494 +347,202 @@ export default function ProfilePage() {
         }
     };
 
+    const montserrat = getFontClass("montserrat");
+    const glassInput = "w-[280px] h-[44px] px-4 py-1 rounded-lg border border-[#F7F7F7] text-white text-[16px] font-medium flex items-center";
+    const glassInputBg = { background: "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(153,153,153,0.08) 100%)" };
+
     if (!user) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <BaseText textColor="#ffffff" fontSize="normal">
-                    Loading profile...
-                </BaseText>
+                <p className={`${montserrat} text-white`}>Loading profile...</p>
             </div>
         );
     }
 
     return (
         <div className="min-h-screen">
-            <Navbar />
-            <main className="ml-16 px-8 py-6">
-                <div className="max-w-5xl mx-auto">
-                    <div className="flex justify-between items-center mb-8">
-                        <BaseHeading
-                            headingLevel="h1"
-                            fontSize="sub heading"
-                            fontWeight={700}
-                            textColor="#ffffff"
-                        >
-                            Profile
-                        </BaseHeading>
-                        <div className="flex space-x-4">
+            <main className="ml-[54px] px-8 py-6">
+                {/* Back button — outside centered container */}
+                <button
+                    onClick={() => router.back()}
+                    className="p-3 flex items-center justify-center bg-[#1b1b1b] rounded-full border-[3px] border-[#ff4e50] text-white hover:bg-[#ff4e50] transition-colors duration-300 aspect-square w-fit mb-6"
+                >
+                    <FaArrowLeftLong />
+                </button>
+                <div className="max-w-[1100px] mx-auto">
+                    {/* Header: title + edit button */}
+                    <div className="flex items-center justify-between mb-8">
+                        <h1 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px]`}>
+                            PROFILE
+                        </h1>
+                        <div className="flex gap-4">
                             {isEditing ? (
                                 <>
-                                    <button
-                                        onClick={handleCancelEdit}
-                                        className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors duration-200"
-                                        disabled={isLoading}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleSave}
-                                        className="px-6 py-2 bg-[#ff5733] hover:bg-[#e64a2e] text-white rounded-md transition-colors duration-200 flex items-center"
-                                        disabled={
-                                            isLoading || isValidatingUsername
-                                        }
-                                    >
-                                        {isLoading
-                                            ? "Saving..."
-                                            : isValidatingUsername
-                                              ? "Validating..."
-                                              : "Save Edits"}
+                                    <button onClick={handleCancelEdit} className={`${montserrat} px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg`} disabled={isLoading}>Cancel</button>
+                                    <button onClick={handleSave} className={`${montserrat} px-6 py-2 bg-[#FF4E27] hover:bg-[#e5431f] text-white rounded-lg font-bold`} disabled={isLoading || isValidatingUsername}>
+                                        {isLoading ? "Saving..." : isValidatingUsername ? "Validating..." : "Save Edits"}
                                     </button>
                                 </>
                             ) : (
                                 <>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="px-6 py-2 rounded-md bg-gray-600 text-white transition-colors duration-200 hover:bg-gray-700"
-                                    >
-                                        Logout
-                                    </button>
-                                    <button
-                                        onClick={toggleEdit}
-                                        className="px-6 py-2 bg-[#ff5733] hover:bg-[#e64a2e] text-white rounded-md transition-colors duration-200 flex items-center"
-                                    >
-                                        Edit Profile
+                                    <button onClick={handleLogout} className={`${montserrat} px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg`}>Logout</button>
+                                    <button onClick={toggleEdit} className={`${montserrat} px-6 py-2 bg-[#FF4E27] hover:bg-[#e5431f] text-white rounded-lg font-bold flex items-center gap-2`}>
+                                        Edit Profile <FaPen className="w-4 h-4" />
                                     </button>
                                 </>
                             )}
                         </div>
                     </div>
 
-                    {/* Profile Image with Username and Full Name */}
-                    <div className="mb-12">
-                        <div className="flex flex-col md:flex-row items-start gap-8 min-h-[200px]">
-                            <div className="w-full md:w-auto flex flex-col items-center">
-                                <div
-                                    className={`relative w-28 h-28 rounded-full overflow-hidden mb-4 ${
-                                        isEditing
-                                            ? "cursor-pointer relative"
-                                            : ""
-                                    }`}
-                                    onClick={handleImageClick}
-                                >
-                                    <img
-                                        src={
-                                            isEditing
-                                                ? editableProfile.profileImage
-                                                    ? getImageUrl(
-                                                          editableProfile.profileImage,
-                                                      )
-                                                    : profile.profileImage
-                                                      ? getImageUrl(
-                                                            profile.profileImage,
-                                                        )
-                                                      : getDefaultProfileImageUrl()
-                                                : profile.profileImage
-                                                  ? getImageUrl(
-                                                        profile.profileImage,
-                                                    )
-                                                  : getDefaultProfileImageUrl()
-                                        }
-                                        alt="Profile picture"
-                                        width={112}
-                                        height={112}
-                                        className="object-cover w-full h-full"
-                                    />
-                                    {isEditing && (
-                                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity duration-200">
-                                            <BaseText wrapper="span">
-                                                Change
-                                            </BaseText>
-                                        </div>
-                                    )}
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={handleImageChange}
-                                    />
+                    {/* Avatar + Name */}
+                    <div className="flex items-center gap-4 mb-8">
+                        <div
+                            className={`relative w-[97px] h-[97px] rounded-[12px] overflow-hidden ${isEditing ? "cursor-pointer" : ""}`}
+                            onClick={isEditing ? handleImageClick : undefined}
+                        >
+                            <img
+                                src={isEditing
+                                    ? (editableProfile.profileImage ? getImageUrl(editableProfile.profileImage) : profile.profileImage ? getImageUrl(profile.profileImage) : getDefaultProfileImageUrl())
+                                    : (profile.profileImage ? getImageUrl(profile.profileImage) : getDefaultProfileImageUrl())}
+                                alt="Profile picture"
+                                className="object-cover w-full h-full"
+                            />
+                            {isEditing && (
+                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity">
+                                    <span className={montserrat}>Change</span>
                                 </div>
-
-                                {/* Full Name and Username below profile image */}
-                                <div className="w-full max-w-xs">
-                                    {/* Full Name (non-editable) */}
-                                    <div className="mb-4">
-                                        <label className="block text-gray-400 mb-1">
-                                            Full Name
-                                        </label>
-                                        <div className="px-4 py-2 bg-[#1a1625] text-white border border-transparent rounded-md">
-                                            {profile.fullName}
-                                        </div>
-                                    </div>
-
-                                    {/* Username (editable) */}
-                                    <div className="mb-4">
-                                        <label className="block text-gray-400 mb-1">
-                                            Username
-                                        </label>
-                                        {isEditing ? (
-                                            <input
-                                                type="text"
-                                                name="userName"
-                                                value={editableProfile.userName}
-                                                onChange={handleChange}
-                                                className="w-full px-4 py-2 bg-[#2a2435] text-white border border-gray-700 rounded-md"
-                                                placeholder="Username"
-                                            />
-                                        ) : (
-                                            <div className="px-4 py-2 bg-[#1a1625] text-white border border-transparent rounded-md">
-                                                @{profile.userName}
-                                            </div>
-                                        )}
-                                        {usernameError && (
-                                            <BaseText
-                                                textColor="#ef4444"
-                                                fontSize="small"
-                                                className="mt-1"
-                                            >
-                                                {usernameError}
-                                            </BaseText>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6" style={{ minHeight: "fit-content" }}>
-                                <div>
-                                    <label className="block text-gray-400 mb-2">
-                                        Gender
-                                    </label>
-                                    {isEditing ? (
-                                        <select
-                                            name="gender"
-                                            value={editableProfile.gender}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-md bg-[#2a2435] text-white border border-gray-700"
-                                        >
-                                            <option value="Male">Male</option>
-                                            <option value="Female">
-                                                Female
-                                            </option>
-                                            <option value="Other">Other</option>
-                                            {/* <option value="primary">primary</option> */}
-                                        </select>
-                                    ) : (
-                                        <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800">
-                                            {profile.gender || "Other"}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-400 mb-2">
-                                        Email Address
-                                    </label>
-                                    <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800">
-                                        {profile.email || "Not provided"}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-400 mb-2">
-                                        Phone Number
-                                    </label>
-                                    <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800">
-                                        {profile.phoneNumber || "Not provided"}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-400 mb-2">
-                                        DOB
-                                    </label>
-                                    {isEditing ? (
-                                        <input
-                                            type="date"
-                                            name="dob"
-                                            value={editableProfile.dob}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-md bg-[#2a2435] text-white border border-gray-700"
-                                        />
-                                    ) : (
-                                        <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800">
-                                            {profile.dob
-                                                ? new Date(
-                                                      profile.dob,
-                                                  ).toLocaleDateString(
-                                                      "en-GB",
-                                                      {
-                                                          day: "2-digit",
-                                                          month: "2-digit",
-                                                          year: "numeric",
-                                                      },
-                                                  )
-                                                : "Not provided"}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-400 mb-2">
-                                        City
-                                    </label>
-                                    {isEditing ? (
-                                        <select
-                                            name="city"
-                                            value={editableProfile.city}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-md bg-[#2a2435] text-white border border-gray-700"
-                                        >
-                                            {editableCities.map((city) => (
-                                                <option key={city} value={city}>
-                                                    {city}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    ) : (
-                                        <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800 flex justify-between items-center">
-                                            {profile.city || "Not provided"}
-                                            <svg
-                                                className="w-5 h-5"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            >
-                                                <polyline points="6 9 12 15 18 9" />
-                                            </svg>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-400 mb-2">
-                                        Country
-                                    </label>
-                                    {isEditing ? (
-                                        <select
-                                            name="country"
-                                            value={editableProfile.country}
-                                            onChange={(e) => {
-                                                const newCountry =
-                                                    e.target.value;
-                                                setEditableProfile((prev) => {
-                                                    const countryData =
-                                                        countriesWithCities.find(
-                                                            (c) =>
-                                                                c.name ===
-                                                                newCountry,
-                                                        );
-                                                    const defaultCity =
-                                                        countryData &&
-                                                        countryData.cities
-                                                            .length > 0
-                                                            ? countryData
-                                                                  .cities[0]
-                                                            : "";
-                                                    return {
-                                                        ...prev,
-                                                        country: newCountry,
-                                                        city: defaultCity,
-                                                    };
-                                                });
-                                            }}
-                                            className="w-full px-4 py-3 rounded-md bg-[#2a2435] text-white border border-gray-700"
-                                        >
-                                            {countries.map((country) => (
-                                                <option
-                                                    key={country}
-                                                    value={country}
-                                                >
-                                                    {country}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    ) : (
-                                        <div className="w-full px-4 py-3 rounded-md bg-[#1a1625] text-white border border-gray-800 flex justify-between items-center">
-                                            {profile.country || "Not provided"}
-                                            <svg
-                                                className="w-5 h-5"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            >
-                                                <polyline points="6 9 12 15 18 9" />
-                                            </svg>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                            )}
+                            <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageChange} />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <span className={`${montserrat} text-white text-[28px] font-semibold leading-[34px]`}>{profile.fullName}</span>
+                            <span className={`${montserrat} text-[#FFC8BC] text-[16px] font-medium`}>@{profile.userName}</span>
                         </div>
                     </div>
 
-                    {/* Subscriptions from File B */}
-                    <hr className="border-gray-800 my-8" />
+                    {/* Form Fields — 4 column grid */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-6 mb-8">
+                        <div>
+                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>Email</label>
+                            <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>{profile.email || "Not provided"}</div>
+                        </div>
+                        <div>
+                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>Phone Number</label>
+                            <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>{profile.phoneNumber || "Not provided"}</div>
+                        </div>
+                        <div>
+                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>DOB</label>
+                            {isEditing ? (
+                                <input type="date" name="dob" value={editableProfile.dob} onChange={handleChange} className={`${montserrat} ${glassInput} bg-transparent`} style={glassInputBg} />
+                            ) : (
+                                <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>
+                                    {profile.dob ? new Date(profile.dob).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }) : "Not provided"}
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>Gender</label>
+                            {isEditing ? (
+                                <select name="gender" value={editableProfile.gender} onChange={handleChange} className={`${montserrat} ${glassInput} bg-transparent`} style={glassInputBg}>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            ) : (
+                                <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>{profile.gender || "Other"}</div>
+                            )}
+                        </div>
+                        <div>
+                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>City</label>
+                            {isEditing ? (
+                                <select name="city" value={editableProfile.city} onChange={handleChange} className={`${montserrat} ${glassInput} bg-transparent`} style={glassInputBg}>
+                                    {editableCities.map((city) => <option key={city} value={city}>{city}</option>)}
+                                </select>
+                            ) : (
+                                <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>{profile.city || "Not provided"}</div>
+                            )}
+                        </div>
+                        <div>
+                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>Country</label>
+                            {isEditing ? (
+                                <select name="country" value={editableProfile.country} onChange={(e) => {
+                                    const newCountry = e.target.value;
+                                    setEditableProfile((prev) => {
+                                        const countryData = countriesWithCities.find((c) => c.name === newCountry);
+                                        return { ...prev, country: newCountry, city: countryData?.cities?.[0] || "" };
+                                    });
+                                }} className={`${montserrat} ${glassInput} bg-transparent`} style={glassInputBg}>
+                                    {countries.map((country) => <option key={country} value={country}>{country}</option>)}
+                                </select>
+                            ) : (
+                                <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>{profile.country || "Not provided"}</div>
+                            )}
+                        </div>
+                        {isEditing && (
+                            <div>
+                                <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>Username</label>
+                                <input type="text" name="userName" value={editableProfile.userName} onChange={handleChange} className={`${montserrat} ${glassInput} bg-transparent`} style={glassInputBg} placeholder="Username" />
+                                {usernameError && <p className={`${montserrat} text-red-500 text-[12px] mt-1`}>{usernameError}</p>}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="w-full h-px bg-[#CCCACA]/50 my-8" />
                     <div className="mb-12">
-                        <BaseHeading
-                            headingLevel="h2"
-                            fontSize="large"
-                            fontWeight={700}
-                            textColor="#ffffff"
-                            textAlign="left"
-                            className="mb-8"
-                        >
-                            My Subscriptions
-                        </BaseHeading>
+                        <h2 className={`${montserrat} text-[#F7F7F7] text-[44px] font-bold leading-[53px] mb-6`}>My Subscriptions</h2>
                         {isSubscriptionsLoading ? (
-                            <BaseText
-                                wrapper="span"
-                                fontSize="small"
-                                textColor="#ffffff"
-                            >
-                                Loading subscriptions...
-                            </BaseText>
+                            <p className={`${montserrat} text-white text-[14px]`}>Loading subscriptions...</p>
                         ) : subscriptions.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+                            <div className="flex gap-6 overflow-x-auto pb-4">
                                 {subscriptions.map((subscription) => (
-                                    <Link
-                                        href={`/community/${subscription.artist_slug}`}
-                                        key={subscription.artist_slug}
-                                        className={`${styles["subscription"]}`}
-                                    >
-                                        <div
-                                            className={`w-24 h-24 rounded-full overflow-hidden mb-2 ${styles.image}`}
-                                        >
-                                            <img
-                                                src={
-                                                    getImageUrl(
-                                                        subscription.artist_profile_picture_url,
-                                                    ) ||
-                                                    getImageUrl(
-                                                        subscription.artist_cover_photo_url,
-                                                    ) ||
-                                                    getImageUrl(
-                                                        DEFAULT_PROFILE_IMAGE,
-                                                    )
-                                                }
-                                                alt={
-                                                    subscription.name ||
-                                                    undefined
-                                                }
-                                                width={96}
-                                                height={96}
-                                                className="object-cover"
-                                            />
+                                    <Link href={`/community/${subscription.artist_slug}`} key={subscription.artist_slug} className="flex-shrink-0 flex flex-col items-center gap-2">
+                                        <div className="w-[98px] h-[98px] rounded-full overflow-hidden bg-white">
+                                            <img src={getImageUrl(subscription.artist_profile_picture_url) || getImageUrl(subscription.artist_cover_photo_url) || getImageUrl(DEFAULT_PROFILE_IMAGE)} alt={subscription.name || undefined} className="w-full h-full object-cover" />
                                         </div>
-                                        <div className={styles.text}>
-                                            <BaseText
-                                                wrapper="span"
-                                                textColor="#ffffff"
-                                                textAlign="center"
-                                                fontSize="normal"
-                                            >
-                                                {subscription.name}
-                                            </BaseText>
-                                            <div
-                                                className={styles.separator}
-                                            ></div>
-                                        </div>
+                                        <span className={`${montserrat} text-white text-[16px] font-medium text-center w-[98px] truncate`}>{subscription.name}</span>
                                     </Link>
                                 ))}
                             </div>
                         ) : (
-                            <BaseText textColor="#9ca3af">
-                                No subscriptions found.
-                            </BaseText>
+                            <p className={`${montserrat} text-[#9ca3af]`}>No subscriptions found.</p>
                         )}
                     </div>
 
-                    {/* Spotify Integration from File B */}
-                    <hr className="border-gray-800 my-8" />
+                    <div className="w-full h-px bg-[#CCCACA]/50 my-8" />
                     <div>
                         <div className="flex items-center gap-2 mb-4">
-                            <BaseHeading
-                                fontSize="large"
-                                fontWeight={700}
-                                textColor="#ffffff"
-                                className="text-2xl font-bold text-white"
-                            >
-                                Link your{" "}
-                                <BaseText wrapper="span" textColor="#1DB954">
-                                    SPOTIFY
-                                </BaseText>
-                                !
-                            </BaseHeading>
+                            <span className={`${montserrat} text-white text-[20px] font-semibold`}>Your</span>
+                            <span className={`${montserrat} text-[#1DB954] text-[20px] font-bold`}>Spotify</span>
                         </div>
                         <button
                             onClick={syncSpotify}
-                            className={`px-6 py-2 ${
-                                profile.spotifyLinked
-                                    ? "bg-[#1DB954]"
-                                    : "bg-[#ff5733] hover:bg-[#e64a2e]"
-                            } text-white rounded-md transition-colors duration-200`}
+                            className={`${montserrat} px-6 py-2 ${profile.spotifyLinked ? "bg-[#1DB954]" : "bg-[#FF4E27] hover:bg-[#e5431f]"} text-white rounded-lg font-semibold`}
                             disabled={isLoading || profile.spotifyLinked}
                         >
-                            {isLoading
-                                ? "Connecting..."
-                                : profile.spotifyLinked
-                                  ? "Connected"
-                                  : "Sync Now"}
+                            {isLoading ? "Connecting..." : profile.spotifyLinked ? "Connected" : "Sync now"}
                         </button>
                     </div>
 
-                    {/* Switch to Artist */}
                     {user.isAlsoArtist && user.role === "user" && (
                         <>
-                            <hr className="border-gray-800 my-8" />
+                            <div className="w-full h-px bg-[#CCCACA]/50 my-8" />
                             <div>
-                                <BaseHeading fontSize="large" fontWeight={700} textColor="#a855f6" className="mb-2">
-                                    Artist Mode
-                                </BaseHeading>
-                                <BaseText textColor="#9ca3af" fontSize="small" className="mb-4">
-                                    You have an artist profile. Switch to manage your community, posts, and fans.
-                                </BaseText>
-                                <button
-                                    onClick={async () => {
-                                        await switchRole("artist");
-                                        router.push("/artist/dashboard");
-                                    }}
-                                    className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors"
-                                >
+                                <h3 className={`${montserrat} text-purple-400 text-[20px] font-bold mb-2`}>Artist Mode</h3>
+                                <p className={`${montserrat} text-[#9ca3af] text-[14px] mb-4`}>You have an artist profile. Switch to manage your community, posts, and fans.</p>
+                                <button onClick={async () => { await switchRole("artist"); router.push("/artist/dashboard"); }} className={`${montserrat} px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg`}>
                                     Switch to Artist Dashboard
                                 </button>
                             </div>
                         </>
                     )}
 
-                    {/* Delete Account - hidden for artists in fan mode */}
                     {!user.isAlsoArtist && (
                     <>
-                    <hr className="border-gray-800 my-8" />
+                    <div className="w-full h-px bg-[#CCCACA]/50 my-8" />
                     <div>
-                        <BaseHeading fontSize="large" fontWeight={700} textColor="#ef4444" className="mb-2">
-                            Danger Zone
-                        </BaseHeading>
-                        <BaseText textColor="#9ca3af" fontSize="small" className="mb-4">
-                            Permanently delete your account and all associated data. This action cannot be undone.
-                        </BaseText>
-                        <button
-                            onClick={() => setShowDeleteModal(true)}
-                            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors"
-                        >
-                            Delete My Account
-                        </button>
+                        <h3 className={`${montserrat} text-red-500 text-[20px] font-bold mb-2`}>Danger Zone</h3>
+                        <p className={`${montserrat} text-[#9ca3af] text-[14px] mb-4`}>Permanently delete your account and all associated data. This action cannot be undone.</p>
+                        <button onClick={() => setShowDeleteModal(true)} className={`${montserrat} px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg`}>Delete My Account</button>
                     </div>
                     </>
                     )}
@@ -845,12 +551,8 @@ export default function ProfilePage() {
                     {showDeleteModal && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
                             <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6 max-w-md w-full mx-4 space-y-4">
-                                <BaseHeading fontSize="normal" fontWeight={700} textColor="#ef4444">
-                                    Are you sure?
-                                </BaseHeading>
-                                <BaseText textColor="#d1d5db" fontSize="small">
-                                    This will permanently delete your account, preferences, reviews, comments, votes, and all associated data. This cannot be undone.
-                                </BaseText>
+                                <h3 className={`${montserrat} text-red-500 text-[18px] font-bold`}>Are you sure?</h3>
+                                <p className={`${montserrat} text-[#d1d5db] text-[14px]`}>This will permanently delete your account, preferences, reviews, comments, votes, and all associated data. This cannot be undone.</p>
 
                                 {!deleteConfirmStep ? (
                                     <div className="flex gap-3 pt-2">
@@ -869,9 +571,9 @@ export default function ProfilePage() {
                                     </div>
                                 ) : (
                                     <div className="space-y-3 pt-2">
-                                        <BaseText textColor="#f87171" fontSize="small" fontWeight={600}>
+                                        <p className={`${montserrat} text-red-400 text-[14px] font-semibold`}>
                                             Type &quot;confirm delete&quot; below to proceed:
-                                        </BaseText>
+                                        </p>
                                         <input
                                             type="text"
                                             value={deleteInput}

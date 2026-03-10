@@ -2,14 +2,9 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import BaseHeading from "@/components/BaseHeading/BaseHeading";
-import BaseText from "@/components/BaseText/BaseText";
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/components/ui/accordion";
+import { FaArrowLeftLong, FaChevronDown } from "react-icons/fa6";
+import { getFontClass } from "@/utils/getFontClass";
+import { getImageUrl, DEFAULT_PROFILE_IMAGE } from "@/utils/userProfileImageUtils";
 
 interface NotificationItem {
     notification_id: string;
@@ -17,6 +12,8 @@ interface NotificationItem {
     message: string;
     link: string;
     is_read: boolean;
+    actor_image?: string | null;
+    thumbnail?: string | null;
     created_at: string;
 }
 
@@ -24,7 +21,6 @@ function groupByTime(notifications: NotificationItem[]) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-
     const groups = { today: [] as NotificationItem[], week: [] as NotificationItem[], earlier: [] as NotificationItem[] };
     for (const n of notifications) {
         const d = new Date(n.created_at);
@@ -42,8 +38,7 @@ function timeAgo(date: string) {
     if (mins < 60) return `${mins}m`;
     const hrs = Math.floor(mins / 60);
     if (hrs < 24) return `${hrs}h`;
-    const days = Math.floor(hrs / 24);
-    return `${days}d`;
+    return `${Math.floor(hrs / 24)}d`;
 }
 
 export default function NotificationsPage() {
@@ -51,6 +46,8 @@ export default function NotificationsPage() {
     const router = useRouter();
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+    const montserrat = getFontClass("montserrat");
 
     useEffect(() => {
         if (!user) return;
@@ -61,14 +58,12 @@ export default function NotificationsPage() {
                     const data = await res.json();
                     setNotifications(data.notifications || []);
                 }
-                // Mark all as read
                 await fetch("/api/notifications", {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
                     body: JSON.stringify({ notificationIds: "all" }),
                 });
-                // Tell Navbar to refresh count
                 window.dispatchEvent(new Event("notifications-read"));
             } catch { /* ignore */ }
             finally { setLoading(false); }
@@ -76,59 +71,95 @@ export default function NotificationsPage() {
     }, [user]);
 
     const groups = groupByTime(notifications);
-
-    const handleClick = (n: NotificationItem) => {
-        router.push(n.link);
-    };
+    const toggleGroup = (key: string) => setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
 
     const renderGroup = (items: NotificationItem[]) => {
-        if (items.length === 0) return <BaseText textColor="#6b7280" fontSize="small">No notifications</BaseText>;
+        if (items.length === 0) return <p className={`${montserrat} text-[#6b7280] text-[16px]`}>No notifications</p>;
         return items.map((n) => (
             <div
                 key={n.notification_id}
-                onClick={() => handleClick(n)}
-                className={`flex items-center gap-4 p-4 rounded-lg cursor-pointer transition hover:bg-[#2d2838] ${!n.is_read ? "bg-[#2d2838]/50" : ""}`}
+                onClick={() => router.push(n.link)}
+                className="flex items-center gap-4 py-3 cursor-pointer transition hover:bg-white/5 rounded-lg px-2"
             >
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${!n.is_read ? "bg-[#FF4E27]" : "bg-transparent"}`} />
-                <BaseText fontSize="normal" className="flex-1">{n.message}</BaseText>
-                <BaseText textColor="#9ca3af" fontSize="small">{timeAgo(n.created_at)}</BaseText>
+                {/* Avatar */}
+                <img
+                    src={n.actor_image ? getImageUrl(n.actor_image) : getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                    alt=""
+                    className="w-[53px] h-[53px] rounded-full object-cover flex-shrink-0"
+                />
+                {/* Message */}
+                <p className={`${montserrat} text-[#F7F7F7] text-[20px] leading-[24px] flex-1 min-w-0`}>
+                    {n.message}
+                </p>
+                {/* Timestamp — far right */}
+                <span className={`${montserrat} text-white/60 text-[20px] font-medium leading-[24px] flex-shrink-0`}>
+                    {timeAgo(n.created_at)}
+                </span>
+                {/* Thumbnail */}
+                {n.thumbnail && (
+                    <div className="w-[42px] h-[42px] rounded-[2px] bg-white overflow-hidden flex-shrink-0">
+                        <img src={getImageUrl(n.thumbnail)} alt="" className="w-full h-full object-cover" />
+                    </div>
+                )}
             </div>
         ));
     };
 
     if (loading) {
         return (
-            <div className="ml-16 px-8 py-6 flex items-center justify-center min-h-screen">
+            <div className="ml-[54px] px-8 py-6 flex items-center justify-center min-h-screen">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4E27]" />
             </div>
         );
     }
 
+    const sections = [
+        { key: "today", label: "Today", items: groups.today },
+        { key: "week", label: "This Week", items: groups.week },
+        { key: "earlier", label: "Earlier", items: groups.earlier },
+    ];
+
     return (
-        <div className="ml-16 px-8 py-6 flex flex-col text-white min-h-screen">
-            <div className="flex items-center justify-between mb-6">
-                <BaseHeading fontSize="large" fontWeight={700}>Notifications</BaseHeading>
-                {notifications.length > 0 && (
-                    <BaseText textColor="#9ca3af" fontSize="small">{notifications.filter(n => !n.is_read).length} unread</BaseText>
-                )}
+        <div className="ml-[54px] px-8 py-6 flex flex-col text-white min-h-screen">
+            {/* Back button + Content side by side */}
+            <div className="flex gap-6">
+                <button
+                    onClick={() => router.back()}
+                    className="p-3 flex items-center justify-center bg-[#1b1b1b] rounded-full border-[3px] border-[#ff4e50] text-white hover:bg-[#ff4e50] transition-colors duration-300 aspect-square h-fit mt-1"
+                >
+                    <FaArrowLeftLong />
+                </button>
+
+                <div className="w-full max-w-[954px] mx-auto flex flex-col gap-6">
+                    <h1 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px] mb-4`}>
+                        NOTIFICATIONS
+                    </h1>
+                {sections.map(({ key, label, items }) => (
+                    <div key={key}>
+                        {/* Group header */}
+                        <button
+                            onClick={() => toggleGroup(key)}
+                            className="w-full flex items-center justify-between mb-5"
+                        >
+                            <span className={`${montserrat} text-[#FFB7A6] text-[28px] font-semibold leading-[34px]`}>
+                                {label}
+                            </span>
+                            <div
+                                className="w-[40px] h-[40px] rounded-full flex items-center justify-center border border-[#5A5A5A]"
+                                style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(153,153,153,0.08) 100%)" }}
+                            >
+                                <FaChevronDown
+                                    className={`text-[#FFB7A6] w-4 h-4 transition-transform duration-200 ${collapsed[key] ? "-rotate-90" : ""}`}
+                                />
+                            </div>
+                        </button>
+                        {/* Items */}
+                        {!collapsed[key] && (
+                            <div className="flex flex-col gap-[28px]">{renderGroup(items)}</div>
+                        )}
+                    </div>
+                ))}
             </div>
-            <div className="mx-auto w-full max-w-3xl">
-                <Accordion type="multiple" defaultValue={["today", "week", "earlier"]} className="space-y-2">
-                    {[
-                        { key: "today", label: "Today", items: groups.today },
-                        { key: "week", label: "This Week", items: groups.week },
-                        { key: "earlier", label: "Earlier", items: groups.earlier },
-                    ].map(({ key, label, items }) => (
-                        <AccordionItem key={key} value={key} className="border-b-0">
-                            <AccordionTrigger className="text-xl font-semibold">
-                                {label} {items.length > 0 && <span className="text-sm text-gray-400 ml-2">({items.length})</span>}
-                            </AccordionTrigger>
-                            <AccordionContent>
-                                <div className="space-y-1">{renderGroup(items)}</div>
-                            </AccordionContent>
-                        </AccordionItem>
-                    ))}
-                </Accordion>
             </div>
         </div>
     );

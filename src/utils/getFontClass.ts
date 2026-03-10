@@ -3,6 +3,7 @@ import {
     Inter,
     Montserrat,
     Playfair_Display,
+    Azeret_Mono,
 } from "next/font/google";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const firaCode = Fira_Code({
@@ -17,11 +18,16 @@ const playfair = Playfair_Display({
     subsets: ["latin"],
     variable: "--font-playfair",
 });
+const azeretMono = Azeret_Mono({
+    subsets: ["latin"],
+    variable: "--font-azeret-mono",
+});
 export const fonts = {
     inter,
     montserrat,
     firaCode,
     playfair,
+    azeretMono,
     arial: { className: "font-arial" },
 } as const;
 export type fontKey = keyof typeof fonts;

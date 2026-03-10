@@ -1,11 +1,10 @@
-import { useState } from "react";
 import CommentsSection from "./CommentsSection";
 import {
     getImageUrl,
     DEFAULT_PROFILE_IMAGE,
 } from "@/utils/userProfileImageUtils";
-import BaseText from "./BaseText/BaseText";
-import BaseHeading from "./BaseHeading/BaseHeading";
+import { getFontClass } from "@/utils/getFontClass";
+import { useState } from "react";
 
 interface Review {
     review_id: string;
@@ -21,6 +20,7 @@ interface Review {
     image_urls: string[] | null;
     created_at: string;
     updated_at: string;
+    user?: { username?: string; full_name?: string } | null;
 }
 
 export default function DetailedReview({
@@ -39,125 +39,91 @@ export default function DetailedReview({
     onToggleLike: (currentlyLiked: boolean) => Promise<void> | void;
 }) {
     const [isProcessing, setIsProcessing] = useState(false);
-    // Use the provided userId or show message if not authenticated
+    const montserrat = getFontClass("montserrat");
+    const azeret = getFontClass("azeretMono");
     const effectiveUserId = userId;
 
     if (!effectiveUserId) {
         return (
             <div className="w-full max-w-4xl mx-auto mb-12">
-                <div className="bg-[#231b32] rounded-lg p-8 text-center">
-                    <BaseText textColor="#ffffff" fontName="inter">
-                        Please log in to view comments and interact with this
-                        review.
-                    </BaseText>
-                </div>
+                <p className={`${montserrat} text-white text-center p-8`}>
+                    Please log in to view comments and interact with this review.
+                </p>
             </div>
         );
     }
 
     const handleToggleLike = async () => {
         if (isProcessing) return;
-
         setIsProcessing(true);
         try {
             await onToggleLike(liked);
         } finally {
-            //added a small delay so that to prevent spamming likes
-            setTimeout(() => {
-                setIsProcessing(false);
-            }, 500);
+            setTimeout(() => setIsProcessing(false), 500);
         }
     };
 
-    return (
-        <div className="w-full max-w-4xl mx-auto mb-12">
-            <div className="bg-[#231b32] rounded-lg shadow-lg overflow-hidden">
-                {/* Image at the top */}
-                <div className="relative w-full flex justify-center bg-[#2d2838] p-8">
-                    <img
-                        src={
-                            review.image_urls && review.image_urls.length > 0
-                                ? review.image_urls[0]
-                                : getImageUrl(DEFAULT_PROFILE_IMAGE)
-                        }
-                        alt={review.title}
-                        className="rounded-lg w-full max-w-md object-cover"
-                    />
-                </div>
-                {/* Content below the image */}
-                <div className="p-8">
-                    <BaseHeading
-                        headingLevel="h1"
-                        fontWeight={700}
-                        textColor="#ffffff"
-                        className="mb-2"
-                        textAlign="left"
-                        fontSize="sub heading"
-                    >
-                        {review.title}
-                    </BaseHeading>
-                    <BaseText
-                        wrapper="span"
-                        textColor="#713f12"
-                        fontSize="very small"
-                        className="inline-block bg-yellow-200 px-3 py-1 rounded-full mb-2"
-                    >
-                        {review.content_type}
-                    </BaseText>
+    const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+    };
 
-                    <BaseText
-                        fontSize="small"
-                        textColor="#9ca3af"
-                        className="mb-4"
-                    >
-                        {review.artist_name || "Unknown Artist"}
-                    </BaseText>
-                    <BaseText
-                        fontSize="normal"
-                        textColor="#e5e7eb"
-                        className="whitespace-pre-line mb-4"
-                    >
-                        {review.text_content}
-                    </BaseText>
-                    <BaseText
-                        fontSize="very small"
-                        textColor="#9ca3af"
-                        className="mt-4"
-                    >
-                        {review.created_at
-                            ? new Date(review.created_at).toLocaleDateString()
-                            : ""}
-                    </BaseText>
-                </div>
+    return (
+        <div className="w-full max-w-[1200px] mx-auto mb-12">
+            {/* Title */}
+            <h1 className={`${montserrat} text-[#FFC8BC] text-[36px] font-bold leading-[43px] mb-6`}>
+                {review.title}
+            </h1>
+
+            {/* Hero Image */}
+            <div className="relative w-full overflow-hidden rounded-[8px] mb-4" style={{ aspectRatio: "1191/744" }}>
+                <img
+                    src={review.image_urls?.[0] || getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                    alt={review.title}
+                    className="w-full h-full object-cover"
+                    style={{ filter: "brightness(0.7)" }}
+                />
+                {/* Genre tag */}
+                <span className={`${azeret} absolute bottom-6 right-8 text-[#FF4E27] text-[21px] font-bold -rotate-[24deg]`}>
+                    {review.content_type || "Review"}
+                </span>
             </div>
 
-            {/* Like button and counter below review, above comments */}
-            <div className="flex items-center my-6">
+            {/* Review Body */}
+            <div
+                className={`${azeret} text-white text-[20px] font-medium leading-[28px] text-justify whitespace-pre-line mt-8 mb-8`}
+            >
+                {review.text_content}
+            </div>
+
+            {/* Author + Date */}
+            <p className={`${montserrat} text-[#F52F03] text-[12px] font-bold leading-[19px] tracking-[2.76px] mb-4`}>
+                {review.user?.full_name || review.user?.username || review.artist_name || "Unknown"}
+                <br />
+                {review.created_at ? formatDate(review.created_at) : ""}
+            </p>
+
+            {/* Separator */}
+            <div className="w-full h-px bg-[#F7F7F7] mb-6" />
+
+            {/* Like button */}
+            <div className="flex items-center mb-6">
                 <button
                     onClick={handleToggleLike}
                     disabled={isProcessing}
                     aria-pressed={liked}
                     className={`font-bold mr-2 text-2xl transition-colors duration-200 
-          ${liked ? "text-red-400" : "text-gray-400"} 
-          ${
-              isProcessing
-                  ? "cursor-not-allowed opacity-50"
-                  : liked
-                  ? "cursor-pointer hover:text-red-300"
-                  : "cursor-pointer hover:text-gray-300"
-          }`}
+                        ${liked ? "text-red-400" : "text-gray-400"} 
+                        ${isProcessing ? "cursor-not-allowed opacity-50" : liked ? "cursor-pointer hover:text-red-300" : "cursor-pointer hover:text-gray-300"}`}
                 >
                     ♥
                 </button>
-                <BaseText
-                    wrapper="span"
-                    textColor="#ffffff"
-                    fontWeight={600}
-                    className="mr-4"
-                >
+                <span className={`${montserrat} text-white font-semibold mr-4`}>
                     {likeCount} Likes
-                </BaseText>
+                </span>
             </div>
+
+            {/* Comments */}
             {!isPreview && (
                 <CommentsSection
                     reviewId={review.review_id}

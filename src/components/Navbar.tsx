@@ -1,6 +1,5 @@
 "use client";
 
-// import { useAuth } from '@/context/AuthContext';
 import {
     FaCompass,
     FaHeadphones,
@@ -13,14 +12,13 @@ import {
 } from "react-icons/fa";
 import { MdOutlineDynamicFeed } from "react-icons/md";
 import Link from "next/link";
-
 import { useState, useEffect, useCallback } from "react";
-import BaseText from "./BaseText/BaseText";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
+import { getFontClass } from "@/utils/getFontClass";
 
 const Navbar = () => {
     const { user, switchRole } = useAuth();
@@ -28,6 +26,9 @@ const Navbar = () => {
     const pathname = usePathname();
     const [isExpanded, setIsExpanded] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+
+    const montserratClass = getFontClass("montserrat");
+    const azeretClass = getFontClass("azeretMono");
 
     // Fetch unread count
     const fetchUnread = useCallback(async () => {
@@ -43,14 +44,13 @@ const Navbar = () => {
 
     useEffect(() => { fetchUnread(); }, [fetchUnread]);
 
-    // Listen for read events from notifications page
     useEffect(() => {
         const handler = () => setUnreadCount(0);
         window.addEventListener("notifications-read", handler);
         return () => window.removeEventListener("notifications-read", handler);
     }, []);
 
-    // Realtime: listen for new notifications
+    // Realtime notifications
     useEffect(() => {
         if (!user) return;
         const channel = supabase
@@ -62,7 +62,6 @@ const Navbar = () => {
                 filter: `user_id=eq.${user.id}`,
             }, (payload: any) => {
                 setUnreadCount((prev) => prev + 1);
-                // Persistent toast with close button
                 toast((t) => (
                     <div className="flex items-center gap-3 max-w-sm">
                         <span className="flex-1 text-sm">{payload.new.message}</span>
@@ -76,7 +75,6 @@ const Navbar = () => {
     }, [user, router]);
 
     const menuItems = [
-        // { icon: FaHome, label: 'Home', href: '/' },
         { icon: FaCompass, label: "Explore", href: "/explore" },
         { icon: MdOutlineDynamicFeed, label: "Feed", href: "/feed" },
         { icon: FaHeadphones, label: "My Music", href: "/my-music" },
@@ -86,8 +84,6 @@ const Navbar = () => {
         { icon: FaUser, label: "Profile", href: "/profile" },
         { icon: FaCog, label: "Settings", href: "/settings" },
     ];
-    // Delay for opacity.
-    const baseTransitionDelay = 35;
 
     const getHomeRoute = () => {
         if (!user) return "/";
@@ -96,130 +92,108 @@ const Navbar = () => {
 
     return (
         <nav
-            className={`fixed left-0 top-0 h-full bg-black transition-all duration-300 z-[9999] ${
-                isExpanded ? "w-navbar-expanded" : "w-navbar-collapsed"
-            }`}
+            className="fixed left-0 top-0 h-full z-[9999] transition-all duration-300 border-r border-[#767474]"
+            style={{
+                width: isExpanded ? "var(--navbar-expanded)" : "var(--navbar-collapsed)",
+                background: "linear-gradient(180deg, rgba(40,21,69,0.70) 0%, rgba(15,8,25,0.80) 100%)",
+                backdropFilter: "blur(10px)",
+            }}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => setIsExpanded(false)}
         >
-            <div className="flex flex-col h-full pt-6">
+            <div className="flex flex-col h-full pt-[45px] px-[7px]">
                 {/* Logo */}
                 <Link
                     href={getHomeRoute()}
-                    className={`grid items-center gap-4 mb-8 transition-all duration-300 ${
-                        isExpanded
-                            ? "grid-cols-[1fr_5fr]"
-                            : "grid-cols-[1fr_0fr]"
-                    } p-3`}
+                    className="flex items-center gap-4 mb-[52px]"
                 >
-                    <div className={`relative w-8 h-8`}>
+                    <div className="w-[40px] h-[40px] flex-shrink-0">
                         <img
                             src={getLogoUrl()}
                             alt="SoundSpire Logo"
-                            width={32}
-                            height={32}
-                            className="object-contain"
+                            width={40}
+                            height={40}
+                            className="object-contain w-full h-full"
                         />
                     </div>
-                    <BaseText
-                        wrapper="span"
-                        textColor="#ffffff"
-                        fontWeight={700}
-                        fontSize="normal"
-                        fontName="inter"
-                        className={`whitespace-nowrap overflow-hidden	min-w-0 transition-[opacity_transform] duration-300 ${
-                            isExpanded
-                                ? "translate-x-0 opacity-1"
-                                : "-translate-x-3 opacity-0"
+                    <span
+                        className={`${azeretClass} text-white text-[21px] font-medium leading-[25px] whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                            isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0"
                         }`}
                     >
                         SoundSpire
-                    </BaseText>
+                    </span>
                 </Link>
 
-                {/* Divider */}
-                <div className="w-full h-px bg-gray-800 mb-6"></div>
-
                 {/* Navigation Items */}
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col" style={{ gap: "48px" }}>
                     {menuItems.map((item, index) => {
                         const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
                         return (
-                        <Link
-                            key={index}
-                            href={item.href}
-                            className={`grid items-center transition-all duration-300 ${
-                                isActive
-                                    ? "text-[#FF4E27]"
-                                    : "text-gray-400 hover:text-white hover:bg-[#3d2b5a]"
-                            } ${
-                                isExpanded
-                                    ? "grid-cols-[1fr_5fr]"
-                                    : "grid-cols-[1fr_0fr]"
-                            } p-3`}
-                        >
-                            <div className="relative">
-                                <item.icon
-                                    className={`w-5 h-5 ${
-                                        isExpanded ? "mr-4" : ""
-                                    }`}
-                                />
-                                {item.label === "Notifications" && unreadCount > 0 && (
-                                    <span className="absolute -top-1.5 -right-1.5 bg-[#FF4E27] text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center leading-none px-0.5">
-                                        {unreadCount > 9 ? "9+" : unreadCount}
-                                    </span>
-                                )}
-                            </div>
-                            <BaseText
-                                wrapper="span"
-                                className={`whitespace-nowrap overflow-hidden will-change-[opacity] transition-opacity duration-300 ${
-                                    isExpanded ? "opacity-1" : "opacity-0"
-                                }`}
-                                textColor="inherit"
-                                style={{
-                                    transitionDelay: `${
-                                        index * baseTransitionDelay
-                                    }ms`,
-                                }}
-                                fontSize="very small"
-                                fontName="inter"
+                            <Link
+                                key={index}
+                                href={item.href}
+                                className={`flex items-center gap-4 rounded-lg transition-colors duration-200 hover:bg-white/5`}
                             >
-                                {item.label}
-                            </BaseText>
-                        </Link>
-                    )})}
+                                {/* Circular glass icon container */}
+                                <div
+                                    className="w-[40px] h-[40px] flex-shrink-0 rounded-full flex items-center justify-center"
+                                    style={{
+                                        background: "linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(153,153,153,0.10) 100%)",
+                                    }}
+                                >
+                                    <div className="relative">
+                                        <item.icon className={`w-5 h-5 ${isActive ? "text-[#FF4E27]" : "text-white"}`} />
+                                        {item.label === "Notifications" && unreadCount > 0 && (
+                                            <span className="absolute -top-2 -right-2 bg-[#FF4E27] text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center leading-none px-0.5">
+                                                {unreadCount > 9 ? "9+" : unreadCount}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Label */}
+                                <span
+                                    className={`${montserratClass} ${isActive ? "text-[#FF4E27]" : "text-white"} text-[20px] font-medium leading-[24px] whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                                        isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0"
+                                    }`}
+                                >
+                                    {item.label}
+                                </span>
+                            </Link>
+                        );
+                    })}
                 </div>
 
                 {/* Role Switch Button */}
                 {user && (user.isAlsoArtist || user.role === "artist") && (
-                    <>
-                        <div className="mt-auto mb-4 w-full h-px bg-gray-800"></div>
+                    <div className="mt-auto mb-6">
+                        <div className="w-full h-px bg-[#767474] mb-4" />
                         <button
                             onClick={async () => {
                                 const newRole = user.role === "artist" ? "user" : "artist";
                                 await switchRole(newRole);
                                 router.push(newRole === "artist" ? "/artist/dashboard" : "/explore");
                             }}
-                            className={`grid items-center text-orange-400 hover:text-orange-300 hover:bg-[#3d2b5a] transition-all duration-300 mb-4 ${
-                                isExpanded
-                                    ? "grid-cols-[1fr_5fr]"
-                                    : "grid-cols-[1fr_0fr]"
-                            } p-3`}
+                            className={`flex items-center gap-4 rounded-lg hover:bg-white/5 transition-colors duration-200 w-full`}
                         >
-                            <FaExchangeAlt className={`w-5 h-5 ${isExpanded ? "mr-4" : ""}`} />
-                            <BaseText
-                                wrapper="span"
-                                className={`whitespace-nowrap overflow-hidden transition-opacity duration-300 ${
-                                    isExpanded ? "opacity-1" : "opacity-0"
+                            <div
+                                className="w-[40px] h-[40px] flex-shrink-0 rounded-full flex items-center justify-center"
+                                style={{
+                                    background: "linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(153,153,153,0.10) 100%)",
+                                }}
+                            >
+                                <FaExchangeAlt className="w-5 h-5 text-[#FFB7A6]" />
+                            </div>
+                            <span
+                                className={`${montserratClass} text-[#FFB7A6] text-[20px] font-medium leading-[24px] whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                                    isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0"
                                 }`}
-                                textColor="inherit"
-                                fontSize="very small"
-                                fontName="inter"
                             >
                                 {user.role === "artist" ? "Switch to Fan" : "Switch to Artist"}
-                            </BaseText>
+                            </span>
                         </button>
-                    </>
+                    </div>
                 )}
             </div>
         </nav>

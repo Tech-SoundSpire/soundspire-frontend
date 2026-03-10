@@ -634,7 +634,7 @@ export default function AllChatPage() {
     }
 
     return (
-        <div className="flex h-screen" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
+        <div className={`flex h-screen ${user?.role !== "artist" ? "ml-[54px]" : ""}`} style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
             {user?.role !== "artist" && <Navbar />}
             <CommunityHeader
                 slug={slug}
@@ -650,6 +650,17 @@ export default function AllChatPage() {
                     isSidebarCollapsed ? "w-0 overflow-hidden" : "w-80"
                 }`}
             >
+                {/* Back button for user view */}
+                {user?.role !== "artist" && !isSidebarCollapsed && (
+                    <div className="p-4 pb-0">
+                        <button
+                            onClick={() => router.push(`/community/${slug}`)}
+                            style={{ width: "36px", height: "36px", display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: "#1b1b1b", borderRadius: "50%", border: "2px solid #ff4e50", color: "white", flexShrink: 0 }}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                        </button>
+                    </div>
+                )}
                 {/* Community Header */}
                 <div className="p-6 border-b border-gray-700">
                     <div className="flex flex-col items-center text-center">

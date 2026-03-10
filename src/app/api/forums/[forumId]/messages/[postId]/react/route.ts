@@ -59,7 +59,7 @@ export async function POST(
       try {
         const { data: postData } = await supabase.from("forum_posts").select("user_id, media_type").eq("forum_post_id", postId).single();
         if (postData && postData.user_id !== userId) {
-          const reactor = await User.findByPk(userId, { attributes: ["username"] });
+          const reactor = await User.findByPk(userId, { attributes: ["username", "profile_picture_url"] });
           let link = "/feed";
           const forum = await Forum.findByPk(forumId);
           if (forum) {
@@ -72,7 +72,7 @@ export async function POST(
               }
             }
           }
-          await notifyUser(postData.user_id, `${reactor?.username || "Someone"} reacted ${emoji} to your post`, link, "fanart_like");
+          await notifyUser(postData.user_id, `${reactor?.username || "Someone"} reacted ${emoji} to your post`, link, "fanart_like", { actorImage: reactor?.profile_picture_url });
         }
       } catch (err) { console.error("Notification error:", err); }
     }

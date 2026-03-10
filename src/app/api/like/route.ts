@@ -28,7 +28,7 @@ export async function POST(request : NextRequest){
 
         // Send notification to the owner
         try {
-            const liker = await User.findByPk(user_id, { attributes: ["username"] });
+            const liker = await User.findByPk(user_id, { attributes: ["username", "profile_picture_url"] });
             const likerName = liker?.username || "Someone";
             if (comment_id) {
                 const comment = await Comment.findByPk(comment_id);
@@ -44,7 +44,7 @@ export async function POST(request : NextRequest){
                             link = `/community/${art.slug}/forum?highlight=${comment.post_id || comment_id}`;
                         }
                     }
-                    await notifyUser(comment.user_id, `${likerName} liked your comment`, link, "comment_like");
+                    await notifyUser(comment.user_id, `${likerName} liked your comment`, link, "comment_like", { actorImage: liker?.profile_picture_url });
                 }
             } else if (post_id) {
                 const post = await Post.findByPk(post_id);
@@ -53,7 +53,7 @@ export async function POST(request : NextRequest){
                     const { default: Artist } = await import("@/models/Artist");
                     const artist = await Artist.findByPk(postData.artist_id);
                     if (artist?.user_id && artist.user_id !== user_id) {
-                        await notifyUser(artist.user_id, `${likerName} liked your post`, `/community/${artist.slug}/forum?highlight=${post_id}`, "comment_like");
+                        await notifyUser(artist.user_id, `${likerName} liked your post`, `/community/${artist.slug}/forum?highlight=${post_id}`, "comment_like", { actorImage: liker?.profile_picture_url });
                     }
                 }
             }
