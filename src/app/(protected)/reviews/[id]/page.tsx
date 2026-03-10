@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { FaArrowLeftLong } from "react-icons/fa6";
 import DetailedReview from '@/components/DetailedReview';
 import { useAuth } from '@/context/AuthContext';
 
@@ -98,12 +99,13 @@ const handleToggleReviewLike = async (currentlyLiked: boolean) => {
 
   if (!review) return <div className="text-white">Loading...</div>;
   return (
-    <div className="min-h-screen ml-16 px-8 py-6">
+    <div className="min-h-screen ml-[54px] px-8 py-6">
       <button
-        className="mb-6 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded font-semibold"
+        className="mb-6 p-4 flex items-center justify-center bg-[#1b1b1b] rounded-full border-[3px] border-[#ff4e50] text-white hover:bg-[#ff4e50] transition-colors duration-300 aspect-square w-fit"
         onClick={() => router.push('/reviews')}
+        aria-label="Back to All Reviews"
       >
-        ← Back to All Reviews
+        <FaArrowLeftLong />
       </button>
       <DetailedReview
         review={review}

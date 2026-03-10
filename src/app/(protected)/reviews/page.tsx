@@ -1,13 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
     getImageUrl,
     DEFAULT_PROFILE_IMAGE,
 } from "@/utils/userProfileImageUtils";
-import ImageCarousel from "@/components/ImageCarousel";
-import BaseHeading from "@/components/BaseHeading/BaseHeading";
-import BaseText from "@/components/BaseText/BaseText";
+import CarouselBase from "@/components/CarouselBase";
+import { getFontClass } from "@/utils/getFontClass";
+
 interface Review {
     review_id: string;
     user_id: string;
@@ -24,55 +24,106 @@ interface Review {
     created_at: string;
     updated_at: string;
     artist?: { artist_id: string; artist_name: string; slug: string } | null;
+    user?: { username?: string; full_name?: string } | null;
 }
-
-const carouselImages = [
-    getImageUrl(DEFAULT_PROFILE_IMAGE),
-    getImageUrl(DEFAULT_PROFILE_IMAGE),
-    getImageUrl(DEFAULT_PROFILE_IMAGE),
-].filter((img): img is string => img !== "undefined");
 
 export default function ReviewsPage() {
     const [reviews, setReviews] = useState<Review[]>([]);
+    const [heroIndex, setHeroIndex] = useState(0);
     const router = useRouter();
+    const montserrat = getFontClass("montserrat");
 
     useEffect(() => {
         fetch("/api/reviews")
             .then((res) => res.json())
             .then((data) => {
-                const safeReviews = Array.isArray(data)
-                    ? data
-                    : data.reviews || [];
-                // Sort reviews by created_at in descending order (latest first)
+                const safeReviews = Array.isArray(data) ? data : data.reviews || [];
                 const sortedReviews = safeReviews.sort(
                     (a: Review, b: Review) =>
-                        new Date(b.created_at).getTime() -
-                        new Date(a.created_at).getTime()
+                        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
                 );
                 setReviews(sortedReviews);
             })
             .catch((err) => {
                 console.error("Error fetching reviews:", err);
-                setReviews([]); // fallback to empty array to avoid crash
+                setReviews([]);
             });
     }, []);
 
+    const onNext = useCallback(() => {
+        if (reviews.length === 0) return;
+        setHeroIndex((prev) => (prev + 1) % Math.min(reviews.length, 5));
+    }, [reviews.length]);
+    const onPrevious = useCallback(() => {
+        if (reviews.length === 0) return;
+        setHeroIndex((prev) => (prev - 1 + Math.min(reviews.length, 5)) % Math.min(reviews.length, 5));
+    }, [reviews.length]);
+
+    const heroReview = reviews[heroIndex];
+
+    const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        return `${d.getDate()}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+    };
+
     return (
-        <div className="min-h-screen ml-16 px-8 py-6">
-            <div className="max-w-4xl mx-auto mb-12">
-                {/* <Carousel images={carouselImages} /> */}
-                <ImageCarousel images={carouselImages}></ImageCarousel>
-            </div>
+        <div className="min-h-screen ml-[54px] px-8 py-6">
+            {/* Page Title */}
+            <h1 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px] mb-8`}>
+                EXPLORE ALL REVIEWS
+            </h1>
+
+            {/* Hero Review Carousel */}
+            {reviews.length > 0 && heroReview && (
+                <div className="mb-6">
+                    <CarouselBase
+                        dotCount={Math.min(reviews.length, 5)}
+                        currentIndex={heroIndex}
+                        onDotClick={setHeroIndex}
+                        onNext={onNext}
+                        onPrevious={onPrevious}
+                        auto
+                        autoIntervalSeconds={4}
+                        pausable
+                    >
+                        <div
+                            className="w-full rounded-[20px] overflow-hidden relative cursor-pointer border border-[#3A3A3A]"
+                            style={{ aspectRatio: "2/1", maxHeight: "500px" }}
+                            onClick={() => router.push(`/reviews/${heroReview.review_id}`)}
+                        >
+                            <img
+                                src={heroReview.image_urls?.[0] || getImageUrl(DEFAULT_PROFILE_IMAGE)}
+                                alt={heroReview.title}
+                                className="w-full h-full object-cover"
+                                style={{ filter: "brightness(0.6)" }}
+                            />
+                            {/* Genre tag */}
+                            <span className={`${montserrat} absolute bottom-6 right-8 text-[#FF4E27] text-[19px] font-bold -rotate-[24deg]`}>
+                                {heroReview.content_type || "Review"}
+                            </span>
+                        </div>
+                    </CarouselBase>
+
+                    {/* Title + Author below hero */}
+                    <div className="mt-4">
+                        <h2
+                            className={`${montserrat} text-[#F7F7F7] text-[36px] font-bold leading-[43px] cursor-pointer hover:text-[#FFC8BC] transition-colors`}
+                            onClick={() => router.push(`/reviews/${heroReview.review_id}`)}
+                        >
+                            {heroReview.title}
+                        </h2>
+                        <p className={`${montserrat} text-[#FF4E27] text-[12px] font-bold leading-[14px] mt-2`}>
+                            {heroReview.user?.full_name || heroReview.user?.username || "Unknown"}, {formatDate(heroReview.created_at)}
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* ALL REVIEWS heading + Submit button */}
             <div className="flex justify-between items-center mt-12 mb-6">
-                <BaseHeading
-                    fontSize="large"
-                    fontWeight={700}
-                    textAlign="left"
-                    textColor="#ffffff"
-                    className="mt-12 mb-6"
-                >
+                <h2 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px]`}>
                     ALL REVIEWS
-                </BaseHeading>
+                </h2>
                 <button
                     onClick={() => router.push("/reviews/submit")}
                     className="bg-[#FF4E27] hover:bg-[#e5431f] text-white px-6 py-2 rounded-lg font-semibold transition-colors"
@@ -80,79 +131,41 @@ export default function ReviewsPage() {
                     Submit Review
                 </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            {/* Review Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[56px]">
                 {reviews.map((review) => (
                     <div
                         key={review.review_id}
-                        className="flex flex-col bg-[#231b32] rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative"
+                        className="flex flex-col bg-[#1e1529] rounded-[13px] overflow-hidden hover:shadow-lg transition-shadow duration-300"
                     >
                         <img
-                            src={
-                                review.image_urls &&
-                                review.image_urls.length > 0
-                                    ? review.image_urls[0]
-                                    : getImageUrl(DEFAULT_PROFILE_IMAGE)
-                            }
+                            src={review.image_urls?.[0] || getImageUrl(DEFAULT_PROFILE_IMAGE)}
                             alt={review.title}
-                            className="w-full h-56 object-cover"
+                            className="w-[calc(100%-32px)] h-[288px] object-cover rounded-lg border border-[#F7F7F7] mx-auto mt-4"
                         />
-
-                        <BaseText
-                            wrapper="span"
-                            fontSize="very small"
-                            textColor="#ffffff"
-                            className="absolute top-4 left-4 bg-green-700   px-3 py-1 rounded-full"
-                        >
-                            {review.content_type}
-                        </BaseText>
                         <div className="p-4 flex-1 flex flex-col justify-between">
                             <div>
-                                <BaseHeading
-                                    headingLevel="h3"
-                                    fontWeight={600}
-                                    textColor="#ffffff"
-                                    fontSize="large"
-                                    className="mb-1"
-                                    textAlign="left"
-                                >
+                                <p className={`${montserrat} text-[#F7F7F7] text-[16px] font-bold leading-[19px] mb-2 line-clamp-3`}>
                                     {review.title}
-                                </BaseHeading>
-                                <BaseText
-                                    fontSize="small"
-                                    textColor="#9ca3af"
-                                    className="mb-2"
-                                >
+                                </p>
+                                <p className={`${montserrat} text-[#FF7151] text-[16px] font-medium leading-[19px] mb-2`}>
                                     {review.artist?.slug ? (
-                                        <a href={`/community/${review.artist.slug}`} className="hover:text-[#FA6400] transition underline">
+                                        <a href={`/community/${review.artist.slug}`} className="hover:text-[#FF4E27] transition">
                                             {review.artist?.artist_name || review.artist_name || "Unknown Artist"}
                                         </a>
                                     ) : (
                                         review.artist_name || "Unknown Artist"
                                     )}
-                                </BaseText>
-                                <BaseText
-                                    fontSize="small"
-                                    textColor="#d1d5db"
-                                    className="mb-2"
-                                >
-                                    {review.content_name}
-                                </BaseText>
-                                <BaseText
-                                    fontSize="small"
-                                    textColor="#d1d5db"
-                                    className="line-clamp-3 mb-4"
-                                >
+                                </p>
+                                <p className={`${montserrat} text-[#d1d5db] text-[14px] line-clamp-3 mb-4`}>
                                     {review.text_content.slice(0, 100)}
-                                    {review.text_content.length > 100
-                                        ? "..."
-                                        : ""}
-                                </BaseText>
+                                    {review.text_content.length > 100 ? "..." : ""}
+                                </p>
                             </div>
                             <button
-                                className="mt-auto bg-[#FF4E27] hover:bg-[#e5431f] text-white px-4 py-2 rounded-lg text-sm font-semibold"
-                                onClick={() =>
-                                    router.push(`/reviews/${review.review_id}`)
-                                }
+                                className={`${montserrat} mt-auto bg-[#FF4E27] hover:bg-[#e5431f] text-[#F7F7F7] px-4 py-2.5 rounded-[5px] text-[16px] font-medium w-fit`}
+                                onClick={() => router.push(`/reviews/${review.review_id}`)}
                             >
                                 Read More
                             </button>

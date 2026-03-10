@@ -50,7 +50,7 @@ export default function ArtistOnboardingPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#1a1625] text-white relative overflow-hidden">
+        <div className="min-h-screen text-white relative overflow-hidden" style={{ background: "radial-gradient(ellipse 83% 83% at 54% 17%, #281545 0%, black 100%)" }}>
             {/* Artist Login Button - Top Right */}
             <div className="absolute top-4 right-4 z-20">
                 <button

@@ -141,7 +141,9 @@ export async function POST(request: NextRequest) {
         community_id,
         artistUserId || "",
         `${community.name || "A community"} has a new post`,
-        `/feed?highlight=${post.post_id}`
+        `/feed?highlight=${post.post_id}`,
+        "new_post",
+        { actorImage: artist?.profile_picture_url, thumbnail: post.media_urls?.[0] || null }
       );
     } catch (err) { console.error("Notification error:", err); }
 

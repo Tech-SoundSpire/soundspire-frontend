@@ -734,13 +734,14 @@ export default function FanArtPage() {
         {/* Toggle Sidebar Button */}
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          className={`absolute ${isArtist ? 'left-2' : 'left-[4.5rem]'} top-20 z-10 bg-[#2d2838] text-white p-2 rounded-full hover:bg-[#3d3848] transition`}
+          className={`absolute ${isArtist ? 'left-2' : 'left-[4.5rem]'} top-20 z-10`}
+          style={{ width: "36px", height: "36px", display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: "#1b1b1b", borderRadius: "50%", border: "2px solid #ff4e50", color: "white", flexShrink: 0 }}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             {isSidebarCollapsed ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <polyline points="9 5 16 12 9 19" />
             ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <polyline points="15 19 8 12 15 5" />
             )}
           </svg>
         </button>

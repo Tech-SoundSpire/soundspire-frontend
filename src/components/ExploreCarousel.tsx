@@ -1,8 +1,6 @@
 import { useCallback, useState } from "react";
 import CarouselBase from "./CarouselBase";
-import BaseText from "./BaseText/BaseText";
-
-import BaseHeading from "./BaseHeading/BaseHeading";
+import { getFontClass } from "@/utils/getFontClass";
 
 type ExploreItem = {
     title: string;
@@ -15,7 +13,7 @@ interface ExploreCarouselProps {
 }
 const ExploreCarousel = ({ items }: ExploreCarouselProps) => {
     const [currentIndex, setCurrentIndex] = useState(0);
-    // Keeping reference stable, prevents unnecessary timeout cancels
+    const montserrat = getFontClass("montserrat");
     const onNext = useCallback(() => {
         setCurrentIndex((prev) => (prev + 1) % items.length);
     }, [items.length]);
@@ -34,44 +32,30 @@ const ExploreCarousel = ({ items }: ExploreCarouselProps) => {
                 currentIndex={currentIndex}
                 pausable
             >
-                <div className="aspect-[2/1] bg-gradient-to-r from-purple-900 to-purple-600 p-8 grid grid-cols-2 items-center justify-items-start w-full">
-                    <div className="flex flex-col">
-                        <BaseHeading
-                            headingLevel="h2"
-                            fontWeight={700}
-                            fontSize="sub heading"
-                            textAlign="left"
-                            textSelectionBackgroundColor="#ff4e27"
-                            textSelectionColor="#191919"
-                            fontName="playfair"
-                        >
+                <div
+                    className="w-full p-6 grid grid-cols-2 items-center rounded-[20px] border border-[#3A3A3A] overflow-hidden max-h-[550px]"
+                    style={{
+                        aspectRatio: "1/1",
+                        background: "radial-gradient(ellipse 71% 71% at 50% 50%, #6B3E59 0%, black 100%)",
+                    }}
+                >
+                    <div className="flex flex-col gap-5">
+                        <h2 className={`${montserrat} text-[#FFC8BC] text-[36px] font-bold leading-[43px]`}>
                             {items[currentIndex].title}
-                        </BaseHeading>
-                        <BaseText
-                            wrapper="p"
-                            fontSize="small"
-                            textColor="#d1d5db"
-                            fontName="firaCode"
-                            textSelectionBackgroundColor="#ff4e27"
-                            textSelectionColor="#191919"
-                            fontWeight={500}
-                        >
+                        </h2>
+                        <p className={`${montserrat} text-[#F7F7F7] text-[16px] font-medium leading-[19px] max-w-[200px]`}>
                             {items[currentIndex].description}
-                        </BaseText>
-                        <BaseText
-                            fontSize="normal"
-                            fontWeight={700}
-                            textColor="#ffffff"
-                        >
-                            {items[currentIndex].price}
-                        </BaseText>
+                        </p>
                     </div>
-                    <div className="m-auto">
+                    <div className="flex flex-col items-end gap-5">
+                        <span className={`${montserrat} text-[#FFC8BC] text-[36px] font-bold leading-[43px]`}>
+                            {items[currentIndex].price}
+                        </span>
                         <img
                             src={items[currentIndex].image}
                             alt="Featured Album"
-                            className="w-64 h-64  transform rotate-[-5deg] object-cover"
-                        ></img>
+                            className="w-64 h-40 object-cover shadow-xl"
+                        />
                     </div>
                 </div>
             </CarouselBase>

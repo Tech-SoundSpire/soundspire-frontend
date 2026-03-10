@@ -104,9 +104,12 @@ export default function SearchDropdown({
           placeholder={placeholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full px-4 py-2 pl-10 rounded-full bg-[#2d2838] text-white focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
+          className="w-full px-4 py-2 pl-10 rounded-full text-white focus:outline-none focus:ring-2 focus:ring-[#FF4E27] border border-[rgba(250,249,246,0.46)]"
+          style={{
+            background: "linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(153,153,153,0.10) 100%)",
+          }}
         />
-        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#FAF9F6]" />
       </div>
 
       {showDropdown && results.length > 0 && mode === "navigate" && (

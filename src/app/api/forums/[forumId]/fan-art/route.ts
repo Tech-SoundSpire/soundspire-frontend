@@ -221,14 +221,15 @@ export async function POST(
 
     // Notify community subscribers about new fan art
     try {
-      const uploader = await User.findByPk(userId, { attributes: ["username"] });
+      const uploader = await User.findByPk(userId, { attributes: ["username", "profile_picture_url"] });
       const art = await Artist.findByPk(community.artist_id);
       await notifyCommunitySubscribers(
         forum.community_id,
         userId,
         `${uploader?.username || "Someone"} uploaded new fan art`,
         `/community/${art?.slug || community.artist_id}/fan-art?highlight=${post.forum_post_id}`,
-        "fanart_comment"
+        "fanart_comment",
+        { actorImage: uploader?.profile_picture_url }
       );
     } catch (err) { console.error("Notification error:", err); }
 

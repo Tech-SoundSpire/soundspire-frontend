@@ -334,7 +334,7 @@ export default function CompleteProfilePage() {
     // Show loading screen while checking authentication
     if (authLoading || profileLoading || preferencesLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center" style={{ background: "radial-gradient(ellipse 83% 83% at 54% 17%, #281545 0%, black 100%)" }}>
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-400 border-t-transparent mx-auto mb-4"></div>
                     <p className="text-white text-xl">Loading...</p>
@@ -363,8 +363,8 @@ export default function CompleteProfilePage() {
         getImageUrl(DEFAULT_PROFILE_IMAGE);
     const safeProfileImage = sanitizeURL(rawProfileImage);
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4">
-            <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-700 backdrop-blur-sm">
+        <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "radial-gradient(ellipse 83% 83% at 54% 17%, #281545 0%, black 100%)" }}>
+            <div className="p-8 rounded-2xl shadow-2xl w-full max-w-lg border border-white/20" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(153,153,153,0.10) 100%)", backdropFilter: "blur(16px)" }}>
                 <BaseHeading
                     fontSize="large"
                     fontWeight={700}

@@ -9,6 +9,8 @@ export class Notification extends Model {
   declare message: string;
   declare link: string; // URL to navigate to
   declare is_read: boolean;
+  declare actor_image: string | null;
+  declare thumbnail: string | null;
   declare created_at: Date;
 }
 
@@ -39,6 +41,14 @@ Notification.init(
     is_read: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
+    },
+    actor_image: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    thumbnail: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
     created_at: {
       type: DataTypes.DATE,
