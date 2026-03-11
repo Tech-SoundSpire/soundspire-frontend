@@ -652,6 +652,9 @@ const PreferenceSelectionPage: React.FC = () => {
             <div className="w-full max-w-4xl mx-auto flex flex-col h-full">
                 {/* Search Bar - fixed top */}
                 <div className="flex-shrink-0 py-4">
+                    {step === 3 && (
+                        <p className="text-[#FF4E27] text-sm italic mb-2">Powered by <a href="https://soundcharts.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#e5431f]">Soundcharts</a></p>
+                    )}
                     <SearchBar
                         placeholder={placeholders[step - 1]}
                         onSearch={(query) =>
