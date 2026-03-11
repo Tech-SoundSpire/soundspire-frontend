@@ -92,7 +92,7 @@ export default function FindArtistPage() {
     if (!mounted) return null;
 
     return (
-        <div className="min-h-screen bg-[#1a1625] text-white relative overflow-hidden">
+        <div className="min-h-screen text-white relative overflow-hidden" style={{ background: "radial-gradient(ellipse 83% 83% at 54% 17%, #281545 0%, black 100%)" }}>
             {document.getElementById("header-actions") &&
                 createPortal(
                     <button
@@ -117,6 +117,7 @@ export default function FindArtistPage() {
                 </BaseHeading>
 
                 <div className="max-w-2xl mx-auto relative">
+                    <p className="text-[#FF4E27] text-sm italic mb-2">Powered by <a href="https://soundcharts.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#e5431f]">Soundcharts</a></p>
                     <input
                         type="text"
                         placeholder="Search artist..."
