@@ -508,20 +508,7 @@ export default function ProfilePage() {
                         )}
                     </div>
 
-                    <div className="w-full h-px bg-[#CCCACA]/50 my-8" />
-                    <div>
-                        <div className="flex items-center gap-2 mb-4">
-                            <span className={`${montserrat} text-white text-[20px] font-semibold`}>Your</span>
-                            <span className={`${montserrat} text-[#1DB954] text-[20px] font-bold`}>Spotify</span>
-                        </div>
-                        <button
-                            onClick={syncSpotify}
-                            className={`${montserrat} px-6 py-2 ${profile.spotifyLinked ? "bg-[#1DB954]" : "bg-[#FF4E27] hover:bg-[#e5431f]"} text-white rounded-lg font-semibold`}
-                            disabled={isLoading || profile.spotifyLinked}
-                        >
-                            {isLoading ? "Connecting..." : profile.spotifyLinked ? "Connected" : "Sync now"}
-                        </button>
-                    </div>
+                    {/* Spotify section hidden - coming soon */}
 
                     {user.isAlsoArtist && user.role === "user" && (
                         <>
