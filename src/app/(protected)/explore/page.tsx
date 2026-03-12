@@ -244,12 +244,12 @@ export default function ExplorePage() {
                                                     : review.text_content}
                                             </p>
                                         </div>
-                                        <button
-                                            className={`${montserrat} mt-auto bg-[#FF4E27] hover:bg-[#e5431f] text-[#F7F7F7] px-4 py-2.5 rounded-[5px] text-[16px] font-medium w-fit`}
-                                            onClick={() => router.push(`/reviews/${review.review_id}`)}
+                                        <Link
+                                            href={`/reviews/${review.review_id}`}
+                                            className={`${montserrat} mt-auto bg-[#FF4E27] hover:bg-[#e5431f] text-[#F7F7F7] px-4 py-2.5 rounded-[5px] text-[16px] font-medium w-fit inline-block`}
                                         >
                                             Read More
-                                        </button>
+                                        </Link>
                                     </div>
                                 </div>
                             ))}
