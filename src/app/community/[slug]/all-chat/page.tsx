@@ -91,13 +91,23 @@ export default function AllChatPage() {
     const searchMatchRefs = useRef<(HTMLDivElement | null)[]>([]);
 
     const highlightText = (text: string, query: string) => {
-        if (!query.trim() || !text) return text;
-        const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
-        return parts.map((part, i) =>
-            part.toLowerCase() === query.toLowerCase()
-                ? <mark key={i} className="bg-yellow-400 text-black rounded px-0.5">{part}</mark>
-                : part
-        );
+        if (!text) return text;
+        const parts = text.split(/(@[\w\-\.]+)/g);
+        const rendered = parts.map((part, i) => {
+            if (/^@[\w\-\.]+$/.test(part)) {
+                return <span key={`m${i}`} style={{ color: "#FF4E27", fontWeight: 700 }}>{part}</span>;
+            }
+            if (query.trim()) {
+                const subParts = part.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+                return subParts.map((sub, j) =>
+                    sub.toLowerCase() === query.toLowerCase()
+                        ? <mark key={`s${i}-${j}`} className="bg-yellow-400 text-black rounded px-0.5">{sub}</mark>
+                        : sub
+                );
+            }
+            return part;
+        });
+        return rendered;
     };
 
     const {
@@ -452,12 +462,13 @@ export default function AllChatPage() {
             }
 
             // Insert message via Supabase
+            const mentionPrefix = replyingTo?.user?.username ? `@${replyingTo.user.username} ` : "";
             const { data, error } = await supabase
                 .from("forum_posts")
                 .insert({
                     forum_id: forumId,
                     user_id: user.id,
-                    content: inputMessage || "",
+                    content: mentionPrefix + (inputMessage || ""),
                     media_type: mediaUrls.length > 0 ? "image" : "text",
                     media_urls: mediaUrls,
                     parent_post_id: replyingTo?.forum_post_id || null,
@@ -1104,9 +1115,10 @@ export default function AllChatPage() {
                                                 {/* Action buttons (show on hover) */}
                                                 <div className="opacity-0 group-hover:opacity-100 transition flex gap-3 mt-2">
                                                     <button
-                                                        onClick={() =>
-                                                            setReplyingTo(msg)
-                                                        }
+                                                        onClick={() => {
+                                                            setReplyingTo(msg);
+                                                            setInputMessage("");
+                                                        }}
                                                         className="text-sm text-gray-400 hover:text-white flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#2d2838]"
                                                     >
                                                         <svg
@@ -1233,9 +1245,10 @@ export default function AllChatPage() {
                                                                                 </span>
                                                                             </div>
                                                                             <div className="bg-[#3d3848] text-white px-3 py-2 rounded-lg text-sm">
-                                                                                {
-                                                                                    reply.content
-                                                                                }
+                                                                                {highlightText(
+                                                                                    reply.content,
+                                                                                    searchQuery
+                                                                                )}
                                                                                 {reply.media_urls &&
                                                                                     reply
                                                                                         .media_urls
@@ -1428,7 +1441,7 @@ export default function AllChatPage() {
                                     </span>
                                 </div>
                                 <button
-                                    onClick={() => setReplyingTo(null)}
+                                    onClick={() => { setReplyingTo(null); setInputMessage(""); }}
                                     className="text-gray-400 hover:text-white"
                                 >
                                     ×
@@ -1488,6 +1501,10 @@ export default function AllChatPage() {
                                 </svg>
                             </button>
 
+                            {replyingTo?.user?.username && (
+                                <span className="text-[#FF4E27] font-semibold text-sm flex-shrink-0">@{replyingTo.user.username}</span>
+                            )}
+
                             <input
                                 type="text"
                                 value={inputMessage}
@@ -1500,7 +1517,7 @@ export default function AllChatPage() {
                                     !isUploading &&
                                     sendMessage()
                                 }
-                                placeholder="type here"
+                                placeholder={replyingTo ? "type your reply..." : "type here"}
                                 className="flex-1 bg-transparent text-white placeholder-gray-500 focus:outline-none"
                                 disabled={!isConnected || isUploading}
                             />
