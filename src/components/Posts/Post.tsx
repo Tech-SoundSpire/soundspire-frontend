@@ -80,7 +80,7 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
     }
 
     return (
-        <div className="post rounded-xl bg-white w-[768px] max-w-full mb-4 shadow-lg" id="me">
+        <div className="post rounded-xl bg-white w-full max-w-[768px] mb-4 shadow-lg" id="me">
             <div className="post-header flex items-center p-4">
                 <img
                     src={

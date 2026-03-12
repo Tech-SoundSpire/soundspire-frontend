@@ -91,10 +91,10 @@ export default function Page() {
 
     return (
         <div className="flex">
-            <main className="ml-[54px] px-8 py-6 w-[70%]">
+            <main className="md:ml-[54px] px-4 md:px-8 py-6 w-full md:w-[70%]">
                 {/* Header */}
                 <div className="flex items-center mt-6 mb-8 w-full">
-                    <h1 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px] flex-shrink-0`}>
+                    <h1 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px] flex-shrink-0`}>
                         POSTS
                     </h1>
                     <div className="flex-1 flex justify-center">
@@ -136,7 +136,7 @@ export default function Page() {
 
             {/* Right Sidebar */}
             <div
-                className="fixed right-0 w-[330px] h-full p-6 border-l border-[rgba(90,90,90,0.50)]"
+                className="fixed right-0 w-[330px] h-full p-6 border-l border-[rgba(90,90,90,0.50)] hidden md:block"
                 style={{ background: "rgba(0,0,0,0.20)" }}
             >
                 <h2 className={`${montserrat} text-[#FAF9F6] text-[24px] font-bold leading-[29px] mb-8 mt-6`}>

@@ -108,7 +108,7 @@ export default function NotificationsPage() {
 
     if (loading) {
         return (
-            <div className="ml-[54px] px-8 py-6 flex items-center justify-center min-h-screen">
+            <div className="md:ml-[54px] px-8 py-6 flex items-center justify-center min-h-screen">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF4E27]" />
             </div>
         );
@@ -121,7 +121,7 @@ export default function NotificationsPage() {
     ];
 
     return (
-        <div className="ml-[54px] px-8 py-6 flex flex-col text-white min-h-screen">
+        <div className="md:ml-[54px] px-8 py-6 flex flex-col text-white min-h-screen">
             {/* Back button + Content side by side */}
             <div className="flex gap-6">
                 <button
@@ -132,7 +132,7 @@ export default function NotificationsPage() {
                 </button>
 
                 <div className="w-full max-w-[954px] mx-auto flex flex-col gap-6">
-                    <h1 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px] mb-4`}>
+                    <h1 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px] mb-4`}>
                         NOTIFICATIONS
                     </h1>
                 {sections.map(({ key, label, items }) => (

@@ -1,5 +1,6 @@
 "use client";
 import Navbar from "@/components/Navbar";
+import MobileNav from "@/components/MobileNav";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
@@ -57,8 +58,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <div className="min-h-screen" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
-            <Navbar />
+        <div className="min-h-screen pb-16 md:pb-0" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
+            <div className="hidden md:block"><Navbar /></div>
+            <MobileNav />
             {children}
         </div>
     );
