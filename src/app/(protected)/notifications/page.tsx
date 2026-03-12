@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { FaArrowLeftLong, FaChevronDown } from "react-icons/fa6";
 import { getFontClass } from "@/utils/getFontClass";
 import { getImageUrl, DEFAULT_PROFILE_IMAGE } from "@/utils/userProfileImageUtils";
@@ -76,10 +77,10 @@ export default function NotificationsPage() {
     const renderGroup = (items: NotificationItem[]) => {
         if (items.length === 0) return <p className={`${montserrat} text-[#6b7280] text-[16px]`}>No notifications</p>;
         return items.map((n) => (
-            <div
+            <Link
                 key={n.notification_id}
-                onClick={() => router.push(n.link)}
-                className="flex items-center gap-4 py-3 cursor-pointer transition hover:bg-white/5 rounded-lg px-2"
+                href={n.link}
+                className="flex items-center gap-4 py-3 transition hover:bg-white/5 rounded-lg px-2"
             >
                 {/* Avatar */}
                 <img
@@ -101,7 +102,7 @@ export default function NotificationsPage() {
                         <img src={getImageUrl(n.thumbnail)} alt="" className="w-full h-full object-cover" />
                     </div>
                 )}
-            </div>
+            </Link>
         ));
     };
 

@@ -6,6 +6,7 @@ import {
     DEFAULT_PROFILE_IMAGE,
 } from "@/utils/userProfileImageUtils";
 import CarouselBase from "@/components/CarouselBase";
+import Link from "next/link";
 import { getFontClass } from "@/utils/getFontClass";
 
 interface Review {
@@ -86,10 +87,10 @@ export default function ReviewsPage() {
                         autoIntervalSeconds={4}
                         pausable
                     >
-                        <div
-                            className="w-full rounded-[20px] overflow-hidden relative cursor-pointer border border-[#3A3A3A]"
+                        <Link
+                            href={`/reviews/${heroReview.review_id}`}
+                            className="w-full rounded-[20px] overflow-hidden relative cursor-pointer border border-[#3A3A3A] block"
                             style={{ aspectRatio: "2/1", maxHeight: "500px" }}
-                            onClick={() => router.push(`/reviews/${heroReview.review_id}`)}
                         >
                             <img
                                 src={heroReview.image_urls?.[0] || getImageUrl(DEFAULT_PROFILE_IMAGE)}
@@ -101,17 +102,17 @@ export default function ReviewsPage() {
                             <span className={`${montserrat} absolute bottom-6 right-8 text-[#FF4E27] text-[19px] font-bold -rotate-[24deg]`}>
                                 {heroReview.content_type || "Review"}
                             </span>
-                        </div>
+                        </Link>
                     </CarouselBase>
 
                     {/* Title + Author below hero */}
                     <div className="mt-4">
-                        <h2
-                            className={`${montserrat} text-[#F7F7F7] text-[36px] font-bold leading-[43px] cursor-pointer hover:text-[#FFC8BC] transition-colors`}
-                            onClick={() => router.push(`/reviews/${heroReview.review_id}`)}
+                        <Link
+                            href={`/reviews/${heroReview.review_id}`}
+                            className={`${montserrat} text-[#F7F7F7] text-[36px] font-bold leading-[43px] hover:text-[#FFC8BC] transition-colors`}
                         >
                             {heroReview.title}
-                        </h2>
+                        </Link>
                         <p className={`${montserrat} text-[#FF4E27] text-[12px] font-bold leading-[14px] mt-2`}>
                             {heroReview.user?.full_name || heroReview.user?.username || "Unknown"}, {formatDate(heroReview.created_at)}
                         </p>
@@ -124,12 +125,12 @@ export default function ReviewsPage() {
                 <h2 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px]`}>
                     ALL REVIEWS
                 </h2>
-                <button
-                    onClick={() => router.push("/reviews/submit")}
+                <Link
+                    href="/reviews/submit"
                     className="bg-[#FF4E27] hover:bg-[#e5431f] text-white px-6 py-2 rounded-lg font-semibold transition-colors"
                 >
                     Submit Review
-                </button>
+                </Link>
             </div>
 
             {/* Review Cards Grid */}
@@ -163,12 +164,12 @@ export default function ReviewsPage() {
                                     {review.text_content.length > 100 ? "..." : ""}
                                 </p>
                             </div>
-                            <button
-                                className={`${montserrat} mt-auto bg-[#FF4E27] hover:bg-[#e5431f] text-[#F7F7F7] px-4 py-2.5 rounded-[5px] text-[16px] font-medium w-fit`}
-                                onClick={() => router.push(`/reviews/${review.review_id}`)}
+                            <Link
+                                href={`/reviews/${review.review_id}`}
+                                className={`${montserrat} mt-auto bg-[#FF4E27] hover:bg-[#e5431f] text-[#F7F7F7] px-4 py-2.5 rounded-[5px] text-[16px] font-medium w-fit inline-block`}
                             >
                                 Read More
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 ))}
