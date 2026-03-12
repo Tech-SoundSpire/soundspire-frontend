@@ -73,6 +73,13 @@ body {
     scrollbar-color: #ff4e50 rgba(26, 22, 37, 0.1);
 }
 
+.scrollbar-none {
+    scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+
 /* Custom styles */
 .line-clamp-3 {
     display: -webkit-box;

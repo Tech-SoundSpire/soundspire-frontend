@@ -31,18 +31,18 @@ export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
                 style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
                 {mediaUrls.map((url, index) => (
-                    <div key={index} className="min-w-full max-h-[446px] overflow-y-auto bg-[#2a2a2a] text-center">
+                    <div key={index} className="min-w-full h-[446px] bg-[#2a2a2a] flex items-center justify-center">
                         {isVideo(url) ? (
                             <video
                                 src={getImageUrl(url)}
                                 controls
-                                className="inline-block max-w-full h-auto"
+                                className="max-w-full max-h-full object-contain"
                             />
                         ) : (
                             <img
                                 src={getImageUrl(url)}
                                 alt={`Post Image ${index + 1}`}
-                                className="inline-block max-w-full h-auto"
+                                className="max-w-full max-h-full object-contain"
                                 loading="lazy"
                             />
                         )}
