@@ -101,11 +101,11 @@ const Navbar = () => {
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => setIsExpanded(false)}
         >
-            <div className="flex flex-col h-full pt-[45px] px-[7px]">
+            <div className="flex flex-col h-full pt-[45px] px-[7px] overflow-hidden">
                 {/* Logo */}
                 <Link
                     href={getHomeRoute()}
-                    className="flex items-center gap-4 mb-[52px]"
+                    className="flex items-center gap-4 mb-[24px] flex-shrink-0"
                 >
                     <div className="w-[40px] h-[40px] flex-shrink-0">
                         <img
@@ -126,7 +126,7 @@ const Navbar = () => {
                 </Link>
 
                 {/* Navigation Items */}
-                <div className="flex flex-col" style={{ gap: "48px" }}>
+                <div className="flex flex-col flex-1 min-h-0 overflow-y-auto gap-[clamp(12px,4vh,48px)] scrollbar-none" style={{ scrollbarWidth: "none" }}>
                     {menuItems.map((item, index) => {
                         const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
                         return (
@@ -167,7 +167,7 @@ const Navbar = () => {
 
                 {/* Role Switch Button */}
                 {user && (user.isAlsoArtist || user.role === "artist") && (
-                    <div className="mt-auto mb-6">
+                    <div className="mt-auto mb-4 flex-shrink-0">
                         <div className="w-full h-px bg-[#767474] mb-4" />
                         <button
                             onClick={async () => {

@@ -100,9 +100,7 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
 
             <div className="post-body mb-1">
                 {post.media_urls && post.media_urls.length > 0 && (
-                    <div className="max-h-[446px] overflow-hidden">
-                        <MediaCarousel mediaUrls={post.media_urls} />
-                    </div>
+                    <MediaCarousel mediaUrls={post.media_urls} />
                 )}
                 {!post.media_urls || post.media_urls.length === 0 ? (
                     post.content_text && (
