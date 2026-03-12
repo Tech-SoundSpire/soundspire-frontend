@@ -114,10 +114,10 @@ export default function ExplorePage() {
 
     return (
         <div className="min-h-screen">
-            <main className="ml-[54px] px-8 py-6">
+            <main className="md:ml-[54px] px-4 md:px-8 py-6">
                 {/* Header: Title + Search */}
-                <div className="flex items-center mb-8">
-                    <h1 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px] flex-shrink-0`}>
+                <div className="flex flex-col md:flex-row items-start md:items-center mb-8 gap-4">
+                    <h1 className={`${montserrat} text-[#FFD3C9] text-[32px] md:text-[47px] font-bold leading-[40px] md:leading-[56px] flex-shrink-0`}>
                         Explore
                     </h1>
                     <div className="flex-1 flex justify-center">
@@ -132,7 +132,7 @@ export default function ExplorePage() {
                 {/* Suggested Artists */}
                 <section className="mb-12">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px]`}>
+                        <h2 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px]`}>
                             SUGGESTED ARTISTS
                         </h2>
                         <button
@@ -173,7 +173,7 @@ export default function ExplorePage() {
                                 const name = artist.name || artist.artist_name;
                                 return (
                                     <Link key={artist.artist_id} className="text-center" href={href}>
-                                        <img src={imgSrc} alt={name} className="w-[138px] h-[138px] rounded-full object-cover mb-2 mx-auto" />
+                                        <img src={imgSrc} alt={name} className="w-[80px] h-[80px] md:w-[138px] md:h-[138px] rounded-full object-cover mb-2 mx-auto" />
                                         <span className={`${montserrat} text-white text-[16px] font-medium truncate block`}>{name}</span>
                                     </Link>
                                 );
@@ -189,7 +189,7 @@ export default function ExplorePage() {
                                 const name = artist.name || artist.artist_name;
                                 return (
                                     <Link key={artist.artist_id} className="flex-shrink-0 text-center" href={href}>
-                                        <img src={imgSrc} alt={name} className="w-[138px] h-[138px] rounded-full object-cover mb-2" />
+                                        <img src={imgSrc} alt={name} className="w-[80px] h-[80px] md:w-[138px] md:h-[138px] rounded-full object-cover mb-2" />
                                         <span className={`${montserrat} text-white text-[16px] font-medium max-w-[138px] truncate block`}>{name}</span>
                                     </Link>
                                 );
@@ -201,7 +201,7 @@ export default function ExplorePage() {
                 {/* Reviews */}
                 <section className="mb-12">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px]`}>
+                        <h2 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px]`}>
                             REVIEWS
                         </h2>
                         <Link href="/reviews" className={`${montserrat} text-[#F7F7F7] text-[16px] font-medium hover:text-[#FFD3C9] transition-colors`}>
@@ -213,7 +213,7 @@ export default function ExplorePage() {
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500" />
                         </div>
                     ) : (
-                        <div className="grid grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {reviews.slice(0, 3).map((review) => (
                                 <div
                                     key={review.review_id}
@@ -260,7 +260,7 @@ export default function ExplorePage() {
                 {/* Discover by Genre */}
                 <section>
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px]`}>
+                        <h2 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px]`}>
                             DISCOVER BY GENRE
                         </h2>
                     </div>

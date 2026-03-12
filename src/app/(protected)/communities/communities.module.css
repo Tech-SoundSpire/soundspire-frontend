@@ -6,8 +6,15 @@
     justify-content: flex-start;
     flex-direction: column;
     padding: 1rem;
-    gap: 4rem;
-    padding-left: calc(var(--navbar-collapsed) + 2rem);
+    gap: 2rem;
+    padding-bottom: 5rem;
+}
+@media (min-width: 768px) {
+    .main {
+        padding-left: calc(var(--navbar-collapsed) + 2rem);
+        gap: 4rem;
+        padding-bottom: 1rem;
+    }
 }
 .intro {
     display: flex;
@@ -16,6 +23,7 @@
     width: 100%;
     align-items: flex-end;
     justify-content: flex-start;
+    flex-wrap: wrap;
 }
 .navigation {
     display: flex;
@@ -23,9 +31,10 @@
     justify-content: flex-start;
     flex: 1;
     gap: 1rem;
+    min-width: 0;
 }
 .navigation a {
-    padding: 1rem;
+    padding: 0.75rem;
     display: flex;
     align-items: center;
     font-size: var(--large-text);
@@ -46,9 +55,15 @@
 .search {
     display: flex;
     align-items: center;
-    flex: 0.5;
+    flex: 1;
     justify-content: flex-end;
-    gap: 2rem;
+    gap: 1rem;
+}
+@media (min-width: 768px) {
+    .search {
+        flex: 0.5;
+        gap: 2rem;
+    }
 }
 .search-bar {
     display: flex;
@@ -68,9 +83,14 @@
 }
 .search-bar input {
     background-color: transparent;
-    font-size: var(--large-text);
+    font-size: var(--normal-text);
     width: 100%;
     color: #fff;
+}
+@media (min-width: 768px) {
+    .search-bar input {
+        font-size: var(--large-text);
+    }
 }
 .search-bar input:focus {
     outline: none;
@@ -82,8 +102,15 @@
 .profile-picture {
     aspect-ratio: 1;
     border-radius: 50%;
-    flex: 0.1;
+    width: 40px;
     overflow: hidden;
+    flex-shrink: 0;
+}
+@media (min-width: 768px) {
+    .profile-picture {
+        flex: 0.1;
+        width: auto;
+    }
 }
 .profile-picture img {
     width: 100%;
@@ -94,12 +121,30 @@
     display: grid;
     align-items: stretch;
     justify-items: start;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4rem;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
     width: 100%;
 }
+@media (min-width: 640px) {
+    .communities {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+}
+@media (min-width: 1024px) {
+    .communities {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3rem;
+    }
+}
+@media (min-width: 1280px) {
+    .communities {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4rem;
+    }
+}
 .community-card {
-    min-height: 320px;
+    min-height: 280px;
     background-color: #2e2041;
     width: 100%;
     border-radius: 1vw;
@@ -108,6 +153,11 @@
     align-items: center;
     justify-content: flex-start;
     flex-direction: column;
+}
+@media (min-width: 768px) {
+    .community-card {
+        min-height: 320px;
+    }
 }
 .community-card .cover-image {
     width: 100%;
@@ -141,6 +191,7 @@
     align-items: center;
     justify-content: center;
     gap: 1rem;
+    flex-wrap: wrap;
 }
 .listeners,
 .genres {
@@ -157,16 +208,23 @@
 }
 .community-link {
     background-color: #ff4e27;
-    padding: 1rem;
+    padding: 0.75rem 1rem;
     border-radius: var(--radius);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: 0.5rem;
     font-size: var(--normal-text);
     color: #f0f0f0;
     transition: background-color 0.3s ease-out;
-    width: 50%;
+    width: 80%;
+}
+@media (min-width: 768px) {
+    .community-link {
+        width: 50%;
+        padding: 1rem;
+        gap: 1rem;
+    }
 }
 .community-link:hover {
     background-color: #b4381c;

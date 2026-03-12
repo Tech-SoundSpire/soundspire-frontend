@@ -348,7 +348,7 @@ export default function ProfilePage() {
     };
 
     const montserrat = getFontClass("montserrat");
-    const glassInput = "w-[280px] h-[44px] px-4 py-1 rounded-lg border border-[#F7F7F7] text-white text-[16px] font-medium flex items-center";
+    const glassInput = "w-full h-[44px] px-4 py-1 rounded-lg border border-[#F7F7F7] text-white text-[16px] font-medium flex items-center";
     const glassInputBg = { background: "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(153,153,153,0.08) 100%)" };
 
     if (!user) {
@@ -361,7 +361,7 @@ export default function ProfilePage() {
 
     return (
         <div className="min-h-screen">
-            <main className="ml-[54px] px-8 py-6">
+            <main className="md:ml-[54px] px-8 py-6">
                 {/* Back button — outside centered container */}
                 <button
                     onClick={() => router.back()}
@@ -372,7 +372,7 @@ export default function ProfilePage() {
                 <div className="max-w-[1100px] mx-auto">
                     {/* Header: title + edit button */}
                     <div className="flex items-center justify-between mb-8">
-                        <h1 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px]`}>
+                        <h1 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px]`}>
                             PROFILE
                         </h1>
                         <div className="flex gap-4">
@@ -421,7 +421,7 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Form Fields — 4 column grid */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-6 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-6 mb-8">
                         <div>
                             <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>Email</label>
                             <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>{profile.email || "Not provided"}</div>

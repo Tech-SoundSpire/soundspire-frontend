@@ -68,9 +68,9 @@ export default function ReviewsPage() {
     };
 
     return (
-        <div className="min-h-screen ml-[54px] px-8 py-6">
+        <div className="min-h-screen md:ml-[54px] px-8 py-6">
             {/* Page Title */}
-            <h1 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px] mb-8`}>
+            <h1 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px] mb-8`}>
                 EXPLORE ALL REVIEWS
             </h1>
 
@@ -122,7 +122,7 @@ export default function ReviewsPage() {
 
             {/* ALL REVIEWS heading + Submit button */}
             <div className="flex justify-between items-center mt-12 mb-6">
-                <h2 className={`${montserrat} text-[#FFD3C9] text-[47px] font-bold leading-[56px]`}>
+                <h2 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px]`}>
                     ALL REVIEWS
                 </h2>
                 <Link
@@ -134,7 +134,7 @@ export default function ReviewsPage() {
             </div>
 
             {/* Review Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[56px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-[56px]">
                 {reviews.map((review) => (
                     <div
                         key={review.review_id}

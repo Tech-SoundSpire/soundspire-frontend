@@ -31,7 +31,7 @@ export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
                 style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
                 {mediaUrls.map((url, index) => (
-                    <div key={index} className="min-w-full h-[446px] bg-[#2a2a2a] flex items-center justify-center">
+                    <div key={index} className="min-w-full h-[280px] md:h-[446px] bg-[#2a2a2a] flex items-center justify-center">
                         {isVideo(url) ? (
                             <video
                                 src={getImageUrl(url)}
