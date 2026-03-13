@@ -15,6 +15,7 @@ import { useAuth } from "@/context/AuthContext";
 import { communitySubscriptionData } from "@/types/communitySubscription";
 import styles from "./community_profile.module.css";
 import Navbar from "@/components/Navbar";
+import MobileNav from "@/components/MobileNav";
 import CommunityHeader from "@/components/CommunityHeader";
 import { FaFacebook, FaInstagram, FaTiktok, FaYoutube } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
@@ -73,7 +74,8 @@ export default function ArtistCommunityProfile() {
     if (!user)
         return (
             <>
-                <Navbar />
+                <div className="hidden md:block"><Navbar /></div>
+                <MobileNav />
                 <div>
                     <BaseHeading>User not found...</BaseHeading>
                 </div>
@@ -82,7 +84,7 @@ export default function ArtistCommunityProfile() {
     if (loading) {
         return (
             <>
-                {user.role !== "artist" && <Navbar />}
+                {user?.role !== "artist" && <><div className="hidden md:block"><Navbar /></div><MobileNav /></>}
                 <div>
                     <BaseHeading>Loading...</BaseHeading>
                 </div>
@@ -92,7 +94,7 @@ export default function ArtistCommunityProfile() {
     if (!artist) {
         return (
             <>
-                {user.role !== "artist" && <Navbar />}
+                {user?.role !== "artist" && <><div className="hidden md:block"><Navbar /></div><MobileNav /></>}
 
                 <div className="min-h-screen bg-[#1a1625] text-white flex flex-col items-center justify-center">
                     <BaseText>No artist data found.</BaseText>
@@ -193,8 +195,8 @@ export default function ArtistCommunityProfile() {
               }`;
     return (
         <>
-            {user?.role !== "artist" && <Navbar />}
-            <div className="min-h-screen text-white flex flex-col" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
+            {user?.role !== "artist" && <><div className="hidden md:block"><Navbar /></div><MobileNav /></>}
+            <div className="min-h-screen text-white flex flex-col pb-16 md:pb-0" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
                 <CommunityHeader
                     slug={slug as string}
                     communityName={artist.community?.name}

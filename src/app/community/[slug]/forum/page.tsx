@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import CommunityHeader from "@/components/CommunityHeader";
 import Navbar from "@/components/Navbar";
+import MobileNav from "@/components/MobileNav";
 import { FaImage, FaPaperPlane, FaTimes } from "react-icons/fa";
 import { PostProps } from "@/lib/types";
 import ForumPost from "@/components/ForumPost";
@@ -217,7 +218,7 @@ export default function ArtistForumPage() {
     if (!isSubscribed && !isArtist) {
         return (
             <div className="min-h-screen bg-[#1a1625] text-white flex items-center justify-center">
-                {user?.role !== "artist" && <Navbar />}
+                {user?.role !== "artist" && <><div className="hidden md:block"><Navbar /></div><MobileNav /></>}
                 <div className="text-center">
                     <p className="text-xl mb-4">Subscribe to access the Artist Forum</p>
                     <button onClick={() => router.push(`/community/${slug}`)} className="px-6 py-2 bg-[#FA6400] rounded-lg hover:bg-[#e55a00] transition">
@@ -230,7 +231,7 @@ export default function ArtistForumPage() {
 
     return (
         <div className="min-h-screen text-white" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
-            {user?.role !== "artist" && <Navbar />}
+            {user?.role !== "artist" && <><div className="hidden md:block"><Navbar /></div><MobileNav /></>}
             <CommunityHeader
                 slug={slug}
                 communityName={communityData?.community_name || ""}
@@ -239,7 +240,7 @@ export default function ArtistForumPage() {
                 currentPage="forum"
             />
 
-            <div className="w-full px-6 pt-20 pb-8 ml-16">
+            <div className="w-full px-4 md:px-6 pt-20 pb-20 md:pb-8 md:ml-16">
                 <div className="max-w-4xl mx-auto">
                     {isArtist && (
                         <div className="bg-[#2d2838] rounded-xl p-6 mb-6 shadow-lg border border-gray-700/50">

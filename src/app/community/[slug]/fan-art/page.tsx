@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useCommunityPresence } from '@/hooks/useCommunityPresence';
 import CommunityHeader from '@/components/CommunityHeader';
 import Navbar from '@/components/Navbar';
+import MobileNav from '@/components/MobileNav';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 interface Comment {
@@ -668,7 +669,7 @@ export default function FanArtPage() {
   
   return (
     <div className="flex h-screen" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
-      {user?.role !== "artist" && <Navbar />}
+      {user?.role !== "artist" && <><div className="hidden md:block"><Navbar /></div><MobileNav /></>}
       <CommunityHeader 
         slug={slug}
         communityName={communityData?.community_name}
@@ -678,7 +679,7 @@ export default function FanArtPage() {
       />
       
       {/* Left Sidebar - Community Info */}
-      <div className={`bg-[#1a0a2e] border-r border-gray-700 flex flex-col mt-16 transition-all duration-300 ${!isArtist ? 'ml-16' : ''} ${isSidebarCollapsed ? 'w-0 overflow-hidden' : 'w-80'}`}>
+      <div className={`bg-[#1a0a2e] border-r border-gray-700 flex flex-col mt-16 transition-all duration-300 ${!isArtist ? 'md:ml-16' : ''} ${isSidebarCollapsed ? 'w-0 overflow-hidden' : 'w-64 md:w-80'}`}>
         {/* Community Header */}
         <div className="p-6 border-b border-gray-700">
           <div className="flex flex-col items-center text-center">
