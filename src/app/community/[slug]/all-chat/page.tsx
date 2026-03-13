@@ -78,6 +78,8 @@ export default function AllChatPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+    const [newMessageCount, setNewMessageCount] = useState(0);
+    const lastVisitKey = `allchat-lastvisit-${slug}`;
     const [showReactionPicker, setShowReactionPicker] = useState<string | null>(
         null
     );
@@ -426,6 +428,19 @@ export default function AllChatPage() {
             );
 
             setMessages(messagesWithUsers);
+
+            // Calculate new messages since last visit
+            const lastVisit = localStorage.getItem(lastVisitKey);
+            if (lastVisit) {
+                const lastVisitTime = new Date(lastVisit).getTime();
+                const newCount = messagesWithUsers.filter((m: Message) => new Date(m.created_at).getTime() > lastVisitTime).length;
+                setNewMessageCount(newCount);
+            } else {
+                setNewMessageCount(messagesWithUsers.length);
+            }
+            // Update last visit time
+            localStorage.setItem(lastVisitKey, new Date().toISOString());
+
             setTimeout(scrollToBottom, 100);
         } catch (error) {
             console.error("Error fetching messages:", error);
@@ -854,9 +869,9 @@ export default function AllChatPage() {
                                     <span className="text-gray-400">
                                         community joined 12.06.25
                                     </span>
-                                    {messages.length > 0 && (
+                                    {newMessageCount > 0 && (
                                         <span className="text-[#FA6400]">
-                                            {messages.length} new messages
+                                            {newMessageCount} new message{newMessageCount !== 1 ? "s" : ""}
                                         </span>
                                     )}
                                 </div>
