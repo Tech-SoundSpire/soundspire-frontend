@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import Comment from "@/components/Posts/PostComment";
 import { CommentProps, PostProps } from "@/lib/types";
 import MediaCarousel from "@/components/Posts/PostCarousel";
+import Link from "next/link";
 import {
     getImageUrl,
     DEFAULT_PROFILE_IMAGE,
@@ -81,7 +82,7 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
 
     return (
         <div className="post rounded-xl bg-white w-full max-w-[768px] mb-4 shadow-lg" id="me">
-            <div className="post-header flex items-center p-4">
+            <Link href={post.artist.slug ? `/community/${post.artist.slug}` : "#"} className="post-header flex items-center p-4 hover:bg-gray-50 transition-colors rounded-t-xl">
                 <img
                     src={
                         post.artist.profile_picture_url
@@ -96,7 +97,7 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
                 <BaseText wrapper="span" fontWeight={700} fontName="inter">
                     {post.artist.artist_name}
                 </BaseText>
-            </div>
+            </Link>
 
             <div className="post-body mb-1">
                 {post.media_urls && post.media_urls.length > 0 && (
@@ -174,7 +175,9 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
                             fontWeight={700}
                             fontSize="normal"
                         >
-                            {post.artist.artist_name}
+                            <Link href={post.artist.slug ? `/community/${post.artist.slug}` : "#"} className="hover:underline">
+                                {post.artist.artist_name}
+                            </Link>
                         </BaseText>
                         {post.content_text}
                     </BaseText>

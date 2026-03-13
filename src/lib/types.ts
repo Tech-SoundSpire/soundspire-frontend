@@ -20,6 +20,7 @@ export interface CommentProps{
 export interface Artist{
     artist_name : string;
     profile_picture_url : string | null;
+    slug? : string;
 }
 
 export interface PostProps {
