@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, ReactNode } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import BaseText from "./BaseText/BaseText";
 
 interface Comment {
@@ -13,6 +14,15 @@ interface Comment {
         profile_picture_url?: string;
         full_name?: string;
     };
+}
+
+function renderMentions(text: string): ReactNode[] {
+    const parts = text.split(/(@[\w\-\.]+)/g);
+    return parts.map((part, i) =>
+        /^@[\w\-\.]+$/.test(part)
+            ? <span key={i} style={{ color: "#FF4E27", fontWeight: 700 }}>{part}</span>
+            : part
+    );
 }
 
 async function fetchCommentLikeCount(comment_id: string): Promise<number> {
@@ -58,51 +68,47 @@ export default function CommentsSection({
     const [loading, setLoading] = useState(false);
     const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
     const [pendingLikes, setPendingLikes] = useState<Set<string>>(new Set());
-    // Use ref to track pending requests for immediate checks (before state updates)
     const pendingLikesRef = useRef<Set<string>>(new Set());
 
+    const fetchComments = useRef<() => Promise<void>>();
+    
+    const doFetchComments = async () => {
+        try {
+            const res = await fetch(`/api/reviews/${reviewId}/comments`);
+            const commentsResponse = await res.json();
+            const commentsArray: Comment[] = Array.isArray(commentsResponse)
+                ? commentsResponse
+                : commentsResponse?.comments || [];
+
+            const likedIds: string[] = [];
+            const withLikes = await Promise.all(
+                commentsArray.map(async (c: Comment) => {
+                    const likes = c.comment_id ? await fetchCommentLikeCount(c.comment_id) : 0;
+                    const liked = c.comment_id && userId ? await fetchCommentLikeStatus(c.comment_id, userId) : false;
+                    if (liked && c.comment_id) likedIds.push(c.comment_id);
+                    return { ...c, likes };
+                })
+            );
+            setComments(withLikes);
+            setLikedComments(new Set(likedIds));
+        } catch (error) {
+            console.error("Error fetching comments:", error);
+        }
+    };
+
+    fetchComments.current = doFetchComments;
+
+    useEffect(() => { doFetchComments(); }, [reviewId, userId]);
+
+    // Realtime: refetch on any comment or like change for this review
     useEffect(() => {
-        fetch(`/api/reviews/${reviewId}/comments`)
-            .then((res) => res.json())
-            .then(async (commentsResponse) => {
-                const commentsArray: Comment[] = Array.isArray(commentsResponse)
-                    ? commentsResponse
-                    : [];
-                const likedIds: string[] = [];
-
-                const withLikes = await Promise.all(
-                    commentsArray.map(async (c: Comment) => {
-                        const likes = c.comment_id
-                            ? await fetchCommentLikeCount(c.comment_id)
-                            : 0;
-                        const liked =
-                            c.comment_id && userId
-                                ? await fetchCommentLikeStatus(
-                                      c.comment_id,
-                                      userId
-                                  )
-                                : false;
-
-                        if (liked && c.comment_id) {
-                            likedIds.push(c.comment_id);
-                        }
-
-                        return {
-                            ...c,
-                            likes,
-                        };
-                    })
-                );
-
-                setComments(withLikes);
-                setLikedComments(new Set(likedIds));
-            })
-            .catch((error) => {
-                console.error("Error fetching comments:", error);
-                setComments([]);
-                setLikedComments(new Set());
-            });
-    }, [reviewId, userId]);
+        const channel = supabase
+            .channel(`review-comments:${reviewId}`)
+            .on("postgres_changes", { event: "*", schema: "public", table: "comments", filter: `review_id=eq.${reviewId}` }, () => { fetchComments.current?.(); })
+            .on("postgres_changes", { event: "*", schema: "public", table: "likes" }, () => { fetchComments.current?.(); })
+            .subscribe();
+        return () => { channel.unsubscribe(); };
+    }, [reviewId]);
 
     const handleAddComment = async () => {
         if (!newComment.trim()) return;
@@ -114,13 +120,8 @@ export default function CommentsSection({
                 body: JSON.stringify({ user_id: userId, content: newComment }),
             });
             if (!res.ok) throw new Error("Failed to add comment");
-
-            const comment = await res.json();
-            const likes = comment.comment_id
-                ? await fetchCommentLikeCount(comment.comment_id)
-                : 0;
-            setComments([{ ...comment, replies: [], likes }, ...comments]);
             setNewComment("");
+            await doFetchComments();
         } catch (error) {
             console.error("Error adding comment:", error);
         } finally {
@@ -128,30 +129,20 @@ export default function CommentsSection({
         }
     };
 
-    const handleAddReply = async (parentId: string, replyText: string) => {
+    const handleAddReply = async (parentId: string, replyText: string, parentUsername?: string) => {
         if (!replyText.trim() || !parentId) return;
+        const mentionPrefix = parentUsername ? `@${parentUsername} ` : "";
+        const content = mentionPrefix + replyText;
         try {
             const res = await fetch(`/api/comments/${parentId}/replies`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_id: userId, content: replyText }),
+                body: JSON.stringify({ user_id: userId, content }),
             });
             if (!res.ok) throw new Error("Failed to add reply");
 
             const reply = await res.json();
-            setComments((comments) =>
-                comments.map((c) =>
-                    c.comment_id === parentId
-                        ? {
-                              ...c,
-                              replies: [
-                                  ...(c.replies || []),
-                                  { ...reply, replies: [], likes: 0 },
-                              ],
-                          }
-                        : c
-                )
-            );
+            await doFetchComments();
         } catch (error) {
             console.error("Error adding reply:", error);
         }
@@ -234,7 +225,7 @@ export default function CommentsSection({
 
     return (
         <div className="mt-8 bg-[#231b32] rounded-lg p-6">
-            <div className="mb-4 flex">
+            <div className="mb-4 flex items-center">
                 <input
                     className="flex-1 rounded-l px-3 py-2 bg-[#2d2838] text-white focus:outline-none"
                     placeholder="Add a comment..."
@@ -289,10 +280,11 @@ export default function CommentsSection({
                             </button>
                         </div>
                         <div className="text-gray-200 mb-1">
-                            {comment.content}
+                            {renderMentions(comment.content)}
                         </div>
                         <RepliesSection
                             parentId={comment.comment_id}
+                            parentUsername={comment.user?.username || "user"}
                             replies={comment.replies || []}
                             onAddReply={handleAddReply}
                         />
@@ -305,14 +297,23 @@ export default function CommentsSection({
 
 function RepliesSection({
     parentId,
+    parentUsername,
     replies,
     onAddReply,
 }: {
     parentId: string;
+    parentUsername: string;
     replies: Comment[];
-    onAddReply: (parentId: string, replyText: string) => void;
+    onAddReply: (parentId: string, replyText: string, parentUsername?: string) => void;
 }) {
     const [replyText, setReplyText] = useState("");
+
+    const handleSubmit = () => {
+        if (!replyText.trim()) return;
+        onAddReply(parentId, replyText, parentUsername);
+        setReplyText("");
+    };
+
     return (
         <div className="ml-6 mt-2">
             {replies.map((reply) => (
@@ -330,27 +331,21 @@ function RepliesSection({
                         {reply.user?.username || "Unknown User"}
                     </BaseText>
                     <BaseText textColor="#e5e7eb" wrapper="span">
-                        {reply.content}
+                        {renderMentions(reply.content)}
                     </BaseText>
                 </div>
             ))}
-            <div className="flex mt-1">
+            <div className="flex items-center mt-1">
+                <span className="text-[#FF4E27] font-bold text-sm mr-1 flex-shrink-0">@{parentUsername}</span>
                 <input
                     className="flex-1 rounded-l px-2 py-1 bg-[#2d2838] text-white focus:outline-none text-sm"
                     placeholder="Reply..."
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
-                    onKeyDown={(e) =>
-                        e.key === "Enter" &&
-                        onAddReply(parentId, replyText) &&
-                        setReplyText("")
-                    }
+                    onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                 />
                 <button
-                    onClick={() => {
-                        onAddReply(parentId, replyText);
-                        setReplyText("");
-                    }}
+                    onClick={handleSubmit}
                     className="bg-purple-600 text-white px-2 py-1 rounded-r text-sm"
                 >
                     Reply
