@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         {
           model: Artist,
           as: 'artist',
-          attributes: ['artist_id', 'artist_name', 'profile_picture_url']
+          attributes: ['artist_id', 'artist_name', 'profile_picture_url', 'slug']
         },
         {
           model: Comment,
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
         {
           model: Artist,
           as: 'artist',
-          attributes: ['artist_id', 'artist_name', 'profile_picture_url']
+          attributes: ['artist_id', 'artist_name', 'profile_picture_url', 'slug']
         },
         {
           model: Comment,
