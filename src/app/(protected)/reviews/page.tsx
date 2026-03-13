@@ -114,7 +114,7 @@ export default function ReviewsPage() {
                             {heroReview.title}
                         </Link>
                         <p className={`${montserrat} text-[#FF4E27] text-[12px] font-bold leading-[14px] mt-2`}>
-                            {heroReview.user?.full_name || heroReview.user?.username || "Unknown"}, {formatDate(heroReview.created_at)}
+                            {formatDate(heroReview.created_at)}
                         </p>
                     </div>
                 </div>
