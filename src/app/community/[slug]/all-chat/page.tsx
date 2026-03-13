@@ -9,6 +9,7 @@ import { getImageUrl } from "@/utils/userProfileImageUtils";
 import { useCommunityPresence } from "@/hooks/useCommunityPresence";
 import CommunityHeader from "@/components/CommunityHeader";
 import Navbar from "@/components/Navbar";
+import MobileNav from "@/components/MobileNav";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 interface Message {
@@ -645,8 +646,8 @@ export default function AllChatPage() {
     }
 
     return (
-        <div className={`flex h-screen ${user?.role !== "artist" ? "ml-[54px]" : ""}`} style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
-            {user?.role !== "artist" && <Navbar />}
+        <div className={`flex h-screen ${user?.role !== "artist" ? "md:ml-[54px]" : ""}`} style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
+            {user?.role !== "artist" && <><div className="hidden md:block"><Navbar /></div><MobileNav /></>}
             <CommunityHeader
                 slug={slug}
                 communityName={communityData?.community_name}
@@ -658,7 +659,7 @@ export default function AllChatPage() {
             {/* Left Sidebar - Community Info */}
             <div
                 className={`bg-[#1a0a2e] border-r border-gray-700 flex flex-col mt-16 transition-all duration-300 ${
-                    isSidebarCollapsed ? "w-0 overflow-hidden" : "w-80"
+                    isSidebarCollapsed ? "w-0 overflow-hidden" : "w-64 md:w-80"
                 }`}
             >
                 {/* Back button for user view */}
