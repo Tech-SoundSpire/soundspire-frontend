@@ -56,6 +56,7 @@ export default function ArtistDashboard() {
     const [editBio, setEditBio] = useState("");
     const [editSocials, setEditSocials] = useState<{ platform: string; url: string }[]>([]);
     const [saving, setSaving] = useState(false);
+    const [imgCacheBust, setImgCacheBust] = useState(Date.now());
     const profileInputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -103,18 +104,27 @@ export default function ArtistDashboard() {
     const uploadImage = async (file: File, type: "profile" | "cover"): Promise<string | null> => {
         try {
             const ext = file.name.split(".").pop();
-            const fileName = `images/artists/${artist!.artist_id}-${type}.${ext}`;
+            const fileName = `images/artists/${artist!.artist_id}-${type}-${Date.now()}.${ext}`;
             const res = await fetch("/api/upload", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ fileName, fileType: file.type }),
             });
-            if (!res.ok) throw new Error();
+            if (!res.ok) {
+                const err = await res.json();
+                // console.error("Upload URL error:", err);
+                throw new Error("Failed to get upload URL");
+            }
             const { uploadUrl } = await res.json();
             const up = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-            if (!up.ok) throw new Error();
+            if (!up.ok) {
+                const text = await up.text();
+                // console.error("S3 upload failed:", up.status, text);
+                throw new Error("S3 upload failed");
+            }
             return `s3://soundspirewebsiteassets/${fileName}`;
-        } catch {
+        } catch (e) {
+            // console.error("uploadImage error:", e);
             toast.error(`Failed to upload ${type} image`);
             return null;
         }
@@ -136,7 +146,12 @@ export default function ArtistDashboard() {
         });
         if (res.ok) {
             setArtist({ ...artist, ...(type === "profile" ? { profile_picture_url: s3Path } : { cover_photo_url: s3Path }) });
+            setImgCacheBust(Date.now());
             toast.success(`${type === "profile" ? "Profile" : "Cover"} photo updated`);
+        } else {
+            const err = await res.json();
+            // console.error("Artist edit API error:", err);
+            toast.error("Failed to update image in database");
         }
     };
 
@@ -179,8 +194,8 @@ export default function ArtistDashboard() {
         );
     }
 
-    const profileImg = artist.profile_picture_url ? getImageUrl(artist.profile_picture_url) : getImageUrl(DEFAULT_PROFILE_IMAGE);
-    const coverImg = artist.cover_photo_url ? getImageUrl(artist.cover_photo_url) : getImageUrl(DEFAULT_PROFILE_IMAGE);
+    const profileImg = artist.profile_picture_url ? `${getImageUrl(artist.profile_picture_url)}?v=${imgCacheBust}` : getImageUrl(DEFAULT_PROFILE_IMAGE);
+    const coverImg = artist.cover_photo_url ? `${getImageUrl(artist.cover_photo_url)}?v=${imgCacheBust}` : getImageUrl(DEFAULT_PROFILE_IMAGE);
 
     return (
         <div className="min-h-screen text-white flex flex-col" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>

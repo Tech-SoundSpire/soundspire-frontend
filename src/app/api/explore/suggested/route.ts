@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       : [];
 
     // Merge: DB artists get slug (they're on SoundSpire), SC-only artists don't
-    const dbSlugs = new Set(dbArtists.map((a) => a.artist_name));
+    const dbByName = new Map(dbArtists.map((a) => [a.artist_name.toLowerCase(), a]));
     const merged = [
       ...dbArtists.map((a) => ({
         artist_id: a.artist_id,
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         onSoundSpire: true,
       })),
       ...scArtists
-        .filter((a: any) => !dbSlugs.has(a.name))
+        .filter((a: any) => !dbByName.has(a.name?.toLowerCase()))
         .map((a: any) => ({
           artist_id: a.soundcharts_uuid,
           name: a.name,

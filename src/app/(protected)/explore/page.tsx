@@ -169,7 +169,7 @@ export default function ExplorePage() {
                                 const href = artist.onSoundSpire === false
                                     ? `/community/sc/${artist.soundcharts_uuid}`
                                     : `/community/${artist.slug}/`;
-                                const imgSrc = artist.imageUrl || artist.profile_picture_url || getImageUrl(DEFAULT_PROFILE_IMAGE);
+                                const imgSrc = getImageUrl(artist.imageUrl || artist.profile_picture_url || DEFAULT_PROFILE_IMAGE);
                                 const name = artist.name || artist.artist_name;
                                 return (
                                     <Link key={artist.artist_id} className="text-center" href={href}>
@@ -185,7 +185,7 @@ export default function ExplorePage() {
                                 const href = artist.onSoundSpire === false
                                     ? `/community/sc/${artist.soundcharts_uuid}`
                                     : `/community/${artist.slug}/`;
-                                const imgSrc = artist.imageUrl || artist.profile_picture_url || getImageUrl(DEFAULT_PROFILE_IMAGE);
+                                const imgSrc = getImageUrl(artist.imageUrl || artist.profile_picture_url || DEFAULT_PROFILE_IMAGE);
                                 const name = artist.name || artist.artist_name;
                                 return (
                                     <Link key={artist.artist_id} className="flex-shrink-0 text-center" href={href}>

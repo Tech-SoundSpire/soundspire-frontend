@@ -90,6 +90,8 @@ export default function FanArtPage() {
   const [commentText, setCommentText] = useState<{ [key: string]: string }>({});
   const [replyingTo, setReplyingTo] = useState<{ postId: string; parentPostId: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [newPostCount, setNewPostCount] = useState(0);
+  const lastVisitKey = `fanart-lastvisit-${slug}`;
   
   useEffect(() => {
     if (user && slug) {
@@ -108,7 +110,7 @@ export default function FanArtPage() {
     try {
       // slug could be either the actual slug OR a UUID (community_id)
       // Try fetching as slug first
-      const artistRes = await fetch(`/api/community/${slug}`);
+      const artistRes = await fetch(`/api/community/${slug}`, { cache: 'no-store' });
       
       let commId: string | null = null;
       let artistData: any = null;
@@ -221,6 +223,17 @@ export default function FanArtPage() {
         );
         
         setPosts(postsWithCounts);
+
+        // Calculate new posts since last visit
+        const lastVisit = localStorage.getItem(lastVisitKey);
+        if (lastVisit) {
+          const lastVisitTime = new Date(lastVisit).getTime();
+          const newCount = postsWithCounts.filter((p: any) => new Date(p.created_at).getTime() > lastVisitTime).length;
+          setNewPostCount(newCount);
+        } else {
+          setNewPostCount(postsWithCounts.length);
+        }
+        localStorage.setItem(lastVisitKey, new Date().toISOString());
       }
     } catch (error) {
       console.error('Error fetching fan art:', error);
@@ -760,8 +773,8 @@ export default function FanArtPage() {
                 <h2 className="text-white text-xl font-bold">{user?.name || 'User'}</h2>
                 <div className="flex items-center gap-3 text-sm">
                   <span className="text-gray-400">community joined 12.06.25</span>
-                  {posts.length > 0 && (
-                    <span className="text-[#FA6400]">{posts.length} new messages</span>
+                  {newPostCount > 0 && (
+                    <span className="text-[#FA6400]">{newPostCount} new post{newPostCount !== 1 ? "s" : ""}</span>
                   )}
                 </div>
               </div>

@@ -132,7 +132,7 @@ export default function AllChatPage() {
             try {
                 // slug could be either the actual slug OR a UUID (community_id)
                 // Try fetching as slug first
-                const artistRes = await fetch(`/api/community/${slug}`);
+                const artistRes = await fetch(`/api/community/${slug}`, { cache: 'no-store' });
 
                 let commId: string | null = null;
                 let artistData: any = null;

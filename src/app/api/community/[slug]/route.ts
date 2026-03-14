@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import Artist from "@/models/Artist";
 import Community from "@/models/Community";
 import Social from "@/models/Social";
@@ -38,6 +39,9 @@ export async function GET(
                 { status: 404 }
             );
         }
+        // Force reload to get latest data
+        await artist.reload();
+        // console.log(`[community/${slug}] profile_picture_url:`, artist.profile_picture_url);
         const artistData = artist.get({ plain: true }) as any;
         return NextResponse.json({
             artist: {
