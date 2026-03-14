@@ -281,9 +281,7 @@ export default function ProfilePage() {
         try {
             // 1. Generate a unique filename
             const extension = file.name.split(".").pop();
-            const fileName = `images/users/${profile.userName || "user"}-${
-                user?.id || "unknown"
-            }.${extension}`;
+            const fileName = `images/users/${profile.userName || "user"}-${user?.id || "unknown"}-${Date.now()}.jpg`;
 
             // 2. Request a presigned URL from the backend
             const res = await fetch("/api/upload", {

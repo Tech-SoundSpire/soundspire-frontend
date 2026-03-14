@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const s3Client = new S3Client({
@@ -12,8 +12,27 @@ const s3Client = new S3Client({
 
 const bucket = 'soundspirewebsiteassets';
 
-// Artist images get redirected to S3 presigned URL for speed (large cover photos)
-const REDIRECT_PREFIXES = ['images/artists/'];
+// Paths where the key is known to start with images/ (no ambiguity, safe to redirect)
+const DIRECT_REDIRECT_PREFIXES = ['images/users/', 'images/artists/', 'images/placeholder', 'users/', 'artists/', 'assets/'];
+
+async function findKey(fullPath: string): Promise<string | null> {
+  const tryKeys = fullPath.startsWith('assets/')
+    ? [fullPath, `images/${fullPath}`]
+    : fullPath.startsWith('images/')
+    ? [fullPath]
+    : [`images/${fullPath}`, fullPath];
+
+  for (const key of tryKeys) {
+    try {
+      await s3Client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+      return key;
+    } catch (e: any) {
+      if (e?.$metadata?.httpStatusCode === 404 || e?.name === 'NotFound') continue;
+      throw e;
+    }
+  }
+  return null;
+}
 
 export async function GET(
   request: NextRequest,
@@ -23,43 +42,36 @@ export async function GET(
     const { path } = await params;
     const fullPath = path.join('/');
 
-    const tryKeys = fullPath.startsWith('assets/')
-      ? [fullPath, `images/${fullPath}`]
-      : fullPath.startsWith('images/')
-      ? [fullPath]
-      : [`images/${fullPath}`, fullPath];
-
-    for (const key of tryKeys) {
-      try {
-        const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-
-        // For large images, redirect to presigned URL (faster)
-        if (REDIRECT_PREFIXES.some(p => key.startsWith(p))) {
-          const url = await getSignedUrl(s3Client, command, { expiresIn: 300 });
-          return NextResponse.redirect(url);
-        }
-
-        // For other files, proxy through server
-        const response = await s3Client.send(command);
-        if (!response.Body) continue;
-
-        const chunks = [];
-        for await (const chunk of response.Body as any) chunks.push(chunk);
-        const buffer = Buffer.concat(chunks);
-
-        return new NextResponse(buffer, {
-          headers: {
-            'Content-Type': response.ContentType || 'image/jpeg',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-          },
-        });
-      } catch (e: any) {
-        if (e?.$metadata?.httpStatusCode === 404 || e?.name === 'NoSuchKey') continue;
-        throw e;
-      }
+    // Fast path: known prefixes → redirect to S3 presigned URL (no proxy)
+    if (DIRECT_REDIRECT_PREFIXES.some(p => fullPath.startsWith(p))) {
+      const key = fullPath.startsWith('images/') || fullPath.startsWith('assets/')
+        ? fullPath
+        : `images/${fullPath}`;
+      const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+      const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+      return new NextResponse(null, {
+        status: 307,
+        headers: { Location: url },
+      });
     }
 
-    return new NextResponse('Image not found', { status: 404 });
+    // Slow path: ambiguous keys (e.g. chat/) → verify with HeadObject then proxy
+    const s3Key = await findKey(fullPath);
+    if (!s3Key) return new NextResponse('Image not found', { status: 404 });
+
+    const response = await s3Client.send(new GetObjectCommand({ Bucket: bucket, Key: s3Key }));
+    if (!response.Body) return new NextResponse('Image not found', { status: 404 });
+
+    const chunks = [];
+    for await (const chunk of response.Body as any) chunks.push(chunk);
+    const buffer = Buffer.concat(chunks);
+
+    return new NextResponse(buffer, {
+      headers: {
+        'Content-Type': response.ContentType || 'image/jpeg',
+        'Cache-Control': 'public, max-age=31536000',
+      },
+    });
   } catch (error) {
     return new NextResponse('Error fetching image', { status: 500 });
   }
