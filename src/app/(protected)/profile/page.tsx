@@ -71,6 +71,7 @@ export default function ProfilePage() {
             try {
                 const res = await fetch(
                     `/api/community/subscribe?user_id=${user.id}`,
+                    { cache: 'no-store' }
                 );
                 if (!res.ok)
                     throw new Error(

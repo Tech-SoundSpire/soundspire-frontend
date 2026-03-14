@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import Artist from "@/models/Artist";
+import { User } from "@/models/User";
 import Social from "@/models/Social";
 
 export async function PUT(req: NextRequest) {
@@ -25,8 +26,15 @@ export async function PUT(req: NextRequest) {
       ...(cover_photo_url !== undefined && { cover_photo_url }),
     });
 
+    // Also sync profile_picture_url to the users table so it shows correctly in fan mode
+    if (profile_picture_url !== undefined) {
+      await User.update(
+        { profile_picture_url },
+        { where: { user_id: decoded.id } }
+      );
+    }
+
     if (Array.isArray(socials)) {
-      // Remove old socials and recreate
       await Social.destroy({ where: { artist_id: artist.artist_id } });
       for (const s of socials) {
         if (s.platform && s.url) {

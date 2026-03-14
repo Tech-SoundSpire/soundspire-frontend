@@ -46,13 +46,16 @@ export default function MyCommunities() {
         if (!user) return;
         (async () => {
             try {
+                // console.log("[communities] fetching subscribe for user:", user.id);
                 const res = await fetch(
                     `/api/community/subscribe?user_id=${user.id}`,
+                    { cache: 'no-store' }
                 );
+                // console.log("[communities] subscribe response status:", res.status);
                 if (!res.ok)
                     throw new Error("Error trying to fetch community API.");
                 const json = await res.json();
-
+                // console.log("[communities] subscribe data:", json.communities?.map((c: any) => ({ name: c.artist_name, pic: c.artist_profile_picture_url })));
                 setSubscribedCommunitiesData(json.communities);
                 setUserProfilePicture(json.user.profile_picture_url);
             } catch (err) {

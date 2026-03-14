@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import Artist from "@/models/Artist";
 import Community from "@/models/Community";
 import CommunitySubscription from "@/models/CommunitySubscription";
@@ -90,6 +91,7 @@ export async function GET(request: NextRequest) {
         // IN GENERAL TO GET ALL THE SUBSCRIPTIONS FOR A USER.
         const allSubscriptions = await CommunitySubscription.findAll({
             where: { user_id },
+            raw: false,
             include: [
                 {
                     model: Community,
@@ -98,8 +100,9 @@ export async function GET(request: NextRequest) {
                     include: [
                         {
                             model: Artist,
-                            as: "artist",
+                            as: "Artist",
                             attributes: [
+                                "artist_id",
                                 "artist_name",
                                 "profile_picture_url",
                                 "cover_photo_url",
@@ -115,7 +118,7 @@ export async function GET(request: NextRequest) {
         });
         const subscribedCommunities = await Promise.all(allSubscriptions.map(async (element) => {
             const community = element.community;
-            const artist = community?.artist;
+            const artist = (community as any)?.Artist;
             // Get subscriber count for this community
             const subCount = await CommunitySubscription.count({ where: { community_id: element.community_id } });
             // Get genres for this artist
@@ -126,18 +129,25 @@ export async function GET(request: NextRequest) {
                 });
                 genreNames = (artistWithGenres as any)?.genres?.map((g: any) => g.name) || [];
             }
+            // console.log("[subscribe] community:", community?.name, "artist from include:", artist?.artist_id, "pic:", artist?.profile_picture_url?.substring(0, 50));
+            // Fetch fresh artist data directly to avoid stale include cache
+            const freshArtist = artist?.artist_id
+                ? await Artist.findByPk(artist.artist_id, { attributes: ["artist_id", "artist_name", "profile_picture_url", "cover_photo_url", "slug"] })
+                : null;
+            console.log("Subscribe API - artist_id:", artist?.artist_id, "freshArtist pic:", freshArtist?.profile_picture_url, "include artist pic:", artist?.profile_picture_url);
             return {
                 id: element.community_id,
                 name: community?.name,
                 description: community?.description,
-                artist_name: artist?.artist_name,
-                artist_profile_picture_url: artist?.profile_picture_url,
-                artist_cover_photo_url: artist?.cover_photo_url,
-                artist_slug: artist?.slug,
+                artist_name: freshArtist?.artist_name || artist?.artist_name,
+                artist_profile_picture_url: freshArtist?.profile_picture_url || artist?.profile_picture_url,
+                artist_cover_photo_url: freshArtist?.cover_photo_url || artist?.cover_photo_url,
+                artist_slug: freshArtist?.slug || artist?.slug,
                 subscriber_count: subCount,
                 genres: genreNames,
             };
         }));
+        // console.log("[subscribe] communities:", subscribedCommunities.map(c => ({ name: c.artist_name, pic: c.artist_profile_picture_url })));
         return NextResponse.json(
             {
                 status: "SUCCESS",
