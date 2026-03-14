@@ -251,7 +251,7 @@ export default function CompleteProfilePage() {
             const extension = selectedFile.name.split(".").pop();
             const fileName = `images/users/${user.email.split("@")[0]}-${
                 user.id || "unknown"
-            }.${extension}`;
+            }-${Date.now()}.${extension}`;
 
             const res = await fetch("/api/upload", {
                 method: "POST",
