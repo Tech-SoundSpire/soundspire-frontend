@@ -21,6 +21,7 @@ interface Review {
     rating: number;
     image_urls: string[];
     created_at: string;
+    artist_name: string | null;
     user: {
         user_id: string;
         username: string;
@@ -232,10 +233,10 @@ export default function ExplorePage() {
                                             <p className={`${montserrat} text-[#FF7151] text-[16px] font-medium leading-[19px] mb-2`}>
                                                 {review.artist?.slug ? (
                                                     <a href={`/community/${review.artist.slug}`} className="hover:text-[#FF4E27] transition">
-                                                        {review.artist?.artist_name || "Unknown Artist"}
+                                                        {review.artist?.artist_name || review.artist_name || "Unknown Artist"}
                                                     </a>
                                                 ) : (
-                                                    review.artist?.artist_name || "Unknown Artist"
+                                                    review.artist?.artist_name || review.artist_name || "Unknown Artist"
                                                 )}
                                             </p>
                                             <p className={`${montserrat} text-[#d1d5db] text-[14px] line-clamp-3 mb-4`}>
