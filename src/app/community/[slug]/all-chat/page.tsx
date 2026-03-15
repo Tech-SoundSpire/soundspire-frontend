@@ -86,6 +86,8 @@ export default function AllChatPage() {
     const [showReactionPicker, setShowReactionPicker] = useState<string | null>(
         null
     );
+    const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+    const [editingContent, setEditingContent] = useState("");
     const [expandedThreads, setExpandedThreads] = useState<Set<string>>(
         new Set()
     );
@@ -524,6 +526,31 @@ export default function AllChatPage() {
         } finally {
             setIsUploading(false);
         }
+    };
+
+    const deleteMessage = async (postId: string) => {
+        if (!confirm("Delete this message?")) return;
+        await supabase.from("forum_posts").delete().eq("forum_post_id", postId);
+        setMessages(prev => prev.filter(m => m.forum_post_id !== postId));
+    };
+
+    const startEdit = (msg: Message) => {
+        setEditingMessageId(msg.forum_post_id);
+        setEditingContent(msg.content || "");
+    };
+
+    const saveEdit = async (postId: string) => {
+        if (!editingContent.trim()) return;
+        const { error } = await supabase
+            .from("forum_posts")
+            .update({ content: editingContent })
+            .eq("forum_post_id", postId);
+        if (!error) {
+            setMessages(prev => prev.map(m =>
+                m.forum_post_id === postId ? { ...m, content: editingContent } : m
+            ));
+        }
+        setEditingMessageId(null);
     };
 
     const addReaction = async (postId: string, emoji: string) => {
@@ -1066,10 +1093,24 @@ export default function AllChatPage() {
                                                 )}
 
                                                 <div className="bg-[#FA6400] text-white px-4 py-3 rounded-2xl rounded-tl-sm inline-block max-w-2xl">
-                                                    {msg.content && (
-                                                        <p className="break-words">
-                                                            {highlightText(msg.content, searchQuery)}
-                                                        </p>
+                                                    {editingMessageId === msg.forum_post_id ? (
+                                                        <div className="flex gap-2 items-center">
+                                                            <input
+                                                                value={editingContent}
+                                                                onChange={e => setEditingContent(e.target.value)}
+                                                                onKeyDown={e => { if (e.key === "Enter") saveEdit(msg.forum_post_id); if (e.key === "Escape") setEditingMessageId(null); }}
+                                                                className="bg-white/20 text-white rounded px-2 py-1 flex-1 focus:outline-none text-sm"
+                                                                autoFocus
+                                                            />
+                                                            <button onClick={() => saveEdit(msg.forum_post_id)} className="text-xs bg-white/30 hover:bg-white/40 px-2 py-1 rounded">Save</button>
+                                                            <button onClick={() => setEditingMessageId(null)} className="text-xs opacity-70 hover:opacity-100">✕</button>
+                                                        </div>
+                                                    ) : (
+                                                        msg.content && (
+                                                            <p className="break-words">
+                                                                {highlightText(msg.content, searchQuery)}
+                                                            </p>
+                                                        )
                                                     )}
                                                     {msg.media_urls &&
                                                         msg.media_urls.length >
@@ -1171,21 +1212,25 @@ export default function AllChatPage() {
                                                         }}
                                                         className="text-sm text-gray-400 hover:text-white flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#2d2838]"
                                                     >
-                                                        <svg
-                                                            className="w-4 h-4"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-                                                            />
-                                                        </svg>
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                                                         Reply
                                                     </button>
+                                                    {msg.user_id === user?.id && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => startEdit(msg)}
+                                                                className="text-sm text-gray-400 hover:text-blue-400 flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#2d2838]"
+                                                            >
+                                                                ✏️ Edit
+                                                            </button>
+                                                            <button
+                                                                onClick={() => deleteMessage(msg.forum_post_id)}
+                                                                className="text-sm text-gray-400 hover:text-red-400 flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#2d2838]"
+                                                            >
+                                                                🗑️ Delete
+                                                            </button>
+                                                        </>
+                                                    )}
                                                     <div className="relative">
                                                         <button
                                                             onClick={() =>
