@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import CommunityHeader from "@/components/CommunityHeader";
 import Navbar from "@/components/Navbar";
 import MobileNav from "@/components/MobileNav";
+import ImageCropModal from "@/components/ImageCropModal";
 import { FaImage, FaPaperPlane, FaTimes } from "react-icons/fa";
 import { PostProps } from "@/lib/types";
 import ForumPost from "@/components/ForumPost";
@@ -36,6 +37,7 @@ export default function ArtistForumPage() {
     const [isArtist, setIsArtist] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -147,7 +149,31 @@ export default function ArtistForumPage() {
     }, [communityId]);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectedFiles(prev => [...prev, ...Array.from(e.target.files || [])]);
+        const files = Array.from(e.target.files || []);
+        if (files.length === 1 && files[0].type.startsWith("image/")) {
+            const originalFile = files[0];
+            setCropImageSrc(URL.createObjectURL(originalFile));
+            // Store original for skip
+            (window as any).__pendingForumFile = originalFile;
+            e.target.value = "";
+            return;
+        }
+        setSelectedFiles(prev => [...prev, ...files]);
+        e.target.value = "";
+    };
+
+    const handleForumCropDone = (blob: Blob) => {
+        const file = new File([blob], `post-${Date.now()}.jpg`, { type: "image/jpeg" });
+        setSelectedFiles(prev => [...prev, file]);
+        setCropImageSrc(null);
+        delete (window as any).__pendingForumFile;
+    };
+
+    const handleForumCropSkip = () => {
+        const original = (window as any).__pendingForumFile;
+        if (original) setSelectedFiles(prev => [...prev, original]);
+        setCropImageSrc(null);
+        delete (window as any).__pendingForumFile;
     };
 
     const removeFile = (index: number) => {
@@ -231,6 +257,16 @@ export default function ArtistForumPage() {
 
     return (
         <div className="min-h-screen text-white" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
+            {cropImageSrc && (
+                <ImageCropModal
+                    imageSrc={cropImageSrc}
+                    aspect={768 / 446}
+                    title="Crop Image"
+                    onCropDone={handleForumCropDone}
+                    onSkip={handleForumCropSkip}
+                    onCancel={() => { setCropImageSrc(null); delete (window as any).__pendingForumFile; }}
+                />
+            )}
             {user?.role !== "artist" && <><div className="hidden md:block"><Navbar /></div><MobileNav /></>}
             <CommunityHeader
                 slug={slug}
