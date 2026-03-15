@@ -15,6 +15,7 @@ import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import CommunityHeader from "@/components/CommunityHeader";
+import ImageCropModal from "@/components/ImageCropModal";
 
 interface CommunityData {
     community_id: string;
@@ -57,6 +58,7 @@ export default function ArtistDashboard() {
     const [editSocials, setEditSocials] = useState<{ platform: string; url: string }[]>([]);
     const [saving, setSaving] = useState(false);
     const [imgCacheBust, setImgCacheBust] = useState(Date.now());
+    const [cropModal, setCropModal] = useState<{ src: string; type: "profile" | "cover"; originalFile: File } | null>(null);
     const profileInputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,30 +103,21 @@ export default function ArtistDashboard() {
         setEditing(true);
     };
 
-    const uploadImage = async (file: File, type: "profile" | "cover"): Promise<string | null> => {
+    const uploadImage = async (file: File, type: "profile" | "cover", customFileName?: string): Promise<string | null> => {
         try {
-            const ext = file.name.split(".").pop();
-            const fileName = `images/artists/${artist!.artist_id}-${type}-${Date.now()}.${ext}`;
+            const ext = file.name.split(".").pop() || "jpg";
+            const fileName = customFileName || `images/artists/${artist!.artist_id}-${type}-${Date.now()}.${ext}`;
             const res = await fetch("/api/upload", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ fileName, fileType: file.type }),
             });
-            if (!res.ok) {
-                const err = await res.json();
-                // console.error("Upload URL error:", err);
-                throw new Error("Failed to get upload URL");
-            }
+            if (!res.ok) throw new Error("Failed to get upload URL");
             const { uploadUrl } = await res.json();
             const up = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-            if (!up.ok) {
-                const text = await up.text();
-                // console.error("S3 upload failed:", up.status, text);
-                throw new Error("S3 upload failed");
-            }
+            if (!up.ok) throw new Error("S3 upload failed");
             return `s3://soundspirewebsiteassets/${fileName}`;
         } catch (e) {
-            // console.error("uploadImage error:", e);
             toast.error(`Failed to upload ${type} image`);
             return null;
         }
@@ -134,10 +127,32 @@ export default function ArtistDashboard() {
         const file = e.target.files?.[0];
         if (!file || !artist) return;
         if (file.size > 5 * 1024 * 1024) { toast.error("Max 5MB"); return; }
+        const src = URL.createObjectURL(file);
+        setCropModal({ src, type, originalFile: file });
+        e.target.value = "";
+    };
 
-        const s3Path = await uploadImage(file, type);
+    const handleCropDone = async (blob: Blob) => {
+        if (!cropModal || !artist) return;
+        const { type } = cropModal;
+        setCropModal(null);
+        const fileName = `images/artists/${artist.artist_id}-${type}-${Date.now()}.jpg`;
+        const file = new File([blob], fileName, { type: "image/jpeg" });
+        await uploadAndSave(file, type, fileName);
+    };
+
+    const handleCropSkip = async () => {
+        if (!cropModal || !artist) return;
+        const { type, originalFile } = cropModal;
+        setCropModal(null);
+        const ext = originalFile.name.split(".").pop() || "jpg";
+        const fileName = `images/artists/${artist.artist_id}-${type}-${Date.now()}.${ext}`;
+        await uploadAndSave(originalFile, type, fileName);
+    };
+
+    const uploadAndSave = async (file: File, type: "profile" | "cover", fileName: string) => {
+        const s3Path = await uploadImage(file, type, fileName);
         if (!s3Path) return;
-
         const body = type === "profile" ? { profile_picture_url: s3Path } : { cover_photo_url: s3Path };
         const res = await fetch("/api/artist/me/edit", {
             method: "PUT",
@@ -145,12 +160,10 @@ export default function ArtistDashboard() {
             body: JSON.stringify(body),
         });
         if (res.ok) {
-            setArtist({ ...artist, ...(type === "profile" ? { profile_picture_url: s3Path } : { cover_photo_url: s3Path }) });
+            setArtist({ ...artist!, ...(type === "profile" ? { profile_picture_url: s3Path } : { cover_photo_url: s3Path }) });
             setImgCacheBust(Date.now());
             toast.success(`${type === "profile" ? "Profile" : "Cover"} photo updated`);
         } else {
-            const err = await res.json();
-            // console.error("Artist edit API error:", err);
             toast.error("Failed to update image in database");
         }
     };
@@ -199,6 +212,17 @@ export default function ArtistDashboard() {
 
     return (
         <div className="min-h-screen text-white flex flex-col" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
+            {/* Crop Modal */}
+            {cropModal && (
+                <ImageCropModal
+                    imageSrc={cropModal.src}
+                    aspect={cropModal.type === "profile" ? 1 : 16 / 9}
+                    title={cropModal.type === "profile" ? "Crop Profile Photo" : "Crop Cover Photo"}
+                    onCropDone={handleCropDone}
+                    onSkip={handleCropSkip}
+                    onCancel={() => setCropModal(null)}
+                />
+            )}
             {/* Hidden file inputs */}
             <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, "profile")} />
             <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, "cover")} />

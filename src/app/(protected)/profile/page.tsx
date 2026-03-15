@@ -11,6 +11,7 @@ import {
     getDefaultProfileImageUrl,
     DEFAULT_PROFILE_IMAGE,
 } from "@/utils/userProfileImageUtils";
+import ImageCropModal from "@/components/ImageCropModal";
 import { getFontClass } from "@/utils/getFontClass";
 import { FaArrowLeftLong, FaPen } from "react-icons/fa6";
 import Link from "next/link";
@@ -36,6 +37,8 @@ export default function ProfilePage() {
     const [isSubscriptionsLoading, setIsSubscriptionsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [cropSrc, setCropSrc] = useState<string | null>(null);
+    const [cropOriginalFile, setCropOriginalFile] = useState<File | null>(null);
     const [usernameError, setUsernameError] = useState<string | null>(null);
     const [isValidatingUsername, setIsValidatingUsername] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -272,41 +275,47 @@ export default function ProfilePage() {
         setEditableProfile((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleImageChange = async (
-        e: React.ChangeEvent<HTMLInputElement>,
-    ) => {
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        setCropOriginalFile(file);
+        setCropSrc(URL.createObjectURL(file));
+        e.target.value = "";
+    };
 
+    const uploadProfileImage = async (blob: Blob, mimeType: string, ext: string) => {
+        const fileName = `images/users/${profile.userName || "user"}-${user?.id || "unknown"}-${Date.now()}.${ext}`;
+        const res = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fileName, fileType: mimeType }),
+        });
+        if (!res.ok) throw new Error("Failed to get upload URL");
+        const { uploadUrl } = await res.json();
+        const uploadRes = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": mimeType }, body: blob });
+        if (!uploadRes.ok) throw new Error("Failed to upload image to S3");
+        return `s3://soundspirewebsiteassets/${fileName}`;
+    };
+
+    const handleProfileCropDone = async (blob: Blob) => {
+        setCropSrc(null);
+        setCropOriginalFile(null);
         try {
-            // 1. Generate a unique filename
-            const extension = file.name.split(".").pop();
-            const fileName = `images/users/${profile.userName || "user"}-${user?.id || "unknown"}-${Date.now()}.jpg`;
-
-            // 2. Request a presigned URL from the backend
-            const res = await fetch("/api/upload", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ fileName, fileType: file.type }),
-            });
-            if (!res.ok) throw new Error("Failed to get upload URL");
-            const { uploadUrl } = await res.json();
-
-            // 3. Upload the file directly to S3
-            const uploadRes = await fetch(uploadUrl, {
-                method: "PUT",
-                headers: { "Content-Type": file.type },
-                body: file,
-            });
-            if (!uploadRes.ok) throw new Error("Failed to upload image to S3");
-
-            // 4. Set the S3 path in the editableProfile state
-            const s3Path = `s3://soundspirewebsiteassets/${fileName}`;
+            const s3Path = await uploadProfileImage(blob, "image/jpeg", "jpg");
             setEditableProfile((prev) => ({ ...prev, profileImage: s3Path }));
-        } catch (error) {
-            toast.error("Image upload failed");
-            console.error(error);
-        }
+        } catch { toast.error("Image upload failed"); }
+    };
+
+    const handleProfileCropSkip = async () => {
+        const file = cropOriginalFile;
+        setCropSrc(null);
+        setCropOriginalFile(null);
+        if (!file) return;
+        try {
+            const ext = file.name.split(".").pop() || "jpg";
+            const s3Path = await uploadProfileImage(file, file.type, ext);
+            setEditableProfile((prev) => ({ ...prev, profileImage: s3Path }));
+        } catch { toast.error("Image upload failed"); }
     };
 
     const syncSpotify = async () => {
@@ -360,6 +369,16 @@ export default function ProfilePage() {
 
     return (
         <div className="min-h-screen">
+            {cropSrc && (
+                <ImageCropModal
+                    imageSrc={cropSrc}
+                    aspect={1}
+                    title="Crop Profile Photo"
+                    onCropDone={handleProfileCropDone}
+                    onSkip={handleProfileCropSkip}
+                    onCancel={() => { setCropSrc(null); setCropOriginalFile(null); }}
+                />
+            )}
             <main className="md:ml-[54px] px-8 py-6">
                 {/* Back button — outside centered container */}
                 <button

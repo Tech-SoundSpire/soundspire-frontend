@@ -10,6 +10,7 @@ import { useCommunityPresence } from '@/hooks/useCommunityPresence';
 import CommunityHeader from '@/components/CommunityHeader';
 import Navbar from '@/components/Navbar';
 import MobileNav from '@/components/MobileNav';
+import ImageCropModal from '@/components/ImageCropModal';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 interface Comment {
@@ -82,6 +83,8 @@ export default function FanArtPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropOriginalFile, setCropOriginalFile] = useState<File | null>(null);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -385,11 +388,35 @@ export default function FanArtPage() {
     
     setSelectedFiles(files);
     
+    // Show crop modal for single image
+    if (files.length === 1) {
+      setCropOriginalFile(files[0]);
+      setCropImageSrc(URL.createObjectURL(files[0]));
+      return;
+    }
+    
     // Generate preview URLs
     const urls = files.map(file => URL.createObjectURL(file));
     setPreviewUrls(urls);
   };
   
+  const handleFanArtCropDone = (blob: Blob) => {
+    const file = new File([blob], `fanart-${Date.now()}.jpg`, { type: "image/jpeg" });
+    setSelectedFiles([file]);
+    setPreviewUrls([URL.createObjectURL(blob)]);
+    setCropImageSrc(null);
+    setCropOriginalFile(null);
+  };
+
+  const handleFanArtCropSkip = () => {
+    if (cropOriginalFile) {
+      setSelectedFiles([cropOriginalFile]);
+      setPreviewUrls([URL.createObjectURL(cropOriginalFile)]);
+    }
+    setCropImageSrc(null);
+    setCropOriginalFile(null);
+  };
+
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
       toast.error('Please select at least one image');
@@ -682,6 +709,16 @@ export default function FanArtPage() {
   
   return (
     <div className="flex h-screen" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
+      {cropImageSrc && (
+        <ImageCropModal
+          imageSrc={cropImageSrc}
+          aspect={768 / 446}
+          title="Crop Image"
+          onCropDone={handleFanArtCropDone}
+          onSkip={handleFanArtCropSkip}
+          onCancel={() => { setCropImageSrc(null); setCropOriginalFile(null); }}
+        />
+      )}
       {user?.role !== "artist" && <><div className="hidden md:block"><Navbar /></div><MobileNav /></>}
       <CommunityHeader 
         slug={slug}

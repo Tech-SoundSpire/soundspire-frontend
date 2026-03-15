@@ -10,6 +10,7 @@ import { useCommunityPresence } from "@/hooks/useCommunityPresence";
 import CommunityHeader from "@/components/CommunityHeader";
 import Navbar from "@/components/Navbar";
 import MobileNav from "@/components/MobileNav";
+import ImageCropModal from "@/components/ImageCropModal";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 interface Message {
@@ -75,6 +76,8 @@ export default function AllChatPage() {
     );
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+    const [cropOriginalFile, setCropOriginalFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [replyingTo, setReplyingTo] = useState<Message | null>(null);
@@ -606,7 +609,28 @@ export default function AllChatPage() {
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
+        // Single image: show crop modal
+        if (files.length === 1 && files[0].type.startsWith("image/")) {
+            setCropOriginalFile(files[0]);
+            setCropImageSrc(URL.createObjectURL(files[0]));
+            e.target.value = "";
+            return;
+        }
         setSelectedFiles((prev) => [...prev, ...files]);
+        e.target.value = "";
+    };
+
+    const handleChatImageCropDone = (blob: Blob) => {
+        const file = new File([blob], `image-${Date.now()}.jpg`, { type: "image/jpeg" });
+        setSelectedFiles((prev) => [...prev, file]);
+        setCropImageSrc(null);
+        setCropOriginalFile(null);
+    };
+
+    const handleChatImageCropSkip = () => {
+        if (cropOriginalFile) setSelectedFiles((prev) => [...prev, cropOriginalFile]);
+        setCropImageSrc(null);
+        setCropOriginalFile(null);
     };
 
     const removeFile = (index: number) => {
@@ -662,6 +686,16 @@ export default function AllChatPage() {
 
     return (
         <div className={`flex h-screen ${user?.role !== "artist" ? "md:ml-[54px]" : ""}`} style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
+            {cropImageSrc && (
+                <ImageCropModal
+                    imageSrc={cropImageSrc}
+                    aspect={768 / 446}
+                    title="Crop Image"
+                    onCropDone={handleChatImageCropDone}
+                    onSkip={handleChatImageCropSkip}
+                    onCancel={() => { setCropImageSrc(null); setCropOriginalFile(null); }}
+                />
+            )}
             {user?.role !== "artist" && <><div className="hidden md:block"><Navbar /></div><MobileNav /></>}
             <CommunityHeader
                 slug={slug}
