@@ -56,7 +56,8 @@ export class InfraStack extends cdk.Stack {
     // ── S3 Event Notifications → Lambda ───────────────────────────────────
     // Trigger on video uploads to posts/, chat/, fan-art/
     const videoPrefixes = ['posts/', 'chat/', 'fan-art/'];
-    const videoSuffixes = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
+    const videoSuffixes = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v', '.m4p', '.wmv',
+                           '.MP4', '.MOV', '.AVI', '.MKV', '.WEBM', '.M4V', '.M4P', '.WMV'];
 
     for (const prefix of videoPrefixes) {
       for (const suffix of videoSuffixes) {

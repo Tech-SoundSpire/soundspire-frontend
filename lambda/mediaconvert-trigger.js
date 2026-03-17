@@ -11,7 +11,7 @@ const MEDIACONVERT_ROLE = process.env.MEDIACONVERT_ROLE_ARN;
 const BUCKET = "soundspirewebsiteassets";
 const OUTPUT_PREFIX = "transcoded/";
 
-const VIDEO_EXTENSIONS = [".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v"];
+const VIDEO_EXTENSIONS = [".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v", ".m4p", ".wmv"];
 
 exports.handler = async (event) => {
   for (const record of event.Records) {
