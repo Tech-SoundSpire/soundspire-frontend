@@ -8,6 +8,7 @@ A modern music platform connecting fans with artists through personalized discov
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
 - [Project Structure](#project-structure)
+- [Video Pipeline](#video-pipeline)
 - [How It Works](#how-it-works)
 - [API Documentation](#api-documentation)
 - [Contributing](#contributing)
@@ -36,17 +37,21 @@ SoundSpire is a music platform that helps you:
 - 💬 **Community Forums** - Discuss music in artist-specific communities
 - 🔍 **Smart Discovery** - Explore artists by genre, language, or popularity
 - 👤 **User Profiles** - Customize your profile and track your activity
+- 📰 **Feed** - Browse posts from artists you follow
+- 🔔 **Notifications** - Stay updated on activity in your communities
 
 ### For Artists
 - 🎤 **Artist Communities** - Create subscription-based fan communities
 - 📊 **Fan Engagement** - Interact directly with your audience
 - 🎨 **Content Sharing** - Share updates, fan art, and exclusive content
+- 🎬 **Video Posts** - Upload videos with automatic HLS transcoding for adaptive streaming
 
 ### Social Features
 - 💬 Comments & Replies
 - ❤️ Likes & Reactions
 - 🔔 Real-time Notifications
 - 👥 Community Presence Tracking
+- 🔎 Global Search
 
 ---
 
@@ -67,6 +72,8 @@ SoundSpire is a music platform that helps you:
 ### External Services
 - **Google OAuth** - Social login
 - **AWS S3** - File storage
+- **AWS MediaConvert** - Video transcoding to HLS
+- **AWS CDK** - Infrastructure as code
 - **Soundcharts API** - Artist data
 - **Supabase** - DB Hosting
 - **AWS Amplify** - Website hosting
@@ -107,7 +114,7 @@ Create a `.env.local` file in the root directory:
 ```env
 # Database Configuration
 DB_NAME=soundspire_db
-DB_USERNAME=your_db_username
+DB_USER=your_db_username
 DB_PASSWORD=your_db_password
 DB_HOST=localhost
 DB_PORT=5432
@@ -138,6 +145,24 @@ SOUNDCHARTS_TOKEN=your_soundcharts_token
 # Email Service
 MAILTRAP_USER=your_mailtrap_user
 MAILTRAP_PASS=your_mailtrap_password
+
+# Gmail (alternative to Mailtrap for production)
+GMAIL_USER=your_gmail_address
+GMAIL_APP_PASSWORD=your_gmail_app_password
+GMAIL_SERVICE=gmail
+GMAIL_HOST=smtp.gmail.com
+GMAIL_SMTP_PORT=587
+```
+
+### Step 5: (Optional) Deploy Video Pipeline Infrastructure
+
+Required only if you want video upload + HLS transcoding to work. See [VIDEO_PIPELINE.md](./VIDEO_PIPELINE.md) for full instructions.
+
+```bash
+cd lambda && npm install
+cd ../infra && npm install && npm run build
+npx cdk bootstrap  # first time only
+npx cdk deploy
 ```
 
 ### Step 6: Run the Development Server
@@ -156,35 +181,76 @@ soundspire-frontend/
 ├── src/
 │   ├── app/                      # Next.js App Router
 │   │   ├── (protected)/         # Auth-required pages
-│   │   │   └── explore/         # Main discovery page
+│   │   │   ├── explore/         # Main discovery page
+│   │   │   ├── feed/            # Post feed
+│   │   │   ├── communities/     # Browse communities
+│   │   │   ├── reviews/         # Reviews pages
+│   │   │   ├── profile/         # User profile
+│   │   │   ├── my-music/        # User's music
+│   │   │   ├── notifications/   # Notifications
+│   │   │   └── settings/        # Account settings
 │   │   ├── (artist)/            # Artist-specific pages
-│   │   │   └── dashboard/       # Artist dashboard
+│   │   │   └── artist/          # Artist dashboard & onboarding
+│   │   ├── community/[slug]/    # Community detail page
 │   │   ├── api/                 # Backend API routes
 │   │   │   ├── auth/           # Authentication endpoints
 │   │   │   ├── users/          # User management
 │   │   │   ├── artists/        # Artist data
 │   │   │   ├── community/      # Community features
+│   │   │   ├── communities/    # Community listing
 │   │   │   ├── reviews/        # Review system
-│   │   │   └── preferences/    # User preferences
+│   │   │   ├── preferences/    # User preferences
+│   │   │   ├── posts/          # Post CRUD
+│   │   │   ├── forums/         # Forum management
+│   │   │   ├── forum-posts/    # Forum post CRUD
+│   │   │   ├── comments/       # Comments
+│   │   │   ├── like/           # Like/unlike
+│   │   │   ├── notifications/  # Notifications
+│   │   │   ├── search/         # Global search
+│   │   │   ├── upload/         # File & multipart upload
+│   │   │   ├── video/          # Video status polling
+│   │   │   └── images/         # Image proxy (presigned S3)
 │   │   ├── login/              # Login page
 │   │   ├── complete-profile/   # Profile completion
+│   │   ├── forgot-password/    # Password reset request
+│   │   ├── reset-password/     # Password reset
+│   │   ├── verifyemail/        # Email verification
 │   │   └── PreferenceSelectionPage/  # Onboarding
 │   │
 │   ├── components/              # Reusable UI components
 │   │   ├── Navbar.tsx          # Navigation bar
+│   │   ├── MobileNav.tsx       # Mobile navigation
 │   │   ├── ArtistCard.tsx      # Artist display card
 │   │   ├── ReviewCard.tsx      # Review display
 │   │   ├── CommentsSection.tsx # Comment system
+│   │   ├── CommunityHeader.tsx # Community page header
+│   │   ├── ImageCropModal.tsx  # Image cropping on upload
+│   │   ├── HLSVideo.tsx        # HLS video player (hls.js)
+│   │   ├── MediaSlideShow.tsx  # Media slideshow
+│   │   ├── Posts/
+│   │   │   ├── Post.tsx        # Single post component
+│   │   │   ├── PostCarousel.tsx
+│   │   │   └── PostComment.tsx
 │   │   └── ui/                 # Base UI components
 │   │
 │   ├── models/                  # Database models (Sequelize)
-│   │   ├── User.ts             # User model
-│   │   ├── Artist.ts           # Artist model
-│   │   ├── Community.ts        # Community model
-│   │   ├── Review.ts           # Review model
-│   │   ├── Forum.ts            # Forum model
-│   │   ├── ForumPost.ts        # Forum post model
-│   │   ├── Comment.ts          # Comment model
+│   │   ├── User.ts
+│   │   ├── Artist.ts
+│   │   ├── Community.ts
+│   │   ├── Review.ts
+│   │   ├── Post.ts
+│   │   ├── Forum.ts
+│   │   ├── ForumPost.ts
+│   │   ├── Comment.ts
+│   │   ├── Like.ts
+│   │   ├── Social.ts
+│   │   ├── Notification.ts
+│   │   ├── ArtistVote.ts
+│   │   ├── UserVerification.ts
+│   │   ├── UserPreferences.ts
+│   │   ├── Genres.ts
+│   │   ├── Languages.ts
+│   │   ├── CommunitySubscription.ts
 │   │   └── associations.ts     # Model relationships
 │   │
 │   ├── context/                 # React Context providers
@@ -192,31 +258,59 @@ soundspire-frontend/
 │   │
 │   ├── hooks/                   # Custom React hooks
 │   │   ├── useRequireAuth.ts   # Auth protection
-│   │   ├── useCheckPreferences.ts  # Preference checks
-│   │   └── useCommunityPresence.ts # Community tracking
+│   │   ├── useCheckPreferences.ts
+│   │   ├── useCheckCompleteProfileOnRoute.ts
+│   │   ├── useCommunityPresence.ts
+│   │   └── useRedirectIfAuthenticated.ts
 │   │
 │   ├── lib/                     # Utility functions
 │   │   ├── sequelize.ts        # Database connection
 │   │   ├── auth.ts             # Auth helpers
-│   │   └── dbConfig.ts         # DB configuration
+│   │   ├── dbConfig.ts         # DB configuration
+│   │   └── supabaseClient.ts   # Supabase client
 │   │
 │   ├── types/                   # TypeScript definitions
-│   │   ├── user.ts             # User types
+│   │   ├── user.ts
 │   │   └── communitySubscription.ts
 │   │
 │   └── utils/                   # Helper functions
 │       ├── mailer.ts           # Email utilities
-│       └── getDataFromToken.ts # JWT helpers
+│       ├── getDataFromToken.ts # JWT helpers
+│       ├── uploadToS3.ts       # S3 upload (single + multipart)
+│       └── videoThumbnail.ts   # Client-side video thumbnail
+│
+├── lambda/                      # AWS Lambda function
+│   └── mediaconvert-trigger.js # Triggers MediaConvert on S3 upload
+│
+├── infra/                       # AWS CDK infrastructure
+│   └── lib/infra-stack.ts      # IAM roles, Lambda, S3 notifications
 │
 ├── public/                      # Static assets
 ├── docs/                        # Documentation
 │   ├── project-structure.md
 │   └── google-oauth-setup.md
+├── VIDEO_PIPELINE.md            # Video upload & HLS pipeline docs
 ├── .env.local                   # Environment variables
 ├── package.json                 # Dependencies
 ├── tailwind.config.js          # Tailwind configuration
 └── server.js                    # Custom HTTPS server
 ```
+
+---
+
+## 🎬 Video Pipeline
+
+Videos uploaded by artists go through a multi-stage pipeline for adaptive streaming. See [VIDEO_PIPELINE.md](./VIDEO_PIPELINE.md) for full details.
+
+```
+Browser → S3 (multipart upload) → S3 Event → Lambda → MediaConvert
+→ HLS output (1080p / 720p / 480p) → S3 (transcoded/)
+→ Frontend polls /api/video/status → hls.js plays .m3u8
+```
+
+- Files ≥ 10MB use S3 multipart upload (4 parallel chunks)
+- MediaConvert produces 3 quality levels with 6-second HLS segments
+- Frontend polls every 5s until transcoding is complete, then plays via `hls.js`
 
 ---
 
@@ -411,10 +505,17 @@ Displays artist information in a card format.
 ### 4. **CommentsSection** (`src/components/CommentsSection.tsx`)
 Handles comments, replies, and likes.
 
-### 5. **Custom Hooks**
+### 5. **HLSVideo** (`src/components/HLSVideo.tsx`)
+Polls `/api/video/status` and plays transcoded HLS video via `hls.js` once ready.
+
+### 6. **ImageCropModal** (`src/components/ImageCropModal.tsx`)
+Provides in-browser image cropping before upload.
+
+### 7. **Custom Hooks**
 - `useRequireAuth()` - Protects routes requiring authentication
 - `useCheckPreferences()` - Ensures users have set preferences
 - `useCommunityPresence()` - Tracks active users in communities
+- `useRedirectIfAuthenticated()` - Redirects logged-in users away from auth pages
 
 ---
 
