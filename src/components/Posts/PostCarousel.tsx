@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { getImageUrl } from "@/utils/userProfileImageUtils";
+import HLSVideo from "@/components/HLSVideo";
 
 export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -33,11 +34,7 @@ export default function MediaCarousel({ mediaUrls }: { mediaUrls: string[] }) {
                 {mediaUrls.map((url, index) => (
                     <div key={index} className="min-w-full h-[280px] md:h-[446px] bg-[#2a2a2a] flex items-center justify-center">
                         {isVideo(url) ? (
-                            <video
-                                src={getImageUrl(url)}
-                                controls
-                                className="max-w-full max-h-full object-contain"
-                            />
+                            <HLSVideo s3Key={url} className="max-w-full max-h-full" />
                         ) : (
                             <img
                                 src={getImageUrl(url)}

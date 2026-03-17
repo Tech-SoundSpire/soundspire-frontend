@@ -1,0 +1,9 @@
+{
+  "name": "soundspire-mediaconvert-lambda",
+  "version": "1.0.0",
+  "description": "Lambda function to trigger MediaConvert jobs",
+  "main": "mediaconvert-trigger.js",
+  "dependencies": {
+    "@aws-sdk/client-mediaconvert": "^3.0.0"
+  }
+}

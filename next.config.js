@@ -87,7 +87,7 @@ const nextConfig = {
     // Add this configuration for larger payloads and streaming
     experimental: {
         serverActions: {
-            bodySizeLimit: "10mb",
+            bodySizeLimit: "100mb",
         },
     },
 
