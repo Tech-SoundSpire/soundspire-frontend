@@ -11,13 +11,16 @@ import CommunityHeader from "@/components/CommunityHeader";
 import Navbar from "@/components/Navbar";
 import MobileNav from "@/components/MobileNav";
 import ImageCropModal from "@/components/ImageCropModal";
+import HLSVideo from "@/components/HLSVideo";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import { uploadToS3 } from "@/utils/uploadToS3";
 
 interface Message {
     forum_post_id: string;
     user_id: string;
     content: string;
     media_urls: string[];
+    media_type?: string;
     is_pinned: boolean;
     created_at: string;
     parent_post_id?: string;
@@ -79,6 +82,7 @@ export default function AllChatPage() {
     const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
     const [cropOriginalFile, setCropOriginalFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [replyingTo, setReplyingTo] = useState<Message | null>(null);
     const [newMessageCount, setNewMessageCount] = useState(0);
@@ -469,17 +473,13 @@ export default function AllChatPage() {
 
             // Upload files to S3 if any
             if (selectedFiles.length > 0) {
-                const formData = new FormData();
-                selectedFiles.forEach((file) => formData.append("files", file));
-
-                const uploadRes = await fetch("/api/upload", {
-                    method: "POST",
-                    body: formData,
-                });
-
-                if (!uploadRes.ok) throw new Error("Failed to upload files");
-                const uploadData = await uploadRes.json();
-                mediaUrls = uploadData.urls || [];
+                setUploadProgress(0);
+                for (const file of selectedFiles) {
+                    const key = `chat/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                    const uploadedKey = await uploadToS3(file, key, (pct) => setUploadProgress(pct));
+                    mediaUrls.push(uploadedKey);
+                }
+                setUploadProgress(0);
             }
 
             // Insert message via Supabase
@@ -490,7 +490,7 @@ export default function AllChatPage() {
                     forum_id: forumId,
                     user_id: user.id,
                     content: mentionPrefix + (inputMessage || ""),
-                    media_type: mediaUrls.length > 0 ? "image" : "text",
+                    media_type: mediaUrls.length > 0 ? (selectedFiles.some(f => f.type.startsWith("video/")) ? "video" : "image") : "text",
                     media_urls: mediaUrls,
                     parent_post_id: replyingTo?.forum_post_id || null,
                 })
@@ -1113,34 +1113,16 @@ export default function AllChatPage() {
                                                         )
                                                     )}
                                                     {msg.media_urls &&
-                                                        msg.media_urls.length >
-                                                            0 && (
+                                                        msg.media_urls.length > 0 && (
                                                             <div className="mt-2 space-y-2">
-                                                                {msg.media_urls.map(
-                                                                    (
-                                                                        url,
-                                                                        idx
-                                                                    ) => (
-                                                                        <img
-                                                                            key={
-                                                                                idx
-                                                                            }
-                                                                            src={getImageUrl(
-                                                                                url
-                                                                            )}
-                                                                            alt="Attachment"
-                                                                            className="rounded-lg max-w-full cursor-pointer"
-                                                                            onClick={() =>
-                                                                                window.open(
-                                                                                    getImageUrl(
-                                                                                        url
-                                                                                    ),
-                                                                                    "_blank"
-                                                                                )
-                                                                            }
-                                                                        />
-                                                                    )
-                                                                )}
+                                                                {msg.media_urls.map((url, idx) => {
+                                                                    const isVideo = msg.media_type === "video" || /\.(mp4|webm|ogg|mov)$/i.test(url);
+                                                                    return isVideo ? (
+                                                                        <HLSVideo key={idx} s3Key={url} className="rounded-lg max-w-full max-h-[300px]" />
+                                                                    ) : (
+                                                                        <img key={idx} src={getImageUrl(url)} alt="Attachment" className="rounded-lg max-w-full cursor-pointer" onClick={() => window.open(getImageUrl(url), "_blank")} />
+                                                                    );
+                                                                })}
                                                             </div>
                                                         )}
                                                     <span className="text-xs opacity-80 mt-1 block text-right">
@@ -1563,6 +1545,19 @@ export default function AllChatPage() {
                                         </button>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* Upload progress bar */}
+                        {isUploading && uploadProgress > 0 && (
+                            <div className="mb-2">
+                                <div className="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Uploading...</span>
+                                    <span>{uploadProgress}%</span>
+                                </div>
+                                <div className="w-full bg-gray-700 rounded-full h-1.5">
+                                    <div className="bg-[#FF4E27] h-1.5 rounded-full transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
+                                </div>
                             </div>
                         )}
 

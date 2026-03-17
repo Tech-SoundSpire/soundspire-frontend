@@ -7,6 +7,8 @@ import CommunityHeader from "@/components/CommunityHeader";
 import Navbar from "@/components/Navbar";
 import MobileNav from "@/components/MobileNav";
 import ImageCropModal from "@/components/ImageCropModal";
+import { uploadToS3 } from "@/utils/uploadToS3";
+import { generateVideoThumbnail } from "@/utils/videoThumbnail";
 import { FaImage, FaPaperPlane, FaTimes } from "react-icons/fa";
 import { PostProps } from "@/lib/types";
 import ForumPost from "@/components/ForumPost";
@@ -37,8 +39,10 @@ export default function ArtistForumPage() {
     const [isArtist, setIsArtist] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [userProfile, setUserProfile] = useState<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -153,31 +157,47 @@ export default function ArtistForumPage() {
         if (files.length === 1 && files[0].type.startsWith("image/")) {
             const originalFile = files[0];
             setCropImageSrc(URL.createObjectURL(originalFile));
-            // Store original for skip
             (window as any).__pendingForumFile = originalFile;
             e.target.value = "";
             return;
         }
+        files.forEach(async (file, i) => {
+            let preview: string;
+            if (file.type.startsWith("video/")) {
+                try { preview = await generateVideoThumbnail(file); }
+                catch { preview = ""; }
+            } else {
+                preview = URL.createObjectURL(file);
+            }
+            setPreviewUrls(prev => { const next = [...prev]; next[selectedFiles.length + i] = preview; return next; });
+        });
         setSelectedFiles(prev => [...prev, ...files]);
         e.target.value = "";
     };
 
     const handleForumCropDone = (blob: Blob) => {
         const file = new File([blob], `post-${Date.now()}.jpg`, { type: "image/jpeg" });
+        const preview = URL.createObjectURL(blob);
         setSelectedFiles(prev => [...prev, file]);
+        setPreviewUrls(prev => [...prev, preview]);
         setCropImageSrc(null);
         delete (window as any).__pendingForumFile;
     };
 
     const handleForumCropSkip = () => {
         const original = (window as any).__pendingForumFile;
-        if (original) setSelectedFiles(prev => [...prev, original]);
+        if (original) {
+            const preview = URL.createObjectURL(original);
+            setSelectedFiles(prev => [...prev, original]);
+            setPreviewUrls(prev => [...prev, preview]);
+        }
         setCropImageSrc(null);
         delete (window as any).__pendingForumFile;
     };
 
     const removeFile = (index: number) => {
         setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+        setPreviewUrls(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmitPost = async () => {
@@ -197,17 +217,13 @@ export default function ArtistForumPage() {
             let mediaUrls: string[] = [];
 
             if (selectedFiles.length > 0) {
-                const formData = new FormData();
-                selectedFiles.forEach(file => formData.append('files', file));
-
-                const uploadRes = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!uploadRes.ok) throw new Error("Failed to upload media");
-                const uploadData = await uploadRes.json();
-                mediaUrls = uploadData.urls;
+                setUploadProgress(0);
+                for (const file of selectedFiles) {
+                    const key = `posts/${communityId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                    const uploadedKey = await uploadToS3(file, key, (pct) => setUploadProgress(pct));
+                    mediaUrls.push(uploadedKey);
+                }
+                setUploadProgress(0);
             }
 
             const postRes = await fetch('/api/community/posts', {
@@ -225,6 +241,7 @@ export default function ArtistForumPage() {
 
             setContentText("");
             setSelectedFiles([]);
+            setPreviewUrls([]);
             toast.success("Post created!");
             
             // Immediate refetch
@@ -292,11 +309,17 @@ export default function ArtistForumPage() {
                                 <div className="grid grid-cols-5 gap-3 mb-4">
                                     {selectedFiles.map((file, idx) => (
                                         <div key={idx} className="relative group">
-                                            <img
-                                                src={URL.createObjectURL(file)}
-                                                alt={`Preview ${idx}`}
-                                                className="w-full h-20 object-cover rounded-lg border border-gray-600"
-                                            />
+                                            {previewUrls[idx] ? (
+                                                <img
+                                                    src={previewUrls[idx]}
+                                                    alt={`Preview ${idx}`}
+                                                    className="w-full h-20 object-cover rounded-lg border border-gray-600"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-20 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center">
+                                                    <span className="text-gray-400 text-xs">📹</span>
+                                                </div>
+                                            )}
                                             <button
                                                 onClick={() => removeFile(idx)}
                                                 className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
@@ -328,9 +351,16 @@ export default function ArtistForumPage() {
                                     disabled={isUploading}
                                     className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                                 >
-                                    <FaPaperPlane size={14} /> {isUploading ? "Posting..." : "Post"}
+                                    <FaPaperPlane size={14} /> {isUploading ? `Uploading ${uploadProgress}%` : "Post"}
                                 </button>
                             </div>
+                            {isUploading && uploadProgress > 0 && (
+                                <div className="mt-2">
+                                    <div className="w-full bg-gray-700 rounded-full h-1.5">
+                                        <div className="bg-[#FF4E27] h-1.5 rounded-full transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 

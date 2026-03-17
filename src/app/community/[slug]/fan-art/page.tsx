@@ -11,6 +11,7 @@ import CommunityHeader from '@/components/CommunityHeader';
 import Navbar from '@/components/Navbar';
 import MobileNav from '@/components/MobileNav';
 import ImageCropModal from '@/components/ImageCropModal';
+import { uploadToS3 } from '@/utils/uploadToS3';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 interface Comment {
@@ -71,6 +72,7 @@ export default function FanArtPage() {
   const [posts, setPosts] = useState<FanArtPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [forumId, setForumId] = useState<string | null>(null);
   const [communityId, setCommunityId] = useState<string | null>(null);
@@ -379,10 +381,10 @@ export default function FanArtPage() {
       return;
     }
     
-    // Validate file size (max 10MB per file)
-    const oversizedFiles = files.filter(f => f.size > 10 * 1024 * 1024);
+    // Validate file size (max 1GB per file)
+    const oversizedFiles = files.filter(f => f.size > 1024 * 1024 * 1024);
     if (oversizedFiles.length > 0) {
-      toast.error('Files must be under 10MB');
+      toast.error('Files must be under 1GB');
       return;
     }
     
@@ -430,44 +432,17 @@ export default function FanArtPage() {
     
     try {
       setIsUploading(true);
+      setUploadProgress(0);
       
       // Upload each file to S3
       const uploadedUrls: string[] = [];
       
       for (const file of selectedFiles) {
-        // 1. Get presigned URL
-        const fileName = `fan-art/${communityId}/${Date.now()}-${file.name}`;
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            fileName, 
-            fileType: file.type 
-          })
-        });
-        
-        if (!uploadRes.ok) {
-          throw new Error('Failed to get upload URL');
-        }
-        
-        const { uploadUrl, key } = await uploadRes.json();
-        
-        // 2. Upload to S3
-        const s3Res = await fetch(uploadUrl, {
-          method: 'PUT',
-          body: file,
-          headers: {
-            'Content-Type': file.type
-          }
-        });
-        
-        if (!s3Res.ok) {
-          throw new Error('Failed to upload to S3');
-        }
-        
-        // 3. Store just the S3 key (not full URL)
+        const fileName = `fan-art/${communityId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        const key = await uploadToS3(file, fileName, (pct) => setUploadProgress(pct));
         uploadedUrls.push(key);
       }
+      setUploadProgress(0);
       
       // 4. Create fan art post
       const createRes = await fetch(`/api/forums/${forumId}/fan-art`, {
@@ -1029,7 +1004,7 @@ export default function FanArtPage() {
                   disabled={isUploading}
                 />
                 <p className="text-gray-500 text-sm mt-2">
-                  Supported: JPG, JPEG, PNG, GIF, WEBP (Max 10MB each)
+                  Supported: JPG, JPEG, PNG, GIF, WEBP (Max 1GB each)
                 </p>
               </div>
               
@@ -1082,6 +1057,18 @@ export default function FanArtPage() {
                 />
               </div>
               
+              {/* Upload progress */}
+              {isUploading && uploadProgress > 0 && (
+                <div className="mb-3">
+                  <div className="flex justify-between text-xs text-gray-400 mb-1">
+                    <span>Uploading...</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-1.5">
+                    <div className="bg-[#FF4E27] h-1.5 rounded-full transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
+                  </div>
+                </div>
+              )}
               {/* Actions */}
               <div className="flex gap-3">
                 <button
