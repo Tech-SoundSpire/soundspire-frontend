@@ -35,6 +35,7 @@ exports.handler = async (event) => {
       Settings: {
         Inputs: [{
           FileInput: inputUri,
+          VideoSelector: { Rotate: "AUTO" },
           AudioSelectors: { "Audio Selector 1": { DefaultSelection: "DEFAULT" } },
         }],
         OutputGroups: [{
