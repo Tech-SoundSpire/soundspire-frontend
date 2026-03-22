@@ -17,6 +17,7 @@ import styles from "./community_profile.module.css";
 import Navbar from "@/components/Navbar";
 import MobileNav from "@/components/MobileNav";
 import CommunityHeader from "@/components/CommunityHeader";
+import ShareButton from "@/components/ShareButton";
 import { FaFacebook, FaInstagram, FaTiktok, FaYoutube } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { IconType } from "react-icons/lib";
@@ -226,9 +227,14 @@ export default function ArtistCommunityProfile() {
                         {artist.artist_name}
                     </BaseHeading>
                     {artist.community?.name && (
-                        <BaseText textColor="#9ca3af" fontSize="small" fontStyle="italic" className="mt-1">
-                            {artist.community.name}
-                        </BaseText>
+                        <div className="mt-1">
+                            <BaseText wrapper="span" textColor="#9ca3af" fontSize="small" fontStyle="italic">
+                                {artist.community.name}
+                            </BaseText>
+                            <span className="inline-flex items-center ml-2 align-middle">
+                                <ShareButton url={`/community/${slug}`} light iconOnly />
+                            </span>
+                        </div>
                     )}
                     {artist.socials && artist.socials.length > 0 && (
                         <div className="flex justify-center gap-4 mt-3">

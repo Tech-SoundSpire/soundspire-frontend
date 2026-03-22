@@ -7,6 +7,7 @@ import { getLogoUrl } from '@/utils/userProfileImageUtils';
 import { useAuth } from '@/context/AuthContext';
 import { FaBell } from 'react-icons/fa';
 import { supabase } from '@/lib/supabaseClient';
+import ShareButton from '@/components/ShareButton';
 
 interface CommunityHeaderProps {
   slug: string;
