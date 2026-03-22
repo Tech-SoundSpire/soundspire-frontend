@@ -1,4 +1,5 @@
 import CommentsSection from "./CommentsSection";
+import ShareButton from "./ShareButton";
 import {
     getImageUrl,
     DEFAULT_PROFILE_IMAGE,
@@ -106,7 +107,7 @@ export default function DetailedReview({
             {/* Separator */}
             <div className="w-full h-px bg-[#F7F7F7] mb-6" />
 
-            {/* Like button */}
+            {/* Like + Share */}
             <div className="flex items-center mb-6">
                 <button
                     onClick={handleToggleLike}
@@ -121,6 +122,7 @@ export default function DetailedReview({
                 <span className={`${montserrat} text-white font-semibold mr-4`}>
                     {likeCount} Likes
                 </span>
+                <ShareButton url={`/reviews/${review.review_id}`} light />
             </div>
 
             {/* Comments */}

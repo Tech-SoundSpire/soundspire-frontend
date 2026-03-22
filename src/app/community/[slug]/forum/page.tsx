@@ -375,6 +375,7 @@ export default function ArtistForumPage() {
                                 post={post} 
                                 user_id={user?.id || ""} 
                                 userProfilePicture={userProfile?.profile_picture_url || user?.photoURL}
+                                slug={slug}
                             />
                             </div>
                         ))}

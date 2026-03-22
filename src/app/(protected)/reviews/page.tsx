@@ -8,6 +8,7 @@ import {
 import CarouselBase from "@/components/CarouselBase";
 import Link from "next/link";
 import { getFontClass } from "@/utils/getFontClass";
+import ShareButton from "@/components/ShareButton";
 
 interface Review {
     review_id: string;
@@ -164,12 +165,15 @@ export default function ReviewsPage() {
                                     {review.text_content.length > 100 ? "..." : ""}
                                 </p>
                             </div>
-                            <Link
-                                href={`/reviews/${review.review_id}`}
-                                className={`${montserrat} mt-auto bg-[#FF4E27] hover:bg-[#e5431f] text-[#F7F7F7] px-4 py-2.5 rounded-[5px] text-[16px] font-medium w-fit inline-block`}
-                            >
-                                Read More
-                            </Link>
+                            <div className="flex items-center gap-3 mt-auto">
+                                <Link
+                                    href={`/reviews/${review.review_id}`}
+                                    className={`${montserrat} bg-[#FF4E27] hover:bg-[#e5431f] text-[#F7F7F7] px-4 py-2.5 rounded-[5px] text-[16px] font-medium inline-block`}
+                                >
+                                    Read More
+                                </Link>
+                                <ShareButton url={`/reviews/${review.review_id}`} light />
+                            </div>
                         </div>
                     </div>
                 ))}

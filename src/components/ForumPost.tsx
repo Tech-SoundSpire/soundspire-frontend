@@ -1,13 +1,14 @@
 "use client";
-import { FaRegHeart, FaRegPaperPlane, FaRegComments, FaHeart } from "react-icons/fa6";
+import { FaRegHeart, FaRegComments, FaHeart } from "react-icons/fa6";
 import { useState, useEffect } from "react";
 import Comment from "@/components/Posts/PostComment";
 import { CommentProps, PostProps } from "@/lib/types";
 import MediaCarousel from "@/components/Posts/PostCarousel";
 import { getImageUrl, DEFAULT_PROFILE_IMAGE } from "@/utils/userProfileImageUtils";
+import ShareButton from "@/components/ShareButton";
 
-export default function ForumPost(props: { post: PostProps; user_id: string; userProfilePicture?: string | null }) {
-    const { post, user_id, userProfilePicture } = props;
+export default function ForumPost(props: { post: PostProps; user_id: string; userProfilePicture?: string | null; slug: string }) {
+    const { post, user_id, userProfilePicture, slug } = props;
 
     const [showComments, setShowComments] = useState<boolean>(false);
     const [liked, setLiked] = useState<boolean>(false);
@@ -100,10 +101,7 @@ export default function ForumPost(props: { post: PostProps; user_id: string; use
                     <FaRegComments size={20} />
                     <span className="text-sm font-medium">Comment {comments.length > 0 && `(${comments.length})`}</span>
                 </button>
-                <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition">
-                    <FaRegPaperPlane size={20} />
-                    <span className="text-sm font-medium">Share</span>
-                </button>
+                <ShareButton url={`/community/${slug}/forum?highlight=${post.post_id}`} dark />
             </div>
 
             {/* Comments Section */}
