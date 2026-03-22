@@ -26,7 +26,15 @@ export async function GET(request: NextRequest) {
           required: true
         }]
       });
-      const communityIds = subscriptions.map(s => s.community_id);
+      const subscribedIds = subscriptions.map(s => s.community_id);
+
+      // Also include communities the user owns as an artist
+      const artistProfile = await Artist.findOne({ where: { user_id: userId } });
+      const ownedIds = artistProfile
+        ? (await Community.findAll({ where: { artist_id: artistProfile.artist_id } })).map(c => c.community_id)
+        : [];
+
+      const communityIds = [...new Set([...subscribedIds, ...ownedIds])];
       whereClause.community_id = communityIds;
     }
 

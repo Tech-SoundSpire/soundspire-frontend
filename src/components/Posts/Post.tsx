@@ -1,10 +1,10 @@
 "use client";
 import {
     FaRegHeart,
-    FaRegPaperPlane,
     FaRegComments,
     FaHeart,
 } from "react-icons/fa6";
+import ShareButton from "@/components/ShareButton";
 import { useState, useEffect } from "react";
 import Comment from "@/components/Posts/PostComment";
 import { CommentProps, PostProps } from "@/lib/types";
@@ -149,17 +149,7 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
                         Comment
                     </BaseText>
                 </button>
-                <button className="flex items-center mr-4">
-                    <FaRegPaperPlane className="mr-3" />
-                    <BaseText
-                        wrapper="span"
-                        fontName="inter"
-                        fontSize="small"
-                        fontWeight={500}
-                    >
-                        Share
-                    </BaseText>
-                </button>
+                <ShareButton url={`/feed?highlight=${post.post_id}`} />
             </div>
             {post.media_urls && post.media_urls.length > 0 && post.content_text && (
                 <div className="post-details flex px-4 pb-2 flex-wrap">
