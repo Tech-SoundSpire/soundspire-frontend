@@ -31,7 +31,14 @@ export default function ArtistCommunityProfile() {
 
     const [alreadySubscribed, setAlreadySubscribed] = useState(false);
     const [artistReviews, setArtistReviews] = useState<any[]>([]);
-    const { user } = useAuth();
+    const { user, switchRole } = useAuth();
+
+    // If an artist visits someone else's community page, switch them to fan mode
+    useEffect(() => {
+        if (!user || user.role !== "artist") return;
+        const isOwnCommunity = user.isAlsoArtist && artist && user.artistId === artist.artist_id;
+        if (!isOwnCommunity) switchRole("user");
+    }, [user, artist]);
     useEffect(() => {
         if (!slug || !user) return;
         (async () => {
