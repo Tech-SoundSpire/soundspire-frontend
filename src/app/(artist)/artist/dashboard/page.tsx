@@ -16,6 +16,7 @@ import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import CommunityHeader from "@/components/CommunityHeader";
 import ImageCropModal from "@/components/ImageCropModal";
+import ShareButton from "@/components/ShareButton";
 
 interface CommunityData {
     community_id: string;
@@ -265,7 +266,12 @@ export default function ArtistDashboard() {
             <div className="mt-20 text-center">
                 <BaseHeading fontSize="large" fontWeight={700}>{artist.artist_name}</BaseHeading>
                 {artist.community?.name && (
-                    <BaseText textColor="#9ca3af" fontSize="small" fontStyle="italic" className="mt-1">{artist.community.name}</BaseText>
+                    <div className="mt-1">
+                        <BaseText wrapper="span" textColor="#9ca3af" fontSize="small" fontStyle="italic">{artist.community.name}</BaseText>
+                        <span className="inline-flex items-center ml-2 align-middle">
+                            <ShareButton url={`/community/${artist.slug}`} light iconOnly />
+                        </span>
+                    </div>
                 )}
             </div>
 
