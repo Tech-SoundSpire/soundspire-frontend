@@ -2,19 +2,22 @@
 import Navbar from "@/components/Navbar";
 import MobileNav from "@/components/MobileNav";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
 import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRoute";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-    const { user, isLoading } = useAuth();
+    const { user, isLoading, switchRole } = useAuth();
     const router = useRouter();
 
-    const { hasPreferences, isLoading: preferencesLoading } =
-        useCheckPreferencesOnRoute();
-    const { isProfileComplete, isLoading: profileLoading } =
-        useCheckCompleteProfileOnRoute();
+    const { hasPreferences, isLoading: preferencesLoading } = useCheckPreferencesOnRoute();
+    const { isProfileComplete, isLoading: profileLoading } = useCheckCompleteProfileOnRoute();
+
+    // Auto-switch artist to fan when accessing fan routes
+    useEffect(() => {
+        if (!isLoading && user?.role === "artist") switchRole("user");
+    }, [user, isLoading]);
 
     useEffect(() => {
         if (isLoading || profileLoading || preferencesLoading) return;
@@ -33,17 +36,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             router.push("/PreferenceSelectionPage");
             return;
         }
-    }, [
-        user,
-        isLoading,
-        router,
-        profileLoading,
-        isProfileComplete,
-        preferencesLoading,
-        hasPreferences,
-    ]);
+    }, [user, isLoading, router, profileLoading, isProfileComplete, preferencesLoading, hasPreferences]);
 
-    // Show loading while checking auth
     if (isLoading || preferencesLoading || profileLoading) {
         return (
             <div className="min-h-screen bg-[#1a1625] flex items-center justify-center">
@@ -52,7 +46,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         );
     }
 
-    // Block rendering if not authenticated
     if (!user || !isProfileComplete || !hasPreferences) {
         return null;
     }
