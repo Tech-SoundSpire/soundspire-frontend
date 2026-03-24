@@ -102,7 +102,17 @@ export async function POST(request: NextRequest) {
 
     let artistId: string | null = null;
     if (user.is_artist) {
-      const artist = await Artist.findOne({ where: { user_id: user.user_id } });
+      let artist = await Artist.findOne({ where: { user_id: user.user_id } });
+      if (!artist && user.full_name) {
+        // Claim a cached Soundcharts row if name matches and it's unclaimed
+        const cached = await Artist.findOne({
+          where: { artist_name: user.full_name, user_id: null },
+        });
+        if (cached) {
+          await cached.update({ user_id: user.user_id });
+          artist = cached;
+        }
+      }
       if (artist) {
         artistId = artist.artist_id;
       }

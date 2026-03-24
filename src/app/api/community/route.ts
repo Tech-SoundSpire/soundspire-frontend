@@ -10,6 +10,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing fields" }, { status: 400 });
         }
 
+        // Idempotent — return existing community if already created for this artist
+        const existing = await Community.findOne({ where: { artist_id } });
+        if (existing) {
+            return NextResponse.json({ community: existing });
+        }
+
         const community = await Community.create({
             artist_id,
             name,

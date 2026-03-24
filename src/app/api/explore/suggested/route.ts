@@ -31,6 +31,20 @@ export async function GET(request: NextRequest) {
 
     // Merge: DB artists get slug (they're on SoundSpire), SC-only artists don't
     const dbByName = new Map(dbArtists.map((a) => [a.artist_name.toLowerCase(), a]));
+
+    // For SC artists, check if they've since joined the platform via third_party_id
+    const scUuids = scArtists.map((a: any) => a.soundcharts_uuid).filter(Boolean);
+    const joinedSCMap = new Map<string, any>();
+    if (scUuids.length > 0) {
+      const joined = await Artist.findAll({
+        where: { third_party_id: scUuids, third_party_platform: "soundcharts" },
+        attributes: ["artist_id", "artist_name", "profile_picture_url", "slug", "third_party_id", "user_id"],
+      });
+      joined.forEach((a) => {
+        if (a.user_id) joinedSCMap.set(a.third_party_id!, a); // only if actually onboarded
+      });
+    }
+
     const merged = [
       ...dbArtists.map((a) => ({
         artist_id: a.artist_id,
@@ -41,14 +55,27 @@ export async function GET(request: NextRequest) {
       })),
       ...scArtists
         .filter((a: any) => !dbByName.has(a.name?.toLowerCase()))
-        .map((a: any) => ({
-          artist_id: a.soundcharts_uuid,
-          name: a.name,
-          imageUrl: a.imageUrl,
-          soundcharts_uuid: a.soundcharts_uuid,
-          slug: null,
-          onSoundSpire: false,
-        })),
+        .map((a: any) => {
+          const joined = joinedSCMap.get(a.soundcharts_uuid);
+          if (joined) {
+            // Artist has joined the platform — show their community page
+            return {
+              artist_id: joined.artist_id,
+              name: joined.artist_name,
+              imageUrl: joined.profile_picture_url,
+              slug: joined.slug,
+              onSoundSpire: true,
+            };
+          }
+          return {
+            artist_id: a.soundcharts_uuid,
+            name: a.name,
+            imageUrl: a.imageUrl,
+            soundcharts_uuid: a.soundcharts_uuid,
+            slug: null,
+            onSoundSpire: false,
+          };
+        }),
     ];
 
     return NextResponse.json({ artists: merged });

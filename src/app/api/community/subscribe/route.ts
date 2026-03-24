@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
             );
         }
         // ASKS FOR SPECIFIC ID, USED ON THE ARTIST PROFILE PAGE
-        if (community_id) {
+        if (community_id && community_id !== "undefined") {
             const communitySubscription = await CommunitySubscription.findOne({
                 where: { user_id: user_id, community_id: community_id },
             });
