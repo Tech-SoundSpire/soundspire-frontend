@@ -34,10 +34,11 @@ export async function GET(
             ],
         });
         if (!artist) {
-            return NextResponse.json(
-                { error: "Artist not found" },
-                { status: 404 }
-            );
+            return NextResponse.json({ error: "Artist not found" }, { status: 404 });
+        }
+        // Cached but not onboarded — not a real community page yet
+        if (!artist.user_id) {
+            return NextResponse.json({ error: "Artist not found" }, { status: 404 });
         }
         // Force reload to get latest data
         await artist.reload();

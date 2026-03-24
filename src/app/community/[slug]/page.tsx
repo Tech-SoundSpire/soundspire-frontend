@@ -62,6 +62,7 @@ export default function ArtistCommunityProfile() {
     }, [slug, user]);
     useEffect(() => {
         if (!artist || !user) return;
+        if (!artist.community?.community_id) { setLoading(false); return; }
         (async () => {
             try {
                 const res = await fetch(

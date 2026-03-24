@@ -150,7 +150,15 @@ export default function ExplorePage() {
                                         const merged = [...sugData, ...dbData.filter((a: any) => !sugIds.has(a.artist_id)).map((a: any) => ({
                                             artist_id: a.artist_id, name: a.artist_name, imageUrl: a.profile_picture_url, slug: a.slug, onSoundSpire: true,
                                         }))];
-                                        setAllArtists(merged);
+                                        // Deduplicate: if a SC artist has joined (onSoundSpire=true via suggested), remove the SC version
+                                        const seen = new Set<string>();
+                                        const deduped = merged.filter((a: any) => {
+                                            const key = a.slug || a.soundcharts_uuid || a.artist_id;
+                                            if (seen.has(key)) return false;
+                                            seen.add(key);
+                                            return true;
+                                        });
+                                        setAllArtists(deduped);
                                     } catch { /* ignore */ }
                                 }
                                 setShowAllArtists(!showAllArtists);

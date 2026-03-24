@@ -7,6 +7,8 @@ import Artist from "@/models/Artist";
 import { User } from "@/models";
 import Genres from "@/models/Genres";
 import Social from "@/models/Social";
+import Community from "@/models/Community";
+import Forum from "@/models/Forum";
 import { createArtistSlug } from "@/utils/createArtistSlug";
 import { sendEmail } from "@/utils/mailer";
 
@@ -213,20 +215,38 @@ export async function POST(request: NextRequest) {
 
         const dupByName = await Artist.findOne({ where: { artist_name } });
         if (dupByName) {
-            cookieStore.set({
-                name: "artist_id",
-                value: dupByName.artist_id,
-                httpOnly: true,
-                path: "/",
-                maxAge: 60 * 60 * 24 * 2,
-                sameSite: "lax",
-            });
-            return NextResponse.json(
-                {
-                    error: "Artist already exists!",
+            if (!dupByName.user_id) {
+                // Cached Soundcharts row — claim it for this user
+                await dupByName.update({
+                    user_id: userId,
+                    bio: bio || dupByName.bio,
+                    profile_picture_url: profile_picture_url || dupByName.profile_picture_url,
+                    cover_photo_url: cover_photo_url || dupByName.cover_photo_url,
+                    verification_status: "pending",
+                });
+                // Create community + forums (same as artist-details does for new artists)
+                const communityName = body.community_name?.trim() || `${artist_name}'s Community`;
+                const community = await Community.create({
                     artist_id: dupByName.artist_id,
+                    name: communityName,
+                    description: body.community_description?.trim() || `Welcome to ${artist_name}'s official community!`,
+                    subscription_fee: 0,
+                    subscription_interval: "monthly",
+                });
+                await Forum.create({ community_id: community.community_id, name: "All Chat", description: "Real-time chat for all subscribed members", forum_type: "all_chat" });
+                await Forum.create({ community_id: community.community_id, name: "Fan Art", description: "Share your artwork with the community", forum_type: "fan_art" });
+
+                cookieStore.set({ name: "artist_id", value: dupByName.artist_id, httpOnly: true, path: "/", maxAge: 60 * 60 * 24 * 2, sameSite: "lax" });
+                return NextResponse.json({
+                    message: "Artist profile claimed successfully.",
+                    success: true,
+                    artist: dupByName,
                     redirect: `/payout?artistId=${dupByName.artist_id}`,
-                },
+                });
+            }
+            cookieStore.set({ name: "artist_id", value: dupByName.artist_id, httpOnly: true, path: "/", maxAge: 60 * 60 * 24 * 2, sameSite: "lax" });
+            return NextResponse.json(
+                { error: "Artist already exists!", artist_id: dupByName.artist_id, redirect: `/payout?artistId=${dupByName.artist_id}` },
                 { status: 400 },
             );
         }
