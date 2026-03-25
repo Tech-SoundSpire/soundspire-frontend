@@ -95,6 +95,8 @@ interface SelectionProps<T> {
     onSelect: (selected: T[]) => void;
     items: T[];
     searchQuery: string;
+    suggestedArtists?: T[]; //artists arr
+    isLoadingSuggestions? : boolean; 
 }
 
 // Step 1: Language Selection
@@ -325,6 +327,8 @@ const ArtistSelection: React.FC<SelectionProps<Artist>> = ({
     onSelect,
     items,
     searchQuery,
+    suggestedArtists,
+    isLoadingSuggestions,
 }) => {
     const [scResults, setScResults] = useState<Artist[]>([]);
     const [scLoading, setScLoading] = useState(false);
@@ -359,8 +363,12 @@ const ArtistSelection: React.FC<SelectionProps<Artist>> = ({
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    // Show SoundCharts results when searching, DB artists otherwise
-    const displayItems = searchQuery.length >= 2 ? scResults : items;
+    //if searching or db pref otherwise show suggested artists
+    const displayItems = searchQuery.length >= 2 
+        ? scResults 
+        : suggestedArtists && suggestedArtists.length > 0 
+            ? suggestedArtists 
+            : items;
 
     const handleToggle = (artist: Artist) => {
         const isSelected = selected.some(
@@ -472,6 +480,10 @@ const PreferenceSelectionPage: React.FC = () => {
     const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
     const [availableArtists, setAvailableArtists] = useState<Artist[]>([]);
 
+    //for suggest-arists
+    const [suggestedArtists, setSuggestedArtists] = useState<Artist[]>([]);
+    const [isSuggestingArtists, setIsSuggestingArtists] = useState(false);
+
     // Profile & Preferences checks
     const { isProfileComplete, isLoading: profileLoading } =
         useCheckCompleteProfileOnRoute();
@@ -580,6 +592,30 @@ const PreferenceSelectionPage: React.FC = () => {
             loadArtists();
         }
     }, [user]);
+
+    //Calling the suggest-artists endpoint
+    useEffect(() => {
+        if (step !== 3) return;
+        if (selections.genres.length === 0 && selections.languages.length === 0) return;
+
+        const fetchSuggestedArtists = async () => {
+            setIsSuggestingArtists(true);
+            try {
+                const res = await axios.post("/api/preferences/suggest-artists", {
+                    genres: selections.genres.map((g) => g.name),
+                    languages: selections.languages.map((l) => l.name),
+                });
+                setSuggestedArtists(res.data.artists);
+                
+            } catch (err) {
+                console.error("Failed to fetch suggestions", err);
+            } finally {
+                setIsSuggestingArtists(false);
+            }
+        };
+        fetchSuggestedArtists();
+    }, [step,selections.genres, selections.languages]);
+
 
     const handleSelect = <K extends keyof Selections>(
         category: K,
@@ -704,6 +740,8 @@ const PreferenceSelectionPage: React.FC = () => {
                                 }
                                 items={availableArtists}
                                 searchQuery={searchQueries.artists}
+                                suggestedArtists = {suggestedArtists}   //displaying artists of user preferances
+                                isLoadingSuggestions = {isSuggestingArtists} 
                             />
                         </div>
                     </div>
