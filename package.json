@@ -31,7 +31,7 @@
     "music-genres": "^1.0.1",
     "nanoid": "^5.1.6",
     "next": "^16.1.6",
-    "nodemailer": "^7.0.3",
+    "nodemailer": "^8.0.4",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
     "react": "^18.3.1",

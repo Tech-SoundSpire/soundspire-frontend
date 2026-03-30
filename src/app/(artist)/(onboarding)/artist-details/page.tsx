@@ -55,6 +55,7 @@ function ArtistDetailsContent() {
     const [mounted, setMounted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showTermsModal, setShowTermsModal] = useState(false);
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
 
     const profileFileRef = useRef<HTMLInputElement>(null);
     const coverFileRef = useRef<HTMLInputElement>(null);
@@ -545,13 +546,7 @@ function ArtistDetailsContent() {
                 );
 
             toast.success("Community created successfully!");
-
-            if (artistData.requiresVerification) {
-                toast.success("Verification email sent! Please check your inbox.", { duration: 5000 });
-                setTimeout(() => router.push("/artist/login"), 3000);
-            } else {
-                router.push(`/payout?artistId=${artistId}`);
-            }
+            setShowVerificationModal(true);
         } catch (err: any) {
             toast.error(err.message || "Submission failed");
         } finally {
@@ -1204,6 +1199,31 @@ function ArtistDetailsContent() {
                                 Close
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Verification Modal */}
+            {showVerificationModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                    <div className="bg-[#241e33] rounded-xl max-w-md w-full p-8 text-center">
+                        <BaseHeading
+                            headingLevel="h2"
+                            fontSize="normal"
+                            fontWeight={700}
+                            textColor="#FA6400"
+                            className="mb-3"
+                        >
+                            Verify Your Email
+                        </BaseHeading>
+                        <BaseText className="text-gray-300 mb-6">
+                            A verification email has been sent to <span className="text-white font-semibold">{formData.email}</span>. Please check your inbox and verify your account before logging in.
+                        </BaseText>
+                        <button
+                            onClick={() => router.push("/artist/login")}
+                            className="w-full bg-[#FA6400] py-3 rounded-lg font-semibold hover:bg-[#ff7f32] transition"
+                        >
+                            Go to Login
+                        </button>
                     </div>
                 </div>
             )}
