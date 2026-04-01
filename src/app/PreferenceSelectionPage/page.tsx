@@ -364,11 +364,13 @@ const ArtistSelection: React.FC<SelectionProps<Artist>> = ({
     }, [searchQuery]);
 
     //if searching or db pref otherwise show suggested artists
-    const displayItems = searchQuery.length >= 2 
+    //previously overriding the results, no need of this block.
+    /*const displayItems = searchQuery.length >= 2 
         ? scResults 
         : suggestedArtists && suggestedArtists.length > 0 
             ? suggestedArtists 
             : items;
+    */
 
     const handleToggle = (artist: Artist) => {
         const isSelected = selected.some(
@@ -421,39 +423,130 @@ const ArtistSelection: React.FC<SelectionProps<Artist>> = ({
                 <p className="text-gray-400 text-sm">Searching artists...</p>
             )}
 
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {displayItems.map((artist, index) => {
-                    const isSelected = selected.some(
-                        (item) => item.artist_id === artist.artist_id
-                    );
-                    return (
-                        <div
-                            key={`${artist.artist_id}-${index}`}
-                            onClick={() => handleToggle(artist)}
-                            className={`relative cursor-pointer group transition-all duration-300 ${
-                                isSelected ? "scale-105" : "hover:scale-105"
-                            }`}
-                        >
-                            <div className="relative aspect-square rounded-full overflow-hidden">
-                                <img
-                                    src={artist.img}
-                                    alt={artist.name}
-                                    className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-75"
-                                />
-                            </div>
-                            <p className="text-center mt-2 text-sm font-medium truncate">
-                                {artist.name}
-                            </p>
-
-                            {isSelected && (
-                                <div className="absolute -top-2 -right-2">
-                                    <CheckCircle className="w-8 h-8 text-white bg-orange-500 rounded-full p-1" />
+            {/*searched artists */}
+            {searchQuery.length >= 2 ? (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {scResults.map((artist, index) => {
+                        const isSelected = selected.some(
+                            (item) => item.artist_id === artist.artist_id
+                        );
+                        return (
+                            <div
+                                key={`${artist.artist_id}-${index}`}
+                                onClick={() => handleToggle(artist)}
+                                className={`relative cursor-pointer group transition-all duration-300 ${
+                                    isSelected ? "scale-105" : "hover:scale-105"
+                                }`}
+                            >
+                                <div className="relative aspect-square rounded-full overflow-hidden">
+                                    <img
+                                        src={artist.img}
+                                        alt={artist.name}
+                                        className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-75"
+                                    />
                                 </div>
-                            )}
+                                <p className="text-center mt-2 text-sm font-medium truncate">
+                                    {artist.name}
+                                </p>
+                                {isSelected && (
+                                    <div className="absolute -top-2 -right-2">
+                                        <CheckCircle className="w-8 h-8 text-white bg-orange-500 rounded-full p-1" />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            ) : (
+                <div>
+                    {/*suggested artists */}
+                    <div>
+                        <h3 className="text-lg font-semibold mb-3">Suggested for You</h3>
+                        {/*loader*/}
+                        {isLoadingSuggestions ? (
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="aspect-square rounded-full bg-gray-700 animate-pulse"
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                {(suggestedArtists || []).map((artist, index) => {
+                                    const isSelected = selected.some(
+                                        (item) => item.artist_id === artist.artist_id
+                                    );
+                                    return (
+                                        <div
+                                            key={`${artist.artist_id}-${index}`}
+                                            onClick={() => handleToggle(artist)}
+                                            className={`relative cursor-pointer group transition-all duration-300 ${
+                                                isSelected ? "scale-105" : "hover:scale-105"
+                                            }`}
+                                        >
+                                            <div className="relative aspect-square rounded-full overflow-hidden">
+                                                <img
+                                                    src={artist.img}
+                                                    alt={artist.name}
+                                                    className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-75"
+                                                />
+                                            </div>
+                                            <p className="text-center mt-2 text-sm font-medium truncate">
+                                                {artist.name}
+                                            </p>
+                                            {isSelected && (
+                                                <div className="absolute -top-2 -right-2">
+                                                    <CheckCircle className="w-8 h-8 text-white bg-orange-500 rounded-full p-1" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    {/*all artist section */}
+                    <div>
+                        <h3 className="text-lg font-semibold mt-6 mb-3">All Artists</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            {items.map((artist, index) => {
+                                const isSelected = selected.some(
+                                    (item) => item.artist_id === artist.artist_id
+                                );
+                            
+                                return (
+                                    <div
+                                        key={`${artist.artist_id}-${index}`}
+                                        onClick={() => handleToggle(artist)}
+                                        className={`relative cursor-pointer group transition-all duration-300 ${
+                                            isSelected ? "scale-105" : "hover:scale-105"
+                                        }`}
+                                    >
+                                        <div className="relative aspect-square rounded-full overflow-hidden">
+                                            <img
+                                                src={artist.img}
+                                                alt={artist.name}
+                                                className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-75"
+                                            />
+                                        </div>
+                                        <p className="text-center mt-2 text-sm font-medium truncate">
+                                            {artist.name}
+                                        </p>
+                                        {isSelected && (
+                                            <div className="absolute -top-2 -right-2">
+                                                <CheckCircle className="w-8 h-8 text-white bg-orange-500 rounded-full p-1" />
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
-                    );
-                })}
-            </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

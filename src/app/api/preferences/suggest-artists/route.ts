@@ -64,6 +64,7 @@ export async function POST(req: Request) {
 
       Rules:
       - Output ONLY valid JSON
+      - 2026 top 5 artists name.
       - No explanation, no text before/after
       - Format: ["Artist1","Artist2","Artist3","Artist4","Artist5"]
     `
