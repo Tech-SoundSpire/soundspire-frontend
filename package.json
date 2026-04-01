@@ -32,7 +32,7 @@
     "music-genres": "^1.0.1",
     "nanoid": "^5.1.6",
     "next": "^16.2.0",
-    "nodemailer": "^7.0.3",
+    "nodemailer": "^8.0.4",
     "pg": "^8.20.0",
     "pg-hstore": "^2.3.4",
     "react": "^18.3.1",
@@ -64,9 +64,9 @@
     "typescript": "^5"
   },
   "overrides": {
-    "brace-expansion": "2.0.2",
+    "brace-expansion": "^2.0.3",
     "ajv": "^8.18.0",
-    "minimatch": "^10.2.1"
-    ,"fast-xml-parser": "5.5.7"
+    "minimatch": "^10.2.1",
+    "fast-xml-parser": "5.5.7"
   }
 }
