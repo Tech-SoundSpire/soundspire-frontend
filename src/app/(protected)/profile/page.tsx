@@ -53,8 +53,8 @@ export default function ProfilePage() {
         email: "",
         phoneNumber: "",
         dob: "2000-01-01",
-        city: "New York",
-        country: "United States",
+        city: "",
+        country: "",
         profileImage: null,
         spotifyLinked: false,
     });
@@ -117,8 +117,8 @@ export default function ProfilePage() {
                               .toISOString()
                               .split("T")[0]
                         : "2000-01-01",
-                    city: data.city || "New York",
-                    country: data.country || "United States",
+                    city: data.city || "",
+                    country: data.country || "",
                     profileImage:
                         data.profile_picture_url || user.photoURL || null,
                     spotifyLinked: data.spotify_linked || false,
@@ -357,6 +357,7 @@ export default function ProfilePage() {
 
     const montserrat = getFontClass("montserrat");
     const glassInput = "w-full h-[44px] px-4 py-1 rounded-lg border border-[#F7F7F7] text-white text-[16px] font-medium flex items-center";
+    const glassSelect = "w-full h-[44px] px-4 py-1 rounded-lg border border-[#F7F7F7] text-white text-[16px] font-medium [&>option]:bg-[#1a1625] [&>option]:text-white";
     const glassInputBg = { background: "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(153,153,153,0.08) 100%)" };
 
     if (!user) {
@@ -461,7 +462,7 @@ export default function ProfilePage() {
                         <div>
                             <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>Gender</label>
                             {isEditing ? (
-                                <select name="gender" value={editableProfile.gender} onChange={handleChange} className={`${montserrat} ${glassInput} bg-transparent`} style={glassInputBg}>
+                                <select name="gender" value={editableProfile.gender} onChange={handleChange} className={`${montserrat} ${glassSelect}`} style={glassInputBg}>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
                                     <option value="Other">Other</option>
@@ -473,7 +474,7 @@ export default function ProfilePage() {
                         <div>
                             <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>City</label>
                             {isEditing ? (
-                                <select name="city" value={editableProfile.city} onChange={handleChange} className={`${montserrat} ${glassInput} bg-transparent`} style={glassInputBg}>
+                                <select name="city" value={editableProfile.city} onChange={handleChange} className={`${montserrat} ${glassSelect}`} style={glassInputBg}>
                                     {editableCities.map((city) => <option key={city} value={city}>{city}</option>)}
                                 </select>
                             ) : (
@@ -489,7 +490,7 @@ export default function ProfilePage() {
                                         const countryData = countriesWithCities.find((c) => c.name === newCountry);
                                         return { ...prev, country: newCountry, city: countryData?.cities?.[0] || "" };
                                     });
-                                }} className={`${montserrat} ${glassInput} bg-transparent`} style={glassInputBg}>
+                                }} className={`${montserrat} ${glassSelect}`} style={glassInputBg}>
                                     {countries.map((country) => <option key={country} value={country}>{country}</option>)}
                                 </select>
                             ) : (
