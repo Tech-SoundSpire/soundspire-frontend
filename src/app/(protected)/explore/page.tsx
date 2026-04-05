@@ -13,6 +13,8 @@ import Link from "next/link";
 import SearchDropdown from "@/components/ui/SearchDropdown";
 import { getFontClass } from "@/utils/getFontClass";
 import { ArtistAttributes } from "@/models/Artist";
+import { useLanguage } from "@/context/LanguageContext";
+import TranslatableText from "@/components/TranslatableText";
 
 interface Review {
     review_id: string;
@@ -83,6 +85,7 @@ export default function ExplorePage() {
     const [allArtists, setAllArtists] = useState<any[]>([]);
     const { user } = useAuth();
     const router = useRouter();
+    const { t } = useLanguage();
     const montserrat = getFontClass("montserrat");
 
     useEffect(() => {
@@ -134,7 +137,7 @@ export default function ExplorePage() {
                 <section className="mb-12">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px]`}>
-                            SUGGESTED ARTISTS
+                            {t('SUGGESTED ARTISTS')}
                         </h2>
                         <button
                             onClick={async () => {
@@ -165,7 +168,7 @@ export default function ExplorePage() {
                             }}
                             className={`${montserrat} text-[#F7F7F7] text-[16px] font-medium hover:text-[#FFD3C9] transition-colors`}
                         >
-                            {showAllArtists ? "Show Less" : "See More"}
+                            {showAllArtists ? t("Show Less") : t("See More")}
                         </button>
                     </div>
                     {loading ? (
@@ -176,8 +179,9 @@ export default function ExplorePage() {
                         <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-6 pb-4">
                             {allArtists.map((artist: any) => {
                                 const href = artist.onSoundSpire === false
-                                    ? `/community/sc/${artist.soundcharts_uuid}`
-                                    : `/community/${artist.slug}/`;
+                                    ? (artist.soundcharts_uuid ? `/community/sc/${artist.soundcharts_uuid}` : null)
+                                    : (artist.slug ? `/community/${artist.slug}/` : null);
+                                if (!href) return null;
                                 const imgSrc = getImageUrl(artist.imageUrl || artist.profile_picture_url || DEFAULT_PROFILE_IMAGE);
                                 const name = artist.name || artist.artist_name;
                                 return (
@@ -192,8 +196,9 @@ export default function ExplorePage() {
                         <div className="flex gap-6 overflow-x-auto pb-4">
                             {(suggestedArtists.length > 0 ? suggestedArtists : artists).map((artist: any) => {
                                 const href = artist.onSoundSpire === false
-                                    ? `/community/sc/${artist.soundcharts_uuid}`
-                                    : `/community/${artist.slug}/`;
+                                    ? (artist.soundcharts_uuid ? `/community/sc/${artist.soundcharts_uuid}` : null)
+                                    : (artist.slug ? `/community/${artist.slug}/` : null);
+                                if (!href) return null;
                                 const imgSrc = getImageUrl(artist.imageUrl || artist.profile_picture_url || DEFAULT_PROFILE_IMAGE);
                                 const name = artist.name || artist.artist_name;
                                 return (
@@ -211,10 +216,10 @@ export default function ExplorePage() {
                 <section className="mb-12">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px]`}>
-                            REVIEWS
+                            {t('REVIEWS')}
                         </h2>
                         <Link href="/reviews" className={`${montserrat} text-[#F7F7F7] text-[16px] font-medium hover:text-[#FFD3C9] transition-colors`}>
-                            See All
+                            {t('See All')}
                         </Link>
                     </div>
                     {loading ? (
@@ -247,17 +252,17 @@ export default function ExplorePage() {
                                                     review.artist?.artist_name || review.artist_name || "Unknown Artist"
                                                 )}
                                             </p>
-                                            <p className={`${montserrat} text-[#d1d5db] text-[14px] line-clamp-3 mb-4`}>
-                                                {review.text_content.length > 100
-                                                    ? `${review.text_content.substring(0, 100)}...`
-                                                    : review.text_content}
-                                            </p>
+                                            <TranslatableText
+                                                text={review.text_content}
+                                                truncate={100}
+                                                className={`${montserrat} text-[#d1d5db] text-[14px] line-clamp-3 mb-1`}
+                                            />
                                         </div>
                                         <Link
                                             href={`/reviews/${review.review_id}`}
                                             className={`${montserrat} mt-auto bg-[#FF4E27] hover:bg-[#e5431f] text-[#F7F7F7] px-4 py-2.5 rounded-[5px] text-[16px] font-medium w-fit inline-block`}
                                         >
-                                            Read More
+                                            {t('Read More')}
                                         </Link>
                                     </div>
                                 </div>

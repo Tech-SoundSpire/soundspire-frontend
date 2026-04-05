@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 import { Toaster } from "react-hot-toast";
+import GlobalTranslation from "@/components/GlobalTranslation";
 
 export const metadata: Metadata = {
     title: "SoundSpire",
@@ -19,10 +21,14 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`antialiased min-h-screen bg-[#1a1625]`}>
-                <AuthProvider>
-                    <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 5000 }} />
-                    {children}
-                </AuthProvider>
+                <LanguageProvider>
+                    <AuthProvider>
+                        <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 5000 }} />
+                        <GlobalTranslation>
+                            {children}
+                        </GlobalTranslation>
+                    </AuthProvider>
+                </LanguageProvider>
             </body>
         </html>
     );

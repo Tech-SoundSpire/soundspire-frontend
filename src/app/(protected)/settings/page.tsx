@@ -4,6 +4,7 @@ import { FaCog } from "react-icons/fa";
 
 export default function SettingsPage() {
     const montserrat = getFontClass("montserrat");
+
     return (
         <div className="min-h-screen md:ml-[54px] flex flex-col items-center justify-center gap-6">
             <FaCog className="text-[#FF4E27] w-20 h-20 opacity-40" />

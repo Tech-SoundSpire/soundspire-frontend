@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { FaBell } from 'react-icons/fa';
 import { supabase } from '@/lib/supabaseClient';
 import ShareButton from '@/components/ShareButton';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface CommunityHeaderProps {
   slug: string;
@@ -34,6 +35,7 @@ function timeAgo(date: string) {
 export default function CommunityHeader({ slug, communityName, isSubscribed, isArtist = false, currentPage, onLogout, onSwitchToFan }: CommunityHeaderProps) {
   const router = useRouter();
   const { user, logout, switchRole } = useAuth();
+  const { t } = useLanguage();
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -142,7 +144,7 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
           className={`transition ${currentPage === 'about' ? 'text-[#FA6400] font-semibold' : 'hover:text-[#FA6400]'}`}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
-            {isArtist ? 'Home' : 'About'}
+            {isArtist ? t('Home') : t('About')}
           </BaseText>
         </button>
         
@@ -157,7 +159,7 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
           }`}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
-            Artist Forum
+            {t('Artist Forum')}
           </BaseText>
         </button>
         
@@ -172,7 +174,7 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
           }`}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
-            All Chat
+            {t('All Chat')}
           </BaseText>
         </button>
         
@@ -187,7 +189,7 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
           }`}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
-            Fan Art
+            {t('Fan Art')}
           </BaseText>
         </button>
         
@@ -195,7 +197,7 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
           className={`transition ${currentPage === 'suggestions' ? 'text-[#FA6400] font-semibold' : 'hover:text-[#FA6400]'}`}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
-            Suggestions
+            {t('Suggestions')}
           </BaseText>
         </button>
       </nav>

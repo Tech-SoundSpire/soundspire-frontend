@@ -11,6 +11,7 @@ import { type communityDataFromAPI } from "@/types/communityGetAllAPIData";
 import { useSearchParams } from "next/navigation";
 import SearchDropdown from "@/components/ui/SearchDropdown";
 import { getFontClass } from "@/utils/getFontClass";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function Page() {
     const [posts, setPosts] = useState<PostProps[]>([]);
@@ -23,6 +24,7 @@ export default function Page() {
     const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const [feedSearchQuery, setFeedSearchQuery] = useState("");
     const montserrat = getFontClass("montserrat");
+    const { t } = useLanguage();
 
     useEffect(() => {
         if (highlightedPost && posts.length > 0) {
@@ -101,7 +103,7 @@ export default function Page() {
                         <div className="w-full max-w-[437px]">
                             <SearchDropdown
                                 apiEndpoint=""
-                                placeholder="Search posts..."
+                                placeholder={t("Search posts...")}
                                 mode="filter"
                                 onFilter={useCallback((q: string) => setFeedSearchQuery(q), [])}
                             />
