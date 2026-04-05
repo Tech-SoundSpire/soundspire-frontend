@@ -92,7 +92,7 @@ export default function DetailedReview({
 
             {/* Review Body */}
             <div
-                className={`${azeret} text-white text-[20px] font-medium leading-[28px] text-justify whitespace-pre-line mt-8 mb-8`}
+                className={`${azeret} text-white text-[20px] font-medium leading-[28px] text-justify whitespace-pre-line mt-8 mb-2`}
             >
                 {review.text_content}
             </div>

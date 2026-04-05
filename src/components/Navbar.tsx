@@ -19,11 +19,13 @@ import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
 import { getFontClass } from "@/utils/getFontClass";
+import { useLanguage } from "@/context/LanguageContext";
 
 const Navbar = () => {
     const { user, switchRole } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
+    const { t } = useLanguage();
     const [isExpanded, setIsExpanded] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
 
@@ -75,14 +77,14 @@ const Navbar = () => {
     }, [user, router]);
 
     const menuItems = [
-        { icon: FaCompass, label: "Explore", href: "/explore" },
-        { icon: MdOutlineDynamicFeed, label: "Feed", href: "/feed" },
-        { icon: FaHeadphones, label: "My Music", href: "/my-music" },
-        { icon: FaUsers, label: "My Communities", href: "/communities" },
-        { icon: FaClipboard, label: "Reviews", href: "/reviews" },
-        { icon: FaBell, label: "Notifications", href: "/notifications" },
-        { icon: FaUser, label: "Profile", href: "/profile" },
-        { icon: FaCog, label: "Settings", href: "/settings" },
+        { icon: FaCompass, label: t("Explore"), href: "/explore" },
+        { icon: MdOutlineDynamicFeed, label: t("Feed"), href: "/feed" },
+        { icon: FaHeadphones, label: t("My Music"), href: "/my-music" },
+        { icon: FaUsers, label: t("My Communities"), href: "/communities" },
+        { icon: FaClipboard, label: t("Reviews"), href: "/reviews" },
+        { icon: FaBell, label: t("Notifications"), href: "/notifications" },
+        { icon: FaUser, label: t("Profile"), href: "/profile" },
+        { icon: FaCog, label: t("Settings"), href: "/settings" },
     ];
 
     const getHomeRoute = () => {
@@ -190,7 +192,7 @@ const Navbar = () => {
                                     isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0"
                                 }`}
                             >
-                                {user.role === "artist" ? "Switch to Fan" : "Switch to Artist"}
+                                {user.role === "artist" ? t("Switch to Fan") : t("Switch to Artist")}
                             </span>
                         </button>
                     </div>

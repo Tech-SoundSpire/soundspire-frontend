@@ -14,6 +14,7 @@ import ImageCropModal from "@/components/ImageCropModal";
 import HLSVideo from "@/components/HLSVideo";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { uploadToS3 } from "@/utils/uploadToS3";
+import TranslatableText from "@/components/TranslatableText";
 
 interface Message {
     forum_post_id: string;
@@ -1107,9 +1108,10 @@ export default function AllChatPage() {
                                                         </div>
                                                     ) : (
                                                         msg.content && (
-                                                            <p className="break-words">
-                                                                {highlightText(msg.content, searchQuery)}
-                                                            </p>
+                                                            <TranslatableText
+                                                                text={msg.content}
+                                                                className="break-words"
+                                                            />
                                                         )
                                                     )}
                                                     {msg.media_urls &&

@@ -152,19 +152,9 @@ export default function Post(props: { post: PostProps; user_id: string; userProf
                 <ShareButton url={`/feed?highlight=${post.post_id}`} />
             </div>
             {post.media_urls && post.media_urls.length > 0 && post.content_text && (
-                <div className="post-details flex px-4 pb-2 flex-wrap">
-                    <BaseText
-                        fontWeight={400}
-                        fontName="arial"
-                        fontSize="small"
-                        textColor="#191919"
-                    >
-                        <BaseText
-                            className="mr-3"
-                            wrapper="span"
-                            fontWeight={700}
-                            fontSize="normal"
-                        >
+                <div className="post-details flex flex-col px-4 pb-2">
+                    <BaseText fontWeight={400} fontName="arial" fontSize="small" textColor="#191919">
+                        <BaseText className="mr-3" wrapper="span" fontWeight={700} fontSize="normal">
                             <Link href={post.artist.slug ? `/community/${post.artist.slug}` : "#"} className="hover:underline">
                                 {post.artist.artist_name}
                             </Link>

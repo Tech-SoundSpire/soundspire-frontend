@@ -14,8 +14,10 @@ import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 import BaseText from "@/components/BaseText/BaseText";
 import SearchDropdown from "@/components/ui/SearchDropdown";
+import { useLanguage } from "@/context/LanguageContext";
 export default function MyCommunities() {
     const [searchValue, setSearchValue] = useState("");
+    const { t } = useLanguage();
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [userProfilePicture, setUserProfilePicture] = useState<null | string>(
@@ -92,7 +94,7 @@ export default function MyCommunities() {
                             type="text"
                             value={searchValue}
                             onChange={(e) => setSearchValue(e.target.value)}
-                            placeholder="Search all communities..."
+                            placeholder={t("Search all communities...")}
                         ></input>
                     </div>
                     <div className={styles["profile-picture"]}>
@@ -110,7 +112,7 @@ export default function MyCommunities() {
             {isSearching && searchResults.length > 0 && (
                 <div className="w-full px-8" style={{ paddingLeft: "calc(var(--navbar-collapsed) + 2rem)" }}>
                     <BaseHeading headingLevel="h2" fontSize="large" fontWeight={600} textColor="#ddaca6" className="mb-4">
-                        Search Results
+                        {t('Search Results')}
                     </BaseHeading>
                     <div className={styles.communities}>
                         {searchResults.map((c: any) => (
@@ -124,7 +126,7 @@ export default function MyCommunities() {
                                         <BaseText wrapper="span" fontSize="normal" textColor="#817f85">{c.artist_name || "Artist"}</BaseText>
                                     </div>
                                     <Link href={`/community/${c.artist_slug}`} className={styles["community-link"]}>
-                                        <BaseText wrapper="span" fontSize="inherit" textColor="inherit">Go to Community</BaseText>
+                                        <BaseText wrapper="span" fontSize="inherit" textColor="inherit">{t('Go to Community')}</BaseText>
                                         <FaArrowRightLong />
                                     </Link>
                                 </div>
@@ -145,7 +147,7 @@ export default function MyCommunities() {
                     </div>
                 ) : subscribedCommunitiesData.length <= 0 ? (
                     <BaseText textColor="#f0f0f0" fontSize="large">
-                        No Communities Found.
+                        {t('No Communities Found.')}
                     </BaseText>
                 ) : (
                     subscribedCommunitiesData.map((community) => {
@@ -226,7 +228,7 @@ export default function MyCommunities() {
                                             fontSize="inherit"
                                             textColor="inherit"
                                         >
-                                            Go to Community
+                                            {t('Go to Community')}
                                         </BaseText>
                                         <FaArrowRightLong></FaArrowRightLong>
                                     </Link>

@@ -3,18 +3,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FaCompass, FaUsers, FaClipboard, FaBell, FaUser } from "react-icons/fa";
 import { MdOutlineDynamicFeed } from "react-icons/md";
-
-const items = [
-    { icon: FaCompass, label: "Explore", href: "/explore" },
-    { icon: MdOutlineDynamicFeed, label: "Feed", href: "/feed" },
-    { icon: FaUsers, label: "Communities", href: "/communities" },
-    { icon: FaClipboard, label: "Reviews", href: "/reviews" },
-    { icon: FaBell, label: "Alerts", href: "/notifications" },
-    { icon: FaUser, label: "Profile", href: "/profile" },
-];
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function MobileNav() {
     const pathname = usePathname();
+    const { t } = useLanguage();
+
+    const items = [
+        { icon: FaCompass, label: t("Explore"), href: "/explore" },
+        { icon: MdOutlineDynamicFeed, label: t("Feed"), href: "/feed" },
+        { icon: FaUsers, label: t("Communities"), href: "/communities" },
+        { icon: FaClipboard, label: t("Reviews"), href: "/reviews" },
+        { icon: FaBell, label: t("Alerts"), href: "/notifications" },
+        { icon: FaUser, label: t("Profile"), href: "/profile" },
+    ];
+
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#0a0612]/95 backdrop-blur-md border-t border-[#767474] flex justify-around items-center h-16 md:hidden">
             {items.map((item) => {

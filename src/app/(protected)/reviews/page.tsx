@@ -8,6 +8,8 @@ import {
 import CarouselBase from "@/components/CarouselBase";
 import Link from "next/link";
 import { getFontClass } from "@/utils/getFontClass";
+import { useLanguage } from "@/context/LanguageContext";
+import TranslatableText from "@/components/TranslatableText";
 import ShareButton from "@/components/ShareButton";
 
 interface Review {
@@ -34,6 +36,7 @@ export default function ReviewsPage() {
     const [heroIndex, setHeroIndex] = useState(0);
     const router = useRouter();
     const montserrat = getFontClass("montserrat");
+    const { t } = useLanguage();
 
     useEffect(() => {
         fetch("/api/reviews")
@@ -130,7 +133,7 @@ export default function ReviewsPage() {
                     href="/reviews/submit"
                     className="bg-[#FF4E27] hover:bg-[#e5431f] text-white px-6 py-2 rounded-lg font-semibold transition-colors"
                 >
-                    Submit Review
+                    {t('Submit Review')}
                 </Link>
             </div>
 
@@ -160,17 +163,18 @@ export default function ReviewsPage() {
                                         review.artist_name || "Unknown Artist"
                                     )}
                                 </p>
-                                <p className={`${montserrat} text-[#d1d5db] text-[14px] line-clamp-3 mb-4`}>
-                                    {review.text_content.slice(0, 100)}
-                                    {review.text_content.length > 100 ? "..." : ""}
-                                </p>
+                                <TranslatableText
+                                    text={review.text_content}
+                                    truncate={100}
+                                    className={`${montserrat} text-[#d1d5db] text-[14px] line-clamp-3 mb-1`}
+                                />
                             </div>
                             <div className="flex items-center gap-3 mt-auto">
                                 <Link
                                     href={`/reviews/${review.review_id}`}
                                     className={`${montserrat} bg-[#FF4E27] hover:bg-[#e5431f] text-[#F7F7F7] px-4 py-2.5 rounded-[5px] text-[16px] font-medium inline-block`}
                                 >
-                                    Read More
+                                    {t('Read More')}
                                 </Link>
                                 <ShareButton url={`/reviews/${review.review_id}`} light />
                             </div>

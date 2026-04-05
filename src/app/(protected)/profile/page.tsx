@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { countriesWithCities } from "@/lib/locationData";
+import { useLanguage } from "@/context/LanguageContext";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
@@ -356,6 +357,7 @@ export default function ProfilePage() {
     };
 
     const montserrat = getFontClass("montserrat");
+    const { t } = useLanguage();
     const glassInput = "w-full h-[44px] px-4 py-1 rounded-lg border border-[#F7F7F7] text-white text-[16px] font-medium flex items-center";
     const glassSelect = "w-full h-[44px] px-4 py-1 rounded-lg border border-[#F7F7F7] text-white text-[16px] font-medium [&>option]:bg-[#1a1625] [&>option]:text-white";
     const glassInputBg = { background: "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(153,153,153,0.08) 100%)" };
@@ -397,16 +399,16 @@ export default function ProfilePage() {
                         <div className="flex gap-4">
                             {isEditing ? (
                                 <>
-                                    <button onClick={handleCancelEdit} className={`${montserrat} px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg`} disabled={isLoading}>Cancel</button>
+                                    <button onClick={handleCancelEdit} className={`${montserrat} px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg`} disabled={isLoading}>{t('Cancel')}</button>
                                     <button onClick={handleSave} className={`${montserrat} px-6 py-2 bg-[#FF4E27] hover:bg-[#e5431f] text-white rounded-lg font-bold`} disabled={isLoading || isValidatingUsername}>
-                                        {isLoading ? "Saving..." : isValidatingUsername ? "Validating..." : "Save Edits"}
+                                        {isLoading ? t('Saving...') : isValidatingUsername ? t('Validating...') : t('Save Edits')}
                                     </button>
                                 </>
                             ) : (
                                 <>
-                                    <button onClick={handleLogout} className={`${montserrat} px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg`}>Logout</button>
+                                    <button onClick={handleLogout} className={`${montserrat} px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg`}>{t('Logout')}</button>
                                     <button onClick={toggleEdit} className={`${montserrat} px-6 py-2 bg-[#FF4E27] hover:bg-[#e5431f] text-white rounded-lg font-bold flex items-center gap-2`}>
-                                        Edit Profile <FaPen className="w-4 h-4" />
+                                        {t('Edit Profile')} <FaPen className="w-4 h-4" />
                                     </button>
                                 </>
                             )}
@@ -428,39 +430,39 @@ export default function ProfilePage() {
                             />
                             {isEditing && (
                                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity">
-                                    <span className={montserrat}>Change</span>
+                                    <span className={montserrat}>{t('Change')}</span>
                                 </div>
                             )}
                             <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageChange} />
                         </div>
                         <div className="flex flex-col gap-1">
-                            <span className={`${montserrat} text-white text-[28px] font-semibold leading-[34px]`}>{profile.fullName}</span>
-                            <span className={`${montserrat} text-[#FFC8BC] text-[16px] font-medium`}>@{profile.userName}</span>
+                            <span className={`${montserrat} text-white text-[28px] font-semibold leading-[34px]`} data-no-translate>{profile.fullName}</span>
+                            <span className={`${montserrat} text-[#FFC8BC] text-[16px] font-medium`} data-no-translate>@{profile.userName}</span>
                         </div>
                     </div>
 
                     {/* Form Fields — 4 column grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-6 mb-8">
                         <div>
-                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>Email</label>
-                            <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>{profile.email || "Not provided"}</div>
+                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>{t('Email')}</label>
+                            <div className={`${montserrat} ${glassInput}`} style={glassInputBg} data-no-translate>{profile.email || "Not provided"}</div>
                         </div>
                         <div>
-                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>Phone Number</label>
-                            <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>{profile.phoneNumber || "Not provided"}</div>
+                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>{t('Phone Number')}</label>
+                            <div className={`${montserrat} ${glassInput}`} style={glassInputBg} data-no-translate>{profile.phoneNumber || "Not provided"}</div>
                         </div>
                         <div>
                             <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>DOB</label>
                             {isEditing ? (
                                 <input type="date" name="dob" value={editableProfile.dob} onChange={handleChange} className={`${montserrat} ${glassInput} bg-transparent`} style={glassInputBg} />
                             ) : (
-                                <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>
+                                <div className={`${montserrat} ${glassInput}`} style={glassInputBg} data-no-translate>
                                     {profile.dob ? new Date(profile.dob).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }) : "Not provided"}
                                 </div>
                             )}
                         </div>
                         <div>
-                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>Gender</label>
+                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>{t('Gender')}</label>
                             {isEditing ? (
                                 <select name="gender" value={editableProfile.gender} onChange={handleChange} className={`${montserrat} ${glassSelect}`} style={glassInputBg}>
                                     <option value="Male">Male</option>
@@ -468,21 +470,21 @@ export default function ProfilePage() {
                                     <option value="Other">Other</option>
                                 </select>
                             ) : (
-                                <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>{profile.gender || "Other"}</div>
+                                <div className={`${montserrat} ${glassInput}`} style={glassInputBg} data-no-translate>{profile.gender || "Other"}</div>
                             )}
                         </div>
                         <div>
-                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>City</label>
+                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>{t('City')}</label>
                             {isEditing ? (
                                 <select name="city" value={editableProfile.city} onChange={handleChange} className={`${montserrat} ${glassSelect}`} style={glassInputBg}>
                                     {editableCities.map((city) => <option key={city} value={city}>{city}</option>)}
                                 </select>
                             ) : (
-                                <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>{profile.city || "Not provided"}</div>
+                                <div className={`${montserrat} ${glassInput}`} style={glassInputBg} data-no-translate>{profile.city || "Not provided"}</div>
                             )}
                         </div>
                         <div>
-                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>Country</label>
+                            <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>{t('Country')}</label>
                             {isEditing ? (
                                 <select name="country" value={editableProfile.country} onChange={(e) => {
                                     const newCountry = e.target.value;
@@ -494,12 +496,12 @@ export default function ProfilePage() {
                                     {countries.map((country) => <option key={country} value={country}>{country}</option>)}
                                 </select>
                             ) : (
-                                <div className={`${montserrat} ${glassInput}`} style={glassInputBg}>{profile.country || "Not provided"}</div>
+                                <div className={`${montserrat} ${glassInput}`} style={glassInputBg} data-no-translate>{profile.country || "Not provided"}</div>
                             )}
                         </div>
                         {isEditing && (
                             <div>
-                                <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>Username</label>
+                                <label className={`${montserrat} text-[#F7F7F7] text-[18px] font-medium mb-2 block`}>{t('Username')}</label>
                                 <input type="text" name="userName" value={editableProfile.userName} onChange={handleChange} className={`${montserrat} ${glassInput} bg-transparent`} style={glassInputBg} placeholder="Username" />
                                 {usernameError && <p className={`${montserrat} text-red-500 text-[12px] mt-1`}>{usernameError}</p>}
                             </div>
@@ -508,7 +510,7 @@ export default function ProfilePage() {
 
                     <div className="w-full h-px bg-[#CCCACA]/50 my-8" />
                     <div className="mb-12">
-                        <h2 className={`${montserrat} text-[#F7F7F7] text-[44px] font-bold leading-[53px] mb-6`}>My Subscriptions</h2>
+                        <h2 className={`${montserrat} text-[#F7F7F7] text-[44px] font-bold leading-[53px] mb-6`}>{t('My Subscriptions')}</h2>
                         {isSubscriptionsLoading ? (
                             <p className={`${montserrat} text-white text-[14px]`}>Loading subscriptions...</p>
                         ) : subscriptions.length > 0 ? (

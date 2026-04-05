@@ -21,10 +21,12 @@ import ShareButton from "@/components/ShareButton";
 import { FaFacebook, FaInstagram, FaTiktok, FaYoutube } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { IconType } from "react-icons/lib";
+import { useLanguage } from "@/context/LanguageContext";
 const default_image = getDefaultProfileImageUrl();
 export default function ArtistCommunityProfile() {
     const params = useParams();
     const slug = params.slug;
+    const { t } = useLanguage();
     const [artist, setArtist] = useState<ArtistData | null>(null);
     const [loading, setLoading] = useState(true);
     const [savingSubscription, setSavingSubscription] = useState(false);
@@ -269,22 +271,22 @@ export default function ArtistCommunityProfile() {
                 <div className="max-w-4xl w-full mx-auto px-6 py-8 pb-24 space-y-8">
                     {/* About */}
                     <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
-                        <BaseHeading fontWeight={600} fontSize="normal" className="mb-3">About</BaseHeading>
+                        <BaseHeading fontWeight={600} fontSize="normal" className="mb-3">{t('About')}</BaseHeading>
                         {artist.bio ? (
                             <BaseText className="leading-relaxed" textColor="#d1d5db" fontSize="normal">
                                 {artist.bio}
                             </BaseText>
                         ) : (
-                            <BaseText textColor="#6b7280">No bio available yet.</BaseText>
+                            <BaseText textColor="#6b7280">{t('No bio available yet.')}</BaseText>
                         )}
                     </div>
 
                     {/* Community Highlights */}
                     {artist.community && (
                         <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
-                            <BaseHeading fontSize="normal" fontWeight={600} className="mb-3">Community Highlights</BaseHeading>
+                            <BaseHeading fontSize="normal" fontWeight={600} className="mb-3">{t('Community Highlights')}</BaseHeading>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {["Be a part of the TRIBE", "Get Access to the Screens", "Tap into the Global Community"].map((title, idx) => (
+                                {[t("Be a part of the TRIBE"), t("Get Access to the Screens"), t("Tap into the Global Community")].map((title, idx) => (
                                     <div key={idx} className="relative h-40 rounded-xl overflow-hidden bg-gradient-to-br from-purple-900/30 to-[#1a1625] border border-gray-700 flex items-end p-4">
                                         <BaseText fontWeight={600} fontSize="small">{title}</BaseText>
                                     </div>
@@ -295,7 +297,7 @@ export default function ArtistCommunityProfile() {
 
                     {/* Reviews */}
                     <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
-                        <BaseHeading headingLevel="h2" fontSize="normal" fontWeight={600} className="mb-6">Reviews by the SoundSpire Team</BaseHeading>
+                        <BaseHeading headingLevel="h2" fontSize="normal" fontWeight={600} className="mb-6">{t('Reviews by the SoundSpire Team')}</BaseHeading>
                         {artistReviews.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {artistReviews.map((r: any) => (
@@ -316,7 +318,7 @@ export default function ArtistCommunityProfile() {
                                 ))}
                             </div>
                         ) : (
-                            <BaseText textColor="#6b7280">No reviews yet.</BaseText>
+                            <BaseText textColor="#6b7280">{t('No reviews yet.')}</BaseText>
                         )}
                     </div>
                 </div>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { FaArrowLeftLong, FaChevronDown } from "react-icons/fa6";
 import { getFontClass } from "@/utils/getFontClass";
 import { getImageUrl, DEFAULT_PROFILE_IMAGE } from "@/utils/userProfileImageUtils";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface NotificationItem {
     notification_id: string;
@@ -45,6 +46,7 @@ function timeAgo(date: string) {
 export default function NotificationsPage() {
     const { user } = useAuth();
     const router = useRouter();
+    const { t } = useLanguage();
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -75,7 +77,7 @@ export default function NotificationsPage() {
     const toggleGroup = (key: string) => setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
 
     const renderGroup = (items: NotificationItem[]) => {
-        if (items.length === 0) return <p className={`${montserrat} text-[#6b7280] text-[16px]`}>No notifications</p>;
+        if (items.length === 0) return <p className={`${montserrat} text-[#6b7280] text-[16px]`}>{t('No notifications')}</p>;
         return items.map((n) => (
             <Link
                 key={n.notification_id}
@@ -115,9 +117,9 @@ export default function NotificationsPage() {
     }
 
     const sections = [
-        { key: "today", label: "Today", items: groups.today },
-        { key: "week", label: "This Week", items: groups.week },
-        { key: "earlier", label: "Earlier", items: groups.earlier },
+        { key: "today", label: t("Today"), items: groups.today },
+        { key: "week", label: t("This Week"), items: groups.week },
+        { key: "earlier", label: t("Earlier"), items: groups.earlier },
     ];
 
     return (

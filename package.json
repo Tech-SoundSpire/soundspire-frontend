@@ -12,6 +12,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.830.0",
     "@aws-sdk/s3-request-presigner": "^3.830.0",
+    "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-accordion": "^1.2.11",
     "@supabase/supabase-js": "^2.89.0",
     "@typescript-eslint/eslint-plugin": "^8.56.0",
