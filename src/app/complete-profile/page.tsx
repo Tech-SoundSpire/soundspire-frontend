@@ -178,10 +178,14 @@ export default function CompleteProfilePage() {
     }, [user, refreshUser]);
 
     // Validation functions
-    const validateFullName = (name: string) =>
-        /^[A-Za-z\s]+$/.test(name)
+    const validateFullName = (name: string) => {
+        if (!name.trim()) return "Full name is required.";
+        // Artists switching to fan mode can keep their artist name (e.g. "50 Cent", "W.I.S")
+        if (isArtistSwitching) return "";
+        return /^[A-Za-z\s]+$/.test(name)
             ? ""
             : "Full name should contain only letters.";
+    };
     const validatePhoneNumber = (phone: string) => {
         if (!phone) return "Phone number is required.";
         if (!/^\d+$/.test(phone)) return "Phone number must contain only digits.";
