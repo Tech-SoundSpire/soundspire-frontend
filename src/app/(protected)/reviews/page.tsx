@@ -72,7 +72,7 @@ export default function ReviewsPage() {
     };
 
     return (
-        <div className="min-h-screen md:ml-[54px] px-8 py-6">
+        <div className="min-h-screen md:ml-[54px] px-4 md:px-8 py-6">
             {/* Page Title */}
             <h1 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px] mb-8`}>
                 EXPLORE ALL REVIEWS

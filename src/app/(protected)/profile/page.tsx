@@ -382,7 +382,7 @@ export default function ProfilePage() {
                     onCancel={() => { setCropSrc(null); setCropOriginalFile(null); }}
                 />
             )}
-            <main className="md:ml-[54px] px-8 py-6">
+            <main className="md:ml-[54px] px-4 md:px-8 py-6">
                 {/* Back button — outside centered container */}
                 <button
                     onClick={() => router.back()}
@@ -392,11 +392,11 @@ export default function ProfilePage() {
                 </button>
                 <div className="max-w-[1100px] mx-auto">
                     {/* Header: title + edit button */}
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
                         <h1 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px]`}>
                             PROFILE
                         </h1>
-                        <div className="flex gap-4">
+                        <div className="flex flex-wrap gap-3 md:gap-4">
                             {isEditing ? (
                                 <>
                                     <button onClick={handleCancelEdit} className={`${montserrat} px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg`} disabled={isLoading}>{t('Cancel')}</button>

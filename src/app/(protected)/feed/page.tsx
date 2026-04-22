@@ -95,11 +95,11 @@ export default function Page() {
         <div className="flex">
             <main className="md:ml-[54px] px-4 md:px-8 py-6 w-full md:w-[70%]">
                 {/* Header */}
-                <div className="flex items-center mt-6 mb-8 w-full">
+                <div className="flex flex-col md:flex-row md:items-center mt-6 mb-8 gap-4 w-full">
                     <h1 className={`${montserrat} text-[#FFD3C9] text-[28px] md:text-[47px] font-bold leading-[36px] md:leading-[56px] flex-shrink-0`}>
                         POSTS
                     </h1>
-                    <div className="flex-1 flex justify-center">
+                    <div className="flex-1 flex justify-center w-full">
                         <div className="w-full max-w-[437px]">
                             <SearchDropdown
                                 apiEndpoint=""

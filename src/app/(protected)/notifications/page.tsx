@@ -82,13 +82,13 @@ export default function NotificationsPage() {
             <Link
                 key={n.notification_id}
                 href={n.link}
-                className="flex items-center gap-4 py-3 transition hover:bg-white/5 rounded-lg px-2"
+                className="flex items-center gap-3 md:gap-4 py-3 transition hover:bg-white/5 rounded-lg px-2"
             >
                 {/* Avatar */}
                 <img
                     src={n.actor_image ? getImageUrl(n.actor_image) : getImageUrl(DEFAULT_PROFILE_IMAGE)}
                     alt=""
-                    className="w-[53px] h-[53px] rounded-full object-cover flex-shrink-0"
+                    className="w-10 h-10 md:w-[53px] md:h-[53px] rounded-full object-cover flex-shrink-0"
                 />
                 {/* Message */}
                 <p className={`${montserrat} text-[#F7F7F7] text-[20px] leading-[24px] flex-1 min-w-0`}>
@@ -100,7 +100,7 @@ export default function NotificationsPage() {
                 </span>
                 {/* Thumbnail */}
                 {n.thumbnail && (
-                    <div className="w-[42px] h-[42px] rounded-[2px] bg-white overflow-hidden flex-shrink-0">
+                    <div className="w-8 h-8 md:w-[42px] md:h-[42px] rounded-[2px] bg-white overflow-hidden flex-shrink-0">
                         <img src={getImageUrl(n.thumbnail)} alt="" className="w-full h-full object-cover" />
                     </div>
                 )}
@@ -123,9 +123,9 @@ export default function NotificationsPage() {
     ];
 
     return (
-        <div className="md:ml-[54px] px-8 py-6 flex flex-col text-white min-h-screen">
+        <div className="md:ml-[54px] px-4 md:px-8 py-6 flex flex-col text-white min-h-screen">
             {/* Back button + Content side by side */}
-            <div className="flex gap-6">
+            <div className="flex gap-3 md:gap-6">
                 <button
                     onClick={() => router.back()}
                     className="p-3 flex items-center justify-center bg-[#1b1b1b] rounded-full border-[3px] border-[#ff4e50] text-white hover:bg-[#ff4e50] transition-colors duration-300 aspect-square h-fit mt-1"

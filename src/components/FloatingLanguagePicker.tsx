@@ -32,7 +32,7 @@ export default function FloatingLanguagePicker() {
     const currentLabel = SUPPORTED_LANGUAGES.find(l => l.code === lang)?.nativeLabel ?? "English";
 
     return (
-        <div ref={ref} className="fixed bottom-6 right-6 z-50" data-no-translate>
+        <div ref={ref} className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-[10000]" data-no-translate>
             {open && (
                 <div className="absolute bottom-14 right-0 bg-[#241e33] border border-white/10 rounded-2xl shadow-2xl p-3 w-52 mb-2">
                     {SUPPORTED_LANGUAGES.map((l) => (
