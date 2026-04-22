@@ -131,14 +131,14 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
   };
 
   return (
-    <header className={`bg-[#1a1625]/90 backdrop-blur-md py-3 px-4 md:px-8 flex items-center justify-between fixed top-0 z-50 text-white border-b border-gray-800 ${isArtist ? "left-0 w-full" : "left-0 w-full md:left-[54px] md:w-[calc(100%-54px)]"}`}>
-      <Link href={isArtist ? "/artist/dashboard" : `/community/${slug}`} className="flex items-center gap-2">
+    <header className={`bg-[#1a1625]/90 backdrop-blur-md py-3 px-3 md:px-8 flex items-center justify-between fixed top-0 z-50 text-white border-b border-gray-800 gap-2 ${isArtist ? "left-0 w-full" : "left-0 w-full md:left-[54px] md:w-[calc(100%-54px)]"}`}>
+      <Link href={isArtist ? "/artist/dashboard" : `/community/${slug}`} className="flex items-center gap-2 flex-shrink-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {isArtist && <img src={getLogoUrl()} alt="SoundSpire" width={36} height={36} className="object-contain" />}
         {isArtist && <span className="text-[#FF4E27] font-bold text-lg hidden md:inline">SoundSpire</span>}
       </Link>
 
-      <nav className="flex items-center justify-center gap-8">
+      <nav className="flex items-center justify-center gap-3 md:gap-8 overflow-x-auto flex-nowrap min-w-0">
         <button 
           onClick={() => handleNavigation('about', false)}
           className={`transition ${currentPage === 'about' ? 'text-[#FA6400] font-semibold' : 'hover:text-[#FA6400]'}`}
@@ -205,7 +205,7 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
       {communityName ? (
         <button
           onClick={handleCommunityNameClick}
-          className="hover:text-white transition"
+          className="hover:text-white transition hidden md:block flex-shrink-0"
         >
           <BaseText wrapper="span" textColor="#9ca3af" fontStyle="italic" fontWeight={500}>
             {communityName}
@@ -214,7 +214,7 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
       ) : <div />}
 
       {isArtist && (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
           <div className="relative">
             <button onClick={() => {
               setShowNotifPanel(!showNotifPanel);
@@ -231,7 +231,7 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
               )}
             </button>
             {showNotifPanel && (
-              <div className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto bg-[#1a1625] border border-gray-700 rounded-xl shadow-2xl z-50">
+              <div className="absolute right-0 top-full mt-2 w-80 max-w-[90vw] max-h-96 overflow-y-auto bg-[#1a1625] border border-gray-700 rounded-xl shadow-2xl z-50">
                 <div className="p-3 border-b border-gray-700 flex justify-between items-center">
                   <span className="text-sm font-semibold">Notifications</span>
                   <button onClick={() => setShowNotifPanel(false)} className="text-gray-400 hover:text-white text-sm">✕</button>
@@ -261,11 +261,12 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
               </div>
             )}
           </div>
-          <button onClick={onLogout || defaultLogout} className="px-4 py-1.5 bg-[#FA6400] hover:bg-[#e55a00] text-white font-bold rounded-lg transition text-sm">
+          <button onClick={onLogout || defaultLogout} className="px-2 md:px-4 py-1.5 bg-[#FA6400] hover:bg-[#e55a00] text-white font-bold rounded-lg transition text-sm whitespace-nowrap">
             Logout
           </button>
-          <button onClick={onSwitchToFan || defaultSwitchToFan} className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition text-sm">
-            Switch to Fan
+          <button onClick={onSwitchToFan || defaultSwitchToFan} className="px-2 md:px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition text-sm whitespace-nowrap">
+            <span className="md:hidden">Fan</span>
+            <span className="hidden md:inline">Switch to Fan</span>
           </button>
         </div>
       )}

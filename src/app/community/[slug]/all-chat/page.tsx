@@ -85,6 +85,9 @@ export default function AllChatPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.innerWidth < 768) setIsSidebarCollapsed(true);
+    }, []);
     const [replyingTo, setReplyingTo] = useState<Message | null>(null);
     const [newMessageCount, setNewMessageCount] = useState(0);
     const lastVisitKey = `allchat-lastvisit-${slug}`;
@@ -713,7 +716,7 @@ export default function AllChatPage() {
     }
 
     return (
-        <div className={`flex h-screen ${user?.role !== "artist" ? "md:ml-[54px]" : ""}`} style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
+        <div className={`flex h-screen pb-16 md:pb-0 ${user?.role !== "artist" ? "md:ml-[54px]" : ""}`} style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
             {cropImageSrc && (
                 <ImageCropModal
                     imageSrc={cropImageSrc}
@@ -735,8 +738,8 @@ export default function AllChatPage() {
 
             {/* Left Sidebar - Community Info */}
             <div
-                className={`bg-[#1a0a2e] border-r border-gray-700 flex flex-col mt-16 transition-all duration-300 ${
-                    isSidebarCollapsed ? "w-0 overflow-hidden" : "w-64 md:w-80"
+                className={`bg-[#1a0a2e] border-r border-gray-700 flex flex-col mt-16 transition-all duration-300 fixed md:static inset-y-16 md:inset-y-auto left-0 z-40 md:z-auto ${
+                    isSidebarCollapsed ? "w-0 overflow-hidden" : "w-72 md:w-80"
                 }`}
             >
                 {/* Back button for user view */}
@@ -886,7 +889,7 @@ export default function AllChatPage() {
                 {/* Toggle Sidebar Button */}
                 <button
                     onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                    className="absolute left-2 top-20 z-10 bg-[#2d2838] text-white p-2 rounded-full hover:bg-[#3d3848] transition"
+                    className="absolute left-2 top-20 z-50 bg-[#2d2838] text-white p-2 rounded-full hover:bg-[#3d3848] transition"
                 >
                     <svg
                         className="w-5 h-5"
@@ -913,39 +916,39 @@ export default function AllChatPage() {
                 </button>
 
                 {/* Chat Header with User Info */}
-                <div className="bg-[#1a0a2e] p-6 border-b border-gray-700">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                <div className="bg-[#1a0a2e] p-4 md:p-6 border-b border-gray-700">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div className="flex items-center gap-3 md:gap-4 min-w-0">
                             <img
                                 src={getImageUrl(
                                     user?.photoURL || "images/placeholder.jpg"
                                 )}
                                 alt={user?.name || "User"}
-                                className="w-12 h-12 rounded-full object-cover"
+                                className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover flex-shrink-0"
                             />
-                            <div>
-                                <h2 className="text-white text-xl font-bold">
+                            <div className="min-w-0">
+                                <h2 className="text-white text-xl font-bold truncate">
                                     {user?.name || "User"}
                                 </h2>
                                 <div className="flex items-center gap-3 text-sm">
-                                    <span className="text-gray-400">
+                                    <span className="text-gray-400 truncate">
                                         community joined 12.06.25
                                     </span>
                                     {newMessageCount > 0 && (
-                                        <span className="text-[#FA6400]">
+                                        <span className="text-[#FA6400] whitespace-nowrap">
                                             {newMessageCount} new message{newMessageCount !== 1 ? "s" : ""}
                                         </span>
                                     )}
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full md:w-auto">
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => { setSearchQuery(e.target.value); setSearchMatchIndex(0); }}
                                 placeholder="search for messages in chat"
-                                className="px-4 py-2 bg-[#1a1625] text-white placeholder-gray-500 rounded-full w-80 focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
+                                className="px-4 py-2 bg-[#1a1625] text-white placeholder-gray-500 rounded-full w-full md:w-80 focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
                             />
                             {searchQuery.trim() && filteredMessages.length > 0 && (
                                 <>
@@ -1231,7 +1234,7 @@ export default function AllChatPage() {
                                                         </button>
                                                         {showReactionPicker ===
                                                             msg.forum_post_id && (
-                                                            <div className="absolute bottom-full left-0 mb-2 z-10">
+                                                            <div className="absolute bottom-full left-0 mb-2 z-10 max-w-[90vw]">
                                                                 <EmojiPicker
                                                                     onEmojiClick={(
                                                                         emojiData
@@ -1245,7 +1248,7 @@ export default function AllChatPage() {
                                                                         );
                                                                     }}
                                                                     height={350}
-                                                                    width={300}
+                                                                    width="100%"
                                                                 />
                                                             </div>
                                                         )}
@@ -1657,9 +1660,10 @@ export default function AllChatPage() {
 
                             {/* Emoji Picker */}
                             {showEmojiPicker && (
-                                <div className="absolute bottom-full right-0 mb-2">
+                                <div className="absolute bottom-full right-0 mb-2 max-w-[90vw]">
                                     <EmojiPicker
                                         onEmojiClick={handleEmojiSelect}
+                                        width="100%"
                                     />
                                 </div>
                             )}

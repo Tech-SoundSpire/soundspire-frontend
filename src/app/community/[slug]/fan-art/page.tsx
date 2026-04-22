@@ -90,6 +90,9 @@ export default function FanArtPage() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) setIsSidebarCollapsed(true);
+  }, []);
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
   const [showComments, setShowComments] = useState<Set<string>>(new Set());
   const [commentText, setCommentText] = useState<{ [key: string]: string }>({});
@@ -683,7 +686,7 @@ export default function FanArtPage() {
   }
   
   return (
-    <div className="flex h-screen" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
+    <div className="flex h-screen pb-16 md:pb-0" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
       {cropImageSrc && (
         <ImageCropModal
           imageSrc={cropImageSrc}
@@ -704,7 +707,7 @@ export default function FanArtPage() {
       />
       
       {/* Left Sidebar - Community Info */}
-      <div className={`bg-[#1a0a2e] border-r border-gray-700 flex flex-col mt-16 transition-all duration-300 ${!isArtist ? 'md:ml-16' : ''} ${isSidebarCollapsed ? 'w-0 overflow-hidden' : 'w-64 md:w-80'}`}>
+      <div className={`bg-[#1a0a2e] border-r border-gray-700 flex flex-col mt-16 transition-all duration-300 fixed md:static inset-y-16 md:inset-y-auto left-0 z-40 md:z-auto ${!isArtist ? 'md:ml-16' : ''} ${isSidebarCollapsed ? 'w-0 overflow-hidden' : 'w-72 md:w-80'}`}>
         {/* Community Header */}
         <div className="p-6 border-b border-gray-700">
           <div className="flex flex-col items-center text-center">
@@ -760,7 +763,7 @@ export default function FanArtPage() {
         {/* Toggle Sidebar Button */}
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          className={`absolute ${isArtist ? 'left-2' : 'left-[4.5rem]'} top-20 z-10`}
+          className={`absolute ${isArtist ? 'left-2' : 'left-2 md:left-[4.5rem]'} top-20 z-50`}
           style={{ width: "36px", height: "36px", display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: "#1b1b1b", borderRadius: "50%", border: "2px solid #ff4e50", color: "white", flexShrink: 0 }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -773,36 +776,36 @@ export default function FanArtPage() {
         </button>
         
         {/* Fan Art Header */}
-        <div className="bg-[#1a0a2e] p-6 border-b border-gray-700">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="bg-[#1a0a2e] p-4 md:p-6 border-b border-gray-700">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex items-center gap-3 md:gap-4 min-w-0">
               <img
                 src={getImageUrl(user?.photoURL || 'images/placeholder.jpg')}
                 alt={user?.name || 'User'}
-                className="w-12 h-12 rounded-full object-cover"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover flex-shrink-0"
               />
-              <div>
-                <h2 className="text-white text-xl font-bold">{user?.name || 'User'}</h2>
+              <div className="min-w-0">
+                <h2 className="text-white text-xl font-bold truncate">{user?.name || 'User'}</h2>
                 <div className="flex items-center gap-3 text-sm">
-                  <span className="text-gray-400">community joined 12.06.25</span>
+                  <span className="text-gray-400 truncate">community joined 12.06.25</span>
                   {newPostCount > 0 && (
-                    <span className="text-[#FA6400]">{newPostCount} new post{newPostCount !== 1 ? "s" : ""}</span>
+                    <span className="text-[#FA6400] whitespace-nowrap">{newPostCount} new post{newPostCount !== 1 ? "s" : ""}</span>
                   )}
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4 w-full md:w-auto">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="search fan art..."
-                className="px-4 py-2 bg-[#1a1625] text-white placeholder-gray-500 rounded-full w-80 focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
+                className="flex-1 md:flex-none px-4 py-2 bg-[#1a1625] text-white placeholder-gray-500 rounded-full md:w-80 min-w-0 focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
               />
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                className="px-3 py-2 bg-[#1a1625] text-white rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
+                className="flex-shrink-0 px-3 py-2 bg-[#1a1625] text-white rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4E27]"
               >
                 <option value="newest">Newest</option>
                 <option value="oldest">Oldest</option>
@@ -812,8 +815,8 @@ export default function FanArtPage() {
         </div>
       
       {/* Fan Art Grid */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="w-full px-4">
+      <div className="flex-1 overflow-y-auto p-3 md:p-6">
+        <div className="w-full">
           {filteredPosts.length === 0 && !loading && (
             <div className="text-center py-20">
               <p className="text-gray-400 text-lg mb-4">
@@ -859,7 +862,7 @@ export default function FanArtPage() {
 
               {/* Emoji picker (fixed position, above everything) */}
               {showReactionPicker === post.forum_post_id && (
-                <div className="fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div className="fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[90vw]">
                   <div className="relative">
                     <button onClick={() => setShowReactionPicker(null)} className="absolute -top-2 -right-2 z-10 w-6 h-6 bg-gray-700 text-white rounded-full text-xs hover:bg-gray-600">✕</button>
                     <EmojiPicker
@@ -868,7 +871,7 @@ export default function FanArtPage() {
                         setShowReactionPicker(null);
                       }}
                       height={350}
-                      width={300}
+                      width="100%"
                     />
                   </div>
                 </div>

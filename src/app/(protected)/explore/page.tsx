@@ -124,8 +124,8 @@ export default function ExplorePage() {
                     <h1 className={`${montserrat} text-[#FFD3C9] text-[32px] md:text-[47px] font-bold leading-[40px] md:leading-[56px] flex-shrink-0`}>
                         Explore
                     </h1>
-                    <div className="flex-1 flex justify-center">
-                        <div className="w-full max-w-[437px]" style={{ marginRight: "300px" }}>
+                    <div className="flex-1 flex justify-center w-full">
+                        <div className="w-full max-w-[437px] md:mr-[300px]">
                             <SearchDropdown apiEndpoint="/api/search" placeholder="Search artists, reviews, communities..." />
                         </div>
                     </div>

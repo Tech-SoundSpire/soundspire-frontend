@@ -25,6 +25,17 @@
     justify-content: flex-start;
     flex-wrap: wrap;
 }
+@media (max-width: 767px) {
+    .intro {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .navigation,
+    .search {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+}
 .navigation {
     display: flex;
     align-items: center;
