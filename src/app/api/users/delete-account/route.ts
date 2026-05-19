@@ -31,6 +31,7 @@ export async function DELETE(request: NextRequest) {
       seq.query(`DELETE FROM artist_votes WHERE user_id = :uid`, { replacements: { uid } }),
       seq.query(`DELETE FROM socials WHERE user_id = :uid`, { replacements: { uid } }),
       seq.query(`DELETE FROM user_verification WHERE user_id = :uid`, { replacements: { uid } }),
+      seq.query(`DELETE FROM notifications WHERE user_id = :uid`, { replacements: { uid } }),
       seq.query(`UPDATE reviews SET deleted_at = NOW() WHERE user_id = :uid AND deleted_at IS NULL`, { replacements: { uid } }),
     ]);
 
