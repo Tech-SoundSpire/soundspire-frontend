@@ -151,7 +151,9 @@ export default function ExplorePage() {
                                         const sugData = sugRes?.ok ? (await sugRes.json()).artists || [] : [];
                                         const sugIds = new Set(sugData.map((a: any) => a.artist_id));
                                         const merged = [...sugData, ...dbData.filter((a: any) => !sugIds.has(a.artist_id)).map((a: any) => ({
-                                            artist_id: a.artist_id, name: a.artist_name, imageUrl: a.profile_picture_url, slug: a.slug, onSoundSpire: true,
+                                            artist_id: a.artist_id, name: a.artist_name, imageUrl: a.profile_picture_url, slug: a.slug,
+                                            onSoundSpire: !!a.user_id,
+                                            soundcharts_uuid: a.third_party_id || null,
                                         }))];
                                         // Deduplicate: if a SC artist has joined (onSoundSpire=true via suggested), remove the SC version
                                         const seen = new Set<string>();

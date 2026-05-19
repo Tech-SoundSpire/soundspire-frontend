@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
                 "profile_picture_url",
                 "bio",
                 "slug",
+                "user_id",
+                "third_party_id",
             ],
             order: [["created_at", "DESC"]],
             limit: q ? 20 : 8,
