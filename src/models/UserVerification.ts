@@ -39,7 +39,7 @@ UserVerification.init(
       onDelete: "CASCADE",
     },
     verification_token: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     verification_type: {

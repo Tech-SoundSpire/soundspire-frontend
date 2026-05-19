@@ -31,7 +31,7 @@
     "lucide-react": "^0.531.0",
     "music-genres": "^1.0.1",
     "nanoid": "^5.1.6",
-    "next": "^16.1.6",
+    "next": "^16.2.6",
     "nodemailer": "^8.0.4",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
