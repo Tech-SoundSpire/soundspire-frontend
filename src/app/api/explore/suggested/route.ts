@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const dbArtists = dbArtistIds.length > 0
       ? await Artist.findAll({
           where: { artist_id: dbArtistIds },
-          attributes: ["artist_id", "artist_name", "profile_picture_url", "slug"],
+          attributes: ["artist_id", "artist_name", "profile_picture_url", "slug", "user_id", "third_party_id"],
         })
       : [];
 
@@ -51,7 +51,8 @@ export async function GET(request: NextRequest) {
         name: a.artist_name,
         imageUrl: a.profile_picture_url,
         slug: a.slug,
-        onSoundSpire: true,
+        onSoundSpire: !!a.user_id,
+        soundcharts_uuid: a.third_party_id || null,
       })),
       ...scArtists
         .filter((a: any) => !dbByName.has(a.name?.toLowerCase()))
