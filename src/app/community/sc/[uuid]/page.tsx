@@ -53,7 +53,7 @@ export default function SoundChartsArtistPage() {
                 setLoading(false);
             }
         })();
-    }, [uuid]);
+    }, [uuid, user]);
 
     // Fetch vote data
     useEffect(() => {
