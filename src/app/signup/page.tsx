@@ -1,0 +1,426 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { FcGoogle } from "react-icons/fc";
+import axios from "axios";
+import toast from "react-hot-toast";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import useCheckCompleteProfileOnRoute from "@/hooks/useCheckCompleteProfileOnRoute";
+import useCheckPreferencesOnRoute from "@/hooks/useCheckPreferencesOnRoute";
+import { useAuth } from "@/context/AuthContext";
+import { getLogoUrl } from "@/utils/userProfileImageUtils";
+import BaseHeading from "@/components/BaseHeading/BaseHeading";
+import BaseText from "@/components/BaseText/BaseText";
+import ErrorIcon from "@/components/ErrorIcon";
+
+const fields = [
+    {
+        label: "Username*",
+        name: "username",
+        type: "text",
+        placeholder: "Choose a username",
+    },
+    {
+        label: "Email*",
+        name: "email",
+        type: "email",
+        placeholder: "Enter your email",
+    },
+    {
+        label: "Password*",
+        name: "password_hash",
+        type: "password",
+        placeholder: "Create a password",
+    },
+    {
+        label: "Confirm Password*",
+        name: "confirm_password",
+        type: "password",
+        placeholder: "Confirm your password",
+    },
+];
+
+const getPasswordErrors = (password: string) => {
+    const errors: string[] = [];
+
+    if (password.length < 8) {
+        errors.push("Must be at least 8 characters long");
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+        errors.push("Must include at least one lowercase letter");
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+        errors.push("Must include at least one uppercase letter");
+    }
+    if (!/(?=.*\d)/.test(password)) {
+        errors.push("Must include at least one number");
+    }
+    if (!/(?=.*[@$!%*?&#])/.test(password)) {
+        errors.push("Must include at least one special character like #,@,$,&");
+    }
+    if (!/^[A-Za-z\d@$!%*?&#]*$/.test(password)) {
+        errors.push("Password contains invalid characters");
+    }
+
+    return errors;
+};
+
+export default function SignupPage() {
+    const router = useRouter();
+    const { user: authUser, isLoading: authLoading } = useAuth();
+    const { isProfileComplete, isLoading: profileLoading } =
+        useCheckCompleteProfileOnRoute();
+    const { hasPreferences, isLoading: preferencesLoading } =
+        useCheckPreferencesOnRoute();
+
+    const [user, setUser] = useState({
+        username: "",
+        email: "",
+        password_hash: "",
+        confirm_password: "",
+    });
+
+    const [buttonDisabled, setButtonDisabled] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [formErrors, setFormErrors] = useState<{ [key: string]: string[] }>({});
+
+    useEffect(() => {
+        if (authLoading || profileLoading || preferencesLoading) return;
+
+        if (!authUser) return;
+
+        const shouldWaitForData =
+            !isProfileComplete &&
+            !hasPreferences &&
+            profileLoading === false &&
+            preferencesLoading === false;
+
+        if (shouldWaitForData) {
+            console.log(
+                "Waiting for final values from profile/preferences APIs..."
+            );
+            return;
+        }
+
+        if (authUser.role === "artist") {
+            router.push("/artist/dashboard");
+            return;
+        }
+
+        if (isProfileComplete && hasPreferences) {
+            router.push("/explore");
+            return;
+        }
+
+        if (!isProfileComplete) {
+            router.push("/complete-profile");
+            return;
+        }
+
+        if (isProfileComplete && !hasPreferences) {
+            router.push("/PreferenceSelectionPage");
+            return;
+        }
+    }, [
+        authUser,
+        authLoading,
+        profileLoading,
+        preferencesLoading,
+        isProfileComplete,
+        hasPreferences,
+        router,
+    ]);
+
+    const validateForm = () => {
+        const errors: { [key: string]: string[] } = {};
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (user.username.trim().length < 3) {
+            errors.username = ["Username must be at least 3 characters"];
+        }
+
+        if (!emailRegex.test(user.email)) {
+            errors.email = ["Invalid email format"];
+        }
+
+        const passwordErrors = getPasswordErrors(user.password_hash);
+        if(passwordErrors.length > 0){
+            errors.password_hash = passwordErrors;
+        }
+
+        if (user.password_hash !== user.confirm_password) {
+            errors.confirm_password = ["Passwords do not match"];
+        }
+
+        setFormErrors(errors);
+        // if(passwordErrors.length > 0) {
+        //         return toast.error("Password does not meet requirements");
+        // }
+        return Object.keys(errors).length === 0;
+    };
+
+    const onSignup = async () => {
+        if (!validateForm()) {
+            toast.error("Please fix the errors in the form.");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await axios.post("/api/users/signup", {
+                username: user.username,
+                email: user.email,
+                password_hash: user.password_hash,
+            });
+
+            if (response.data.success) {
+                toast.success("Verification email sent! Please check your inbox and verify your email before logging in.");
+                setUser({
+                    username: "",
+                    email: "",
+                    password_hash: "",
+                    confirm_password: "",
+                });
+            }
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                toast.error(
+                    error.response?.data?.error || "Signup failed. Try again!"
+                );
+                const redirectPath = error.response?.data?.redirect;
+                if (redirectPath) window.location.href = redirectPath;
+            } else {
+                toast.error("An unexpected error occurred.");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        setIsGoogleLoading(true);
+        try {
+            window.location.href = "/api/auth/google";
+        } catch (error) {
+            console.error("Google login failed:", error);
+            toast.error("Google login failed");
+        } finally {
+            setIsGoogleLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const allFilled = Object.values(user).every(
+            (val) => String(val).trim().length > 0
+        );
+        setButtonDisabled(!allFilled);
+    }, [user]);
+
+    return (
+        <div className="min-h-screen flex bg-gradient-to-t from-gray-950 to-gray-900 text-white relative">
+            {/* ✅ For Artists Button Added */}
+            <div className="absolute top-4 right-4 z-10">
+                <Link
+                    href="/artist-onboarding"
+                    className="px-6 py-2 bg-[#FA6400] hover:bg-[#e55a00] text-white font-bold rounded-lg transition-colors duration-200 shadow-lg"
+                >
+                    For Artists
+                </Link>
+            </div>
+
+            {/* Left Side */}
+            <div className="hidden md:flex w-1/2 p-8 flex-col justify-between" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
+                <div>
+                    <Link href="/">
+                        <img
+                            src={getLogoUrl()}
+                            alt="SoundSpire logo"
+                            width={200}
+                            height={200}
+                            className="mb-4"
+                        />
+                    </Link>
+                </div>
+                <div className="mb-12">
+                    <BaseHeading
+                        className="bg-gradient-to-b from-orange-500 to-orange-700 bg-clip-text"
+                        headingLevel="h1"
+                        fontSize="heading"
+                        fontWeight={600}
+                        textColor="transparent"
+                        fontName="arial"
+                        textAlign="left"
+                        fontStyle="italic"
+                    >
+                        Welcome Back
+                    </BaseHeading>
+                    <BaseHeading
+                        className="bg-clip-text bg-gradient-to-t from-gray-400 to-gray-50 "
+                        fontWeight={300}
+                        headingLevel="h2"
+                        fontSize="sub heading"
+                        textColor="transparent"
+                        textAlign="left"
+                        fontStyle="italic"
+                        style={{ lineHeight: 1.1 }}
+                        fontName="arial"
+                    >
+                        Your Vibe, <br></br>
+                        Your Beats, <br></br>
+                        Your World Awaits.
+                    </BaseHeading>
+                </div>
+            </div>
+
+            {/* Right Side: Signup Form */}
+            <div className="bg-white text-black flex flex-col justify-center items-center w-full md:w-1/2 p-8">
+                <div className="w-full max-w-md space-y-4">
+                    <BaseHeading
+                        headingLevel="h2"
+                        fontSize="large"
+                        className="mb-4 self-start"
+                        textColor="black"
+                        textAlign="left"
+                        fontName="montserrat"
+                    >
+                        {loading ? "Processing..." : "Sign Up"}
+                    </BaseHeading>
+
+                    {fields.map((field) => (
+                        <div key={field.name} className="flex flex-col">
+                            <label
+                                htmlFor={field.name}
+                                className="mb-1 text-sm font-medium"
+                            >
+                                {field.label}
+                            </label>
+                            <input
+                                id={field.name}
+                                type={field.type}
+                                value={user[field.name as keyof typeof user]}
+                                placeholder={field.placeholder}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+
+                                    setUser(prev => ({
+                                        ...prev,
+                                        [field.name]: value,
+                                    }));
+
+                                    // dynamic validation for password
+                                    if (field.name === "password_hash") {
+                                        const errors = getPasswordErrors(value);
+
+                                        setFormErrors(prev => ({
+                                            ...prev,
+                                            password_hash: errors,
+                                            confirm_password:
+                                                user.confirm_password && value !== user.confirm_password
+                                                    ? ["Passwords do not match"]
+                                                    : []
+                                        }));
+                                    } else if (field.name === "confirm_password") {
+                                        setFormErrors(prev => ({
+                                            ...prev,
+                                            confirm_password:
+                                                value !== user.password_hash
+                                                    ? ["Passwords do not match"]
+                                                    : []
+                                        }));
+                                    } else {
+                                        setFormErrors(prev => ({
+                                            ...prev,
+                                            [field.name]: [],
+                                        }));
+                                    }
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !buttonDisabled && !loading) {
+                                        onSignup();
+                                    }
+                                }}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#FF4E27]"
+                                style={{ borderRadius: "8px" }}
+                            />
+                            {formErrors[field.name] && formErrors[field.name].length > 0 && (
+                                <div className="mt-1">
+                                    {formErrors[field.name].map((error, index) => (
+                                        <div key={index} className="flex items-center">
+                                            <ErrorIcon className="mr-2" />
+                                            <BaseText
+
+                                                textColor="#ef4444"
+                                                fontSize="small"
+                                                className="block"
+                                            >
+                                                {error}
+                                            </BaseText>
+                                        </div>
+
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+
+                    <button
+                        onClick={onSignup}
+                        disabled={buttonDisabled || loading}
+                        className="w-full py-3 my-2 rounded-lg text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        style={{ backgroundColor: "#FF4E27", borderRadius: "8px" }}
+                    >
+                        {loading ? "Signing Up..." : "Sign Up  →"}
+                    </button>
+
+                    <button
+                        onClick={handleGoogleLogin}
+                        disabled={isGoogleLoading}
+                        className="w-full py-3 flex justify-center items-center bg-gray-900 hover:bg-gray-800 border-2 border-[#FF4E27] rounded-lg text-white font-semibold transition"
+                        style={{ borderRadius: "8px" }}
+                    >
+                        <FcGoogle className="mr-2 w-5 h-5" />
+                        {isGoogleLoading
+                            ? "Signing in with Google..."
+                            : "Continue with Google"}
+                    </button>
+
+                    <BaseHeading
+                        headingLevel="h4"
+                        fontSize="small"
+                        textAlign="center"
+                        textColor="black"
+                        className="mt-4"
+                        fontWeight={400}
+                    >
+                        Already have an account?{" "}
+                        <Link
+                            href="/login"
+                            className="text-[#FF4E27] hover:text-[#e5431f]"
+                        >
+                            Login
+                        </Link>
+                    </BaseHeading>
+
+                    <BaseText
+                        textAlign="center"
+                        fontSize="very small"
+                        textColor="#9ca3af"
+                        className="mt-4"
+                    >
+                        By continuing, you agree to SoundSpire&apos;s{" "}
+                        <a href="#" className="text-primary hover:underline">
+                            Terms of Service
+                        </a>{" "}
+                        and{" "}
+                        <a href="#" className="text-primary hover:underline">
+                            Privacy Policy
+                        </a>
+                        .
+                    </BaseText>
+                </div>
+            </div>
+        </div>
+    );
+}

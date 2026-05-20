@@ -283,7 +283,7 @@ function LoginPageInner() {
                         >
                             Don&apos;t have an account yet?{" "}
                             <Link
-                                href="/"
+                                href="/signup"
                                 className="text-[#FF4E27] hover:text-[#e5431f] font-medium hover:underline transition-colors duration-200"
                             >
                                 Sign up
