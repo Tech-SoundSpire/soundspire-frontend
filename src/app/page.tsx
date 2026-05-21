@@ -159,7 +159,7 @@ export default function LandingPage() {
       </header>
 
       {/* ===== HERO SECTION ===== */}
-      <section className="relative min-h-screen flex items-center pt-24">
+      <section className="relative min-h-[85vh] md:min-h-screen flex items-center pt-0 md:pt-24">
         {/* Background image */}
         <div className="absolute inset-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -169,9 +169,9 @@ export default function LandingPage() {
             className="w-full h-full object-cover"
             aria-hidden="true"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/40 md:from-black/80 md:via-black/60 md:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/40 to-black/10 md:from-black/50 md:via-black/20 md:to-transparent" />
         </div>
-        <div className="relative max-w-[1400px] mx-auto px-8 md:px-16 py-20 w-full">
+        <div className="relative max-w-[1400px] mx-auto px-6 md:px-16 pt-20 pb-6 md:py-20 w-full">
           <h1 className="font-extrabold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight text-[#FF4E27] max-w-2xl">
             The Superfan Experience like never before
           </h1>
@@ -382,8 +382,8 @@ export default function LandingPage() {
       </section>
 
       {/* ===== ARTISTS ON BOARD ===== */}
-      <section className="relative pt-10 pb-32 md:pt-12 md:pb-44 overflow-hidden">
-        {/* Left side — OurPartners_Right.png (swapped), flush with left edge, taller than section, hidden on mobile */}
+      <section className="relative py-16 md:pt-12 md:pb-44 overflow-hidden">
+        {/* Left side — hidden on mobile */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={getImageUrl("s3://soundspirewebsiteassets/assets/OurPartners_Right.png")}
@@ -391,7 +391,7 @@ export default function LandingPage() {
           className="absolute -top-44 left-0 h-[calc(100%+176px)] w-[280px] md:w-[400px] lg:w-[500px] object-fill pointer-events-none hidden md:block"
           aria-hidden="true"
         />
-        {/* Right side — OurPartners_Left.png (swapped), flush with right edge, taller than section, hidden on mobile */}
+        {/* Right side — hidden on mobile */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={getImageUrl("s3://soundspirewebsiteassets/assets/OurPartners_Left.png")}
@@ -399,8 +399,8 @@ export default function LandingPage() {
           className="absolute -top-44 right-0 h-[calc(100%+176px)] w-[280px] md:w-[400px] lg:w-[500px] object-fill pointer-events-none hidden md:block"
           aria-hidden="true"
         />
-        {/* Bottom orange triangle — covers bottom 60% so artists sit on its slant lines */}
-        <div className="absolute bottom-0 left-0 right-0 h-[65%] pointer-events-none">
+        {/* Bottom orange triangle — hidden on mobile */}
+        <div className="absolute bottom-0 left-0 right-0 h-[65%] pointer-events-none hidden md:block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={getImageUrl("s3://soundspirewebsiteassets/assets/ArtistOnBoard_Bottom.png")}
@@ -416,8 +416,24 @@ export default function LandingPage() {
           </h2>
           {artists.length > 0 ? (
             <div className="flex flex-col items-center">
-              {/* Artists sit on the triangle slant — center at peak, edges follow slope down */}
-              <div className="flex items-start justify-start md:justify-center gap-10 md:gap-24 lg:gap-32 overflow-x-auto md:overflow-visible pb-4 md:pb-0 w-full md:w-auto px-4 md:px-0">
+              {/* Mobile: simple centered grid, Desktop: inverted V on triangle */}
+              <div className="grid grid-cols-3 gap-4 md:hidden w-full place-items-center">
+                {artists.slice(0, 6).map((artist) => (
+                  <div key={artist.artist_id} className="flex flex-col items-center">
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#FF4E27]/30 shadow-lg">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={getImageUrl(artist.profile_picture_url)}
+                        alt={artist.artist_name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <h3 className="mt-2 text-xs text-white/70 text-center font-medium">{artist.artist_name}</h3>
+                  </div>
+                ))}
+              </div>
+              {/* Desktop: inverted V */}
+              <div className="hidden md:flex items-start justify-center gap-24 lg:gap-32">
                 {artists.slice(0, 5).map((artist, i) => {
                   const count = Math.min(artists.length, 5);
                   const center = Math.floor(count / 2);
@@ -425,8 +441,8 @@ export default function LandingPage() {
                   const isCenter = i === center;
                   const offset = isCenter ? 0 : distFromCenter * 90 + 40;
                   return (
-                    <div key={artist.artist_id} className="flex flex-col items-center flex-shrink-0" style={{ paddingTop: `${offset}px` }}>
-                      <div className={`rounded-full overflow-hidden border-4 shadow-2xl transition-all duration-300 ${isCenter ? "w-32 h-32 md:w-60 md:h-60 border-[#FF4E27]" : "w-24 h-24 md:w-40 md:h-40 border-[#FF4E27]/30"}`}>
+                    <div key={artist.artist_id} className="flex flex-col items-center" style={{ paddingTop: `${offset}px` }}>
+                      <div className={`rounded-full overflow-hidden border-4 shadow-2xl transition-all duration-300 ${isCenter ? "w-60 h-60 border-[#FF4E27]" : "w-40 h-40 border-[#FF4E27]/30"}`}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={getImageUrl(artist.profile_picture_url)}
@@ -434,7 +450,7 @@ export default function LandingPage() {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <h3 className={`mt-3 font-semibold text-center ${isCenter ? "text-sm md:text-xl text-[#FF4E27]" : "text-xs md:text-sm text-white/70"}`}>
+                      <h3 className={`mt-3 font-semibold text-center ${isCenter ? "text-xl text-[#FF4E27]" : "text-sm text-white/70"}`}>
                         {artist.artist_name}
                       </h3>
                     </div>
