@@ -37,7 +37,22 @@ export default function AlbumPage() {
     (async () => {
       try {
         const res = await fetch(`/api/catalog/album/${id}`);
-        if (res.ok) setAlbum(await res.json());
+        if (res.ok) {
+          const data = await res.json();
+          setAlbum(data);
+          // Cache album metadata for feed display
+          fetch("/api/catalog/cache-album", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              spotify_track_id: `album:${id}`,
+              track_name: data.name,
+              artist_name: data.artists?.map((a: any) => a.name).join(", ") || "",
+              artist_id: data.artists?.[0]?.id || "",
+              album_art_url: data.images?.[0]?.url || null,
+            }),
+          }).catch(() => {});
+        }
       } catch {}
       setLoading(false);
     })();
