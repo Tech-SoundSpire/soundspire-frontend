@@ -5,8 +5,9 @@ import { sequelize } from "./dbConfig";
 import "../models/index"; // This imports models/index.ts
 
 // Import individual models for syncing
-import "../models/User"; 
+import "../models/User";
 import "../models/UserVerification"
+import "../models/reviews";
 
 let hasSynced = false;
 
