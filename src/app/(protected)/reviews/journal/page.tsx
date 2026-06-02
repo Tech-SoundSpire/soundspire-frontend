@@ -74,7 +74,7 @@ export default function JournalPage() {
       {entries.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-white/10 rounded-xl">
           <p className="text-white/40 mb-4">Your journal is empty.</p>
-          <Link href="/reviews/search" className="text-[#FF4E27] hover:underline text-sm">
+          <Link href="/reviews" className="text-[#FF4E27] hover:underline text-sm">
             Search for a song to log your first listen
           </Link>
         </div>

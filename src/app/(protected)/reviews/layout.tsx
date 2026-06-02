@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Activity, BookOpen, Library, Search, Flame, X } from "lucide-react";
+import { Activity, BookOpen, Library, Search, Flame, X, TrendingUp } from "lucide-react";
 
 const navItems = [
   { label: "Activity", path: "/reviews", icon: Activity },
@@ -218,14 +218,69 @@ export default function ReviewsLayout({ children }: { children: React.ReactNode 
         </main>
 
         {/* Right Sidebar (xl+ screens) */}
-        <aside className="hidden xl:flex flex-col w-80 border-l border-white/10 bg-[#1a0a2e]/50 p-6 overflow-y-auto shrink-0">
-          <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
-            <Flame className="w-5 h-5 text-orange-500" />
-            Trending Now
-          </h3>
-          <p className="text-white/40 text-sm">Trending songs will appear here once users start rating.</p>
-        </aside>
+        <TrendingSidebar />
       </div>
     </div>
+  );
+}
+
+function TrendingSidebar() {
+  const [trending, setTrending] = useState<any[]>([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/catalog/trending");
+        if (res.ok) {
+          const data = await res.json();
+          setTrending(data.trending || []);
+        }
+      } catch {}
+    })();
+  }, []);
+
+  return (
+    <aside className="hidden xl:flex flex-col w-80 border-l border-white/10 bg-[#1a0a2e]/50 p-6 overflow-y-auto shrink-0">
+      <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
+        <Flame className="w-5 h-5 text-orange-500" />
+        Trending Now
+      </h3>
+      {trending.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          {trending.map((item, idx) => (
+            <button
+              key={item.spotify_track_id}
+              onClick={() => {
+                const isAlbum = item.spotify_track_id.startsWith("album:");
+                const path = isAlbum
+                  ? `/reviews/album/${item.spotify_track_id.replace("album:", "")}`
+                  : `/reviews/song/${item.spotify_track_id}`;
+                router.push(path);
+              }}
+              className="flex items-center gap-3 group text-left"
+            >
+              <span className="text-white/30 font-bold text-sm w-4 shrink-0">{idx + 1}</span>
+              {item.song?.album_art_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={item.song.album_art_url} alt="" className="w-10 h-10 rounded object-cover shrink-0" />
+              ) : (
+                <div className="w-10 h-10 rounded bg-white/10 shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm font-medium truncate group-hover:text-[#FF4E27] transition">
+                  {item.song?.track_name || "Unknown"}
+                </p>
+                <p className="text-white/40 text-xs truncate">
+                  {item.song?.artist_name || ""} · {item.review_count} review{item.review_count !== 1 ? "s" : ""}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="text-white/40 text-sm">Trending songs will appear here once users start reviewing.</p>
+      )}
+    </aside>
   );
 }
