@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Star, StarHalf, Heart, MessageSquareText } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import SearchOverlay from "@/components/SearchOverlay";
 
 interface DiaryEntry {
   entry_id: string;
@@ -20,6 +21,7 @@ export default function JournalPage() {
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [trackMeta, setTrackMeta] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -72,12 +74,15 @@ export default function JournalPage() {
       </div>
 
       {entries.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-white/10 rounded-xl">
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="block w-full text-center py-16 border border-dashed border-white/10 rounded-xl hover:border-white/30 hover:bg-white/5 transition cursor-pointer"
+        >
           <p className="text-white/40 mb-4">Your journal is empty.</p>
-          <Link href="/reviews" className="text-[#FF4E27] hover:underline text-sm">
+          <span className="text-[#FF4E27] hover:underline text-sm">
             Search for a song to log your first listen
-          </Link>
-        </div>
+          </span>
+        </button>
       ) : (
         <div className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
           {/* Header */}
@@ -135,6 +140,8 @@ export default function JournalPage() {
           </div>
         </div>
       )}
+
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }
