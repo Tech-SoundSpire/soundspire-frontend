@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ListMusic, Heart, Trash2, ArrowLeft } from "lucide-react";
+import { ListMusic, Heart, Trash2, ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
+import SearchOverlay, { SearchTrack } from "@/components/SearchOverlay";
 
 interface ListDetail {
   list_id: string;
@@ -38,6 +39,8 @@ export default function ListDetailPage() {
   const [list, setList] = useState<ListDetail | null>(null);
   const [items, setItems] = useState<ListItemData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -53,6 +56,54 @@ export default function ListDetailPage() {
       setLoading(false);
     })();
   }, [id]);
+
+  const handleAddTrack = async (track: SearchTrack) => {
+    if (adding) return;
+    setAdding(true);
+    try {
+      // Cache song metadata so it shows up immediately
+      await fetch("/api/catalog/cache-album", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          spotify_track_id: track.id,
+          track_name: track.name,
+          artist_name: track.artists?.map((a) => a.name).join(", ") || "",
+          artist_id: track.artists?.[0]?.id || "",
+          album_art_url: track.album?.images?.[0]?.url || null,
+        }),
+      }).catch(() => {});
+
+      const res = await fetch(`/api/catalog/lists/${id}/items`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ spotify_track_id: track.id }),
+      });
+      if (res.ok) {
+        const newItem: ListItemData = {
+          item_id: crypto.randomUUID(),
+          spotify_track_id: track.id,
+          position: null,
+          notes: null,
+          song: {
+            track_name: track.name,
+            artist_name: track.artists?.map((a) => a.name).join(", ") || "",
+            album_art_url: track.album?.images?.[0]?.url || null,
+            duration_ms: track.duration_ms || null,
+          },
+        };
+        setItems((prev) => [...prev, newItem]);
+        toast.success("Added to list");
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || "Failed to add");
+      }
+    } catch {
+      toast.error("Failed to add");
+    }
+    setAdding(false);
+    setSearchOpen(false);
+  };
 
   const handleRemoveItem = async (spotifyTrackId: string) => {
     const res = await fetch(`/api/catalog/lists/${id}/items`, {
@@ -96,7 +147,7 @@ export default function ListDetailPage() {
 
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-4xl font-black text-white mb-2">{list.title}</h1>
             {list.description && (
@@ -109,6 +160,15 @@ export default function ListDetailPage() {
               <span>{new Date(list.created_at).toLocaleDateString()}</span>
             </div>
           </div>
+          {isOwner && (
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF4E27] hover:bg-[#e5431f] text-white text-sm font-semibold transition"
+            >
+              <Plus className="w-4 h-4" />
+              Add song
+            </button>
+          )}
         </div>
       </div>
 
@@ -152,11 +212,28 @@ export default function ListDetailPage() {
           </div>
         </div>
       ) : (
-        <div className="text-center py-12 border border-dashed border-white/10 rounded-xl">
+        <button
+          onClick={() => isOwner && setSearchOpen(true)}
+          disabled={!isOwner}
+          className={`block w-full text-center py-12 border border-dashed border-white/10 rounded-xl ${
+            isOwner ? "hover:border-white/30 hover:bg-white/5 cursor-pointer transition" : "cursor-default"
+          }`}
+        >
           <p className="text-white/40 mb-2">This list is empty.</p>
-          <p className="text-white/30 text-sm">Search for songs and add them to this list.</p>
-        </div>
+          <p className="text-white/30 text-sm">
+            {isOwner ? "Search for songs and add them to this list." : "The list owner hasn't added any songs yet."}
+          </p>
+        </button>
       )}
+
+      <SearchOverlay
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        placeholder="Search a song to add to this list..."
+        showAlbums={false}
+        showArtists={false}
+        onSelectTrack={handleAddTrack}
+      />
     </div>
   );
 }

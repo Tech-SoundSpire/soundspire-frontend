@@ -11,31 +11,28 @@ import {
 import ExploreCarousel from "@/components/ExploreCarousel";
 import Link from "next/link";
 import SearchDropdown from "@/components/ui/SearchDropdown";
+import { Star, StarHalf, Heart } from "lucide-react";
 import { getFontClass } from "@/utils/getFontClass";
 import { ArtistAttributes } from "@/models/Artist";
 import { useLanguage } from "@/context/LanguageContext";
-import TranslatableText from "@/components/TranslatableText";
 
-interface Review {
+interface SongReview {
     review_id: string;
-    title: string;
-    text_content: string;
-    rating: number;
-    image_urls: string[];
+    spotify_track_id: string;
+    review_text: string;
+    rating: number | null;
+    like_count: number;
     created_at: string;
-    artist_name: string | null;
     user: {
         user_id: string;
         username: string;
-        full_name: string;
-        profile_picture_url: string;
+        profile_picture_url: string | null;
     };
-    artist: {
-        artist_id: string;
+    song: {
+        track_name: string;
         artist_name: string;
-        profile_picture_url: string;
-        slug?: string;
-    };
+        album_art_url: string | null;
+    } | null;
 }
 
 interface Genre {
@@ -76,7 +73,7 @@ const carouselItems = [
 ];
 
 export default function ExplorePage() {
-    const [reviews, setReviews] = useState<Review[]>([]);
+    const [reviews, setReviews] = useState<SongReview[]>([]);
     const [artists, setArtists] = useState<Artist[]>([]);
     const [suggestedArtists, setSuggestedArtists] = useState<any[]>([]);
     const [genres, setGenres] = useState<Genre[]>([]);
@@ -92,7 +89,7 @@ export default function ExplorePage() {
         const fetchData = async () => {
             try {
                 const fetches: Promise<Response>[] = [
-                    fetch("/api/explore/reviews"),
+                    fetch("/api/catalog/song-reviews/feed?page=1"),
                     fetch("/api/explore/artists"),
                     fetch("/api/explore/genres"),
                 ];
@@ -100,7 +97,10 @@ export default function ExplorePage() {
                     fetches.push(fetch(`/api/explore/suggested?userId=${user.id}`));
                 }
                 const [reviewsRes, artistsRes, genresRes, suggestedRes] = await Promise.all(fetches);
-                if (reviewsRes.ok) setReviews(await reviewsRes.json());
+                if (reviewsRes.ok) {
+                    const data = await reviewsRes.json();
+                    setReviews(data.reviews || []);
+                }
                 if (artistsRes.ok) setArtists(await artistsRes.json());
                 if (genresRes.ok) setGenres(await genresRes.json());
                 if (suggestedRes?.ok) {
@@ -228,48 +228,31 @@ export default function ExplorePage() {
                         <div className="flex justify-center items-center h-32">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500" />
                         </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {reviews.slice(0, 3).map((review) => (
-                                <div
-                                    key={review.review_id}
-                                    className="flex flex-col bg-[#1e1529] rounded-[13px] overflow-hidden hover:shadow-lg transition-shadow duration-300"
-                                >
-                                    <img
-                                        src={review.image_urls?.length > 0 ? review.image_urls[0] : getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                                        alt={review.title}
-                                        className="w-[calc(100%-32px)] h-[288px] object-cover rounded-lg border border-[#F7F7F7] mx-auto mt-4"
-                                    />
-                                    <div className="p-4 flex-1 flex flex-col justify-between">
-                                        <div>
-                                            <p className={`${montserrat} text-[#F7F7F7] text-[16px] font-bold leading-[19px] mb-2 line-clamp-3`}>
-                                                {review.title}
-                                            </p>
-                                            <p className={`${montserrat} text-[#FF7151] text-[16px] font-medium leading-[19px] mb-2`}>
-                                                {review.artist?.slug ? (
-                                                    <a href={`/community/${review.artist.slug}`} className="hover:text-[#FF4E27] transition">
-                                                        {review.artist?.artist_name || review.artist_name || "Unknown Artist"}
-                                                    </a>
-                                                ) : (
-                                                    review.artist?.artist_name || review.artist_name || "Unknown Artist"
-                                                )}
-                                            </p>
-                                            <TranslatableText
-                                                text={review.text_content}
-                                                truncate={100}
-                                                className={`${montserrat} text-[#d1d5db] text-[14px] line-clamp-3 mb-1`}
-                                            />
-                                        </div>
-                                        <Link
-                                            href={`/reviews/${review.review_id}`}
-                                            className={`${montserrat} mt-auto bg-[#FF4E27] hover:bg-[#e5431f] text-[#F7F7F7] px-4 py-2.5 rounded-[5px] text-[16px] font-medium w-fit inline-block`}
-                                        >
-                                            {t('Read More')}
-                                        </Link>
-                                    </div>
-                                </div>
-                            ))}
+                    ) : reviews.length === 0 ? (
+                        <div className="text-center py-12 border border-dashed border-white/10 rounded-xl">
+                            <p className="text-white/40 text-sm">No reviews yet. Be the first to write one!</p>
                         </div>
+                    ) : (
+                        <>
+                            {/* Mobile: horizontal scroll with peek of next card */}
+                            <div className="md:hidden flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                                {reviews.slice(0, 5).map((review) => (
+                                    <div key={review.review_id} className="shrink-0 w-[42%] snap-start">
+                                        <ExploreReviewCard review={review} montserrat={montserrat} />
+                                    </div>
+                                ))}
+                            </div>
+                            {/* Tablet+: grid */}
+                            <div className="hidden md:grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                {reviews.slice(0, 5).map((review) => (
+                                    <ExploreReviewCard
+                                        key={review.review_id}
+                                        review={review}
+                                        montserrat={montserrat}
+                                    />
+                                ))}
+                            </div>
+                        </>
                     )}
                 </section>
 
@@ -309,5 +292,104 @@ export default function ExplorePage() {
                 </section>
             </main>
         </div>
+    );
+}
+
+function ExploreReviewCard({ review, montserrat }: { review: SongReview; montserrat: string }) {
+    const isAlbum = review.spotify_track_id.startsWith("album:");
+    const href = isAlbum
+        ? `/reviews/album/${review.spotify_track_id.replace("album:", "")}`
+        : `/reviews/song/${review.spotify_track_id}`;
+    const albumArt = review.song?.album_art_url || getImageUrl(DEFAULT_PROFILE_IMAGE);
+    const profilePic = getImageUrl(review.user?.profile_picture_url || DEFAULT_PROFILE_IMAGE);
+
+    const renderStars = (rating: number) => {
+        const stars = [];
+        const full = Math.floor(rating);
+        const half = rating % 1 !== 0;
+        for (let i = 0; i < full; i++) {
+            stars.push(<Star key={`s${i}`} className="w-2.5 h-2.5 fill-[#FF4E27] text-[#FF4E27]" />);
+        }
+        if (half) stars.push(<StarHalf key="half" className="w-2.5 h-2.5 fill-[#FF4E27] text-[#FF4E27]" />);
+        const empty = 5 - full - (half ? 1 : 0);
+        for (let i = 0; i < empty; i++) {
+            stars.push(<Star key={`e${i}`} className="w-2.5 h-2.5 text-white/20" />);
+        }
+        return stars;
+    };
+
+    const timeAgo = (dateStr: string) => {
+        const diff = Date.now() - new Date(dateStr).getTime();
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        if (days === 0) return "Today";
+        if (days === 1) return "1 day ago";
+        if (days < 30) return `${days} days ago`;
+        const months = Math.floor(days / 30);
+        if (months < 12) return `${months}mo ago`;
+        return `${Math.floor(months / 12)}y ago`;
+    };
+
+    return (
+        <Link
+            href={href}
+            className="group relative flex flex-col bg-[#1e1529] rounded-xl overflow-hidden hover:bg-[#241a32] hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(255,78,39,0.15)] transition-all duration-300"
+        >
+            {/* Album art hero with rating overlay */}
+            <div className="relative aspect-square overflow-hidden">
+                <img
+                    src={albumArt}
+                    alt={review.song?.track_name || "album art"}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                {review.rating !== null && review.rating !== undefined && (
+                    <div className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5">
+                        {renderStars(Number(review.rating))}
+                    </div>
+                )}
+                {isAlbum && (
+                    <div className="absolute top-2 left-2 text-[8px] font-bold uppercase tracking-wider bg-[#FF4E27]/90 text-white rounded-full px-1.5 py-0.5">
+                        Album
+                    </div>
+                )}
+            </div>
+
+            {/* Content */}
+            <div className="p-2.5 flex-1 flex flex-col">
+                <p className={`${montserrat} text-white text-xs font-bold leading-tight truncate`}>
+                    {review.song?.track_name || "Unknown track"}
+                </p>
+                <p className={`${montserrat} text-[#FF7151] text-[11px] font-medium mb-2 truncate`}>
+                    {review.song?.artist_name || "Unknown artist"}
+                </p>
+
+                {review.review_text && (
+                    <p className={`${montserrat} text-white/60 text-[11px] leading-snug mb-2 line-clamp-2 italic`}>
+                        &ldquo;{review.review_text}&rdquo;
+                    </p>
+                )}
+
+                {/* Footer: reviewer + likes */}
+                <div className="mt-auto flex items-center justify-between pt-2 border-t border-white/5">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                        <img
+                            src={profilePic}
+                            alt={review.user?.username || ""}
+                            className="w-4 h-4 rounded-full object-cover shrink-0"
+                        />
+                        <p className={`${montserrat} text-white/70 text-[10px] font-medium truncate`}>
+                            @{review.user?.username || "user"}
+                        </p>
+                        <span className={`${montserrat} text-white/30 text-[10px] shrink-0`}>· {timeAgo(review.created_at)}</span>
+                    </div>
+                    {review.like_count > 0 && (
+                        <div className="flex items-center gap-0.5 text-white/40 text-[10px] shrink-0">
+                            <Heart className="w-3 h-3" />
+                            <span>{review.like_count}</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </Link>
     );
 }
