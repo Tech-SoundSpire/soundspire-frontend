@@ -6,6 +6,7 @@ interface SongCacheAttributes {
   track_name: string;
   artist_name: string;
   artist_id: string;
+  artists_json: { id: string; name: string }[] | null;
   album_name: string | null;
   album_id: string | null;
   album_art_url: string | null;
@@ -24,6 +25,7 @@ class SongCache extends Model<SongCacheAttributes> implements SongCacheAttribute
   declare track_name: string;
   declare artist_name: string;
   declare artist_id: string;
+  declare artists_json: { id: string; name: string }[] | null;
   declare album_name: string | null;
   declare album_id: string | null;
   declare album_art_url: string | null;
@@ -54,6 +56,9 @@ SongCache.init(
     artist_id: {
       type: DataTypes.STRING(64),
       allowNull: false,
+    },
+    artists_json: {
+      type: DataTypes.JSONB,
     },
     album_name: {
       type: DataTypes.STRING(500),

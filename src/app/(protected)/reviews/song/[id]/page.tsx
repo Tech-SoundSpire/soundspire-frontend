@@ -13,6 +13,7 @@ interface TrackData {
   track_name: string;
   artist_name: string;
   artist_id: string;
+  artists: { id: string; name: string }[] | null;
   album_name: string | null;
   album_id: string | null;
   album_art_url: string | null;
@@ -235,9 +236,22 @@ export default function SongPage() {
           <div className="mb-1 text-xs font-bold tracking-widest text-white/40 uppercase">Song</div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-2">{track.track_name}</h1>
           <p className="text-lg text-white/60 mb-4">
-            <Link href={`/reviews/artist/${track.artist_id}?name=${encodeURIComponent(track.artist_name)}`} className="font-semibold text-white hover:text-[#FF4E27] transition">
-              {track.artist_name}
-            </Link>
+            <span className="font-semibold text-white">
+              {(track.artists && track.artists.length > 0
+                ? track.artists
+                : [{ id: track.artist_id, name: track.artist_name }]
+              ).map((a, i) => (
+                <span key={`${a.id}-${i}`}>
+                  {i > 0 && <span className="text-white/40">, </span>}
+                  <Link
+                    href={`/reviews/artist/${a.id}?name=${encodeURIComponent(a.name)}`}
+                    className="hover:text-[#FF4E27] transition"
+                  >
+                    {a.name}
+                  </Link>
+                </span>
+              ))}
+            </span>
             {track.album_name && <span> · {track.album_name}</span>}
             {track.release_date && <span> · {track.release_date.split("-")[0]}</span>}
             {track.duration_ms && <span> · {formatDuration(track.duration_ms)}</span>}

@@ -11,15 +11,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const cached = await SongCache.findByPk(id);
     const cacheExpired = cached && (Date.now() - new Date(cached.metadata_cached_at).getTime() > 24 * 60 * 60 * 1000);
+    // Older cache rows may not have artists_json populated — force refresh to backfill.
+    const needsBackfill = cached && !cached.artists_json;
 
     let trackData: any;
 
-    if (cached && !cacheExpired) {
+    if (cached && !cacheExpired && !needsBackfill) {
       trackData = {
         spotify_track_id: cached.spotify_track_id,
         track_name: cached.track_name,
         artist_name: cached.artist_name,
         artist_id: cached.artist_id,
+        artists: cached.artists_json,
         album_name: cached.album_name,
         album_id: cached.album_id,
         album_art_url: cached.album_art_url,
@@ -32,12 +35,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       };
     } else {
       const spotify = await getTrack(id);
+      const artistsList = (spotify.artists || []).map((a: any) => ({ id: a.id, name: a.name }));
 
       const cacheEntry = {
         spotify_track_id: spotify.id,
         track_name: spotify.name,
         artist_name: spotify.artists.map((a: any) => a.name).join(", "),
         artist_id: spotify.artists[0]?.id || "",
+        artists_json: artistsList,
         album_name: spotify.album?.name || null,
         album_id: spotify.album?.id || null,
         album_art_url: spotify.album?.images?.[0]?.url || null,
@@ -55,6 +60,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
       trackData = {
         ...cacheEntry,
+        artists: cacheEntry.artists_json,
         credits: cacheEntry.credits_json,
       };
     }
