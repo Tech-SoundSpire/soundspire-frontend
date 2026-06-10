@@ -12,11 +12,15 @@ interface SearchDropdownProps {
 }
 
 type NormalizedResult = {
-  type: "artist" | "community" | "review" | "post";
+  type: "artist" | "community" | "review" | "post" | "song" | "user";
   label: string;
+  subtitle?: string;
+  image?: string;
   slug?: string;
   review_id?: string;
   post_id?: string;
+  spotify_track_id?: string;
+  user_id?: string;
 };
 
 export default function SearchDropdown({
@@ -68,6 +72,23 @@ export default function SearchDropdown({
             type: "community" as const, label: c.name, slug: c.artist_slug,
           })));
         }
+        if (data.songs) {
+          combined.push(...data.songs.map((s: any) => ({
+            type: "song" as const,
+            label: s.track_name,
+            subtitle: s.artist_name,
+            image: s.album_art_url,
+            spotify_track_id: s.spotify_track_id,
+          })));
+        }
+        if (data.users) {
+          combined.push(...data.users.map((u: any) => ({
+            type: "user" as const,
+            label: u.full_name || u.username,
+            subtitle: `@${u.username}`,
+            user_id: u.user_id,
+          })));
+        }
 
         setResults(combined);
         setShowDropdown(combined.length > 0);
@@ -91,7 +112,10 @@ export default function SearchDropdown({
   const handleNavigation = (item: NormalizedResult) => {
     if (item.type === "artist" && item.slug) router.push(`/community/${item.slug}`);
     else if (item.type === "community" && item.slug) router.push(`/community/${item.slug}`);
+    else if (item.type === "review" && item.spotify_track_id) router.push(`/reviews/song/${item.spotify_track_id}`);
     else if (item.type === "review" && item.review_id) router.push(`/reviews/${item.review_id}`);
+    else if (item.type === "song" && item.spotify_track_id) router.push(`/reviews/song/${item.spotify_track_id}`);
+    else if (item.type === "user" && item.user_id) router.push(`/reviews/profile/${item.user_id}`);
     setShowDropdown(false);
     setQuery("");
   };
@@ -117,11 +141,17 @@ export default function SearchDropdown({
           {results.map((item, index) => (
             <div
               key={`${item.type}-${index}`}
-              className="flex justify-between items-center p-2 hover:bg-[#3d2b5a] rounded cursor-pointer text-white transition-colors"
+              className="flex items-center gap-3 p-2 hover:bg-[#3d2b5a] rounded cursor-pointer text-white transition-colors"
               onClick={() => handleNavigation(item)}
             >
-              <span className="truncate">{item.label}</span>
-              <span className="text-xs text-gray-400 ml-2 capitalize">{item.type}</span>
+              {item.image && (
+                <img src={item.image} alt="" className="w-8 h-8 rounded object-cover shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <span className="truncate block text-sm">{item.label}</span>
+                {item.subtitle && <span className="text-xs text-gray-400 truncate block">{item.subtitle}</span>}
+              </div>
+              <span className="text-xs text-gray-400 ml-2 capitalize shrink-0">{item.type}</span>
             </div>
           ))}
         </div>
