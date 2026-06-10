@@ -55,7 +55,7 @@ export async function GET(req: Request) {
       }),
     ]);
 
-    // If no songs found in local cache, search Spotify catalog
+    // Always search Spotify catalog, merge with local results
     let songResults = songs.map((s: any) => ({
       spotify_track_id: s.spotify_track_id,
       track_name: s.track_name,
@@ -63,59 +63,45 @@ export async function GET(req: Request) {
       album_art_url: s.album_art_url,
     }));
 
-    if (songResults.length === 0) {
-      try {
-        const catalogResults = await searchCatalog(query, "track,artist", 8);
-        const spotifyTracks = catalogResults?.tracks?.items?.map((t: any) => ({
+    let artistResults = artists.map((a: any) => ({
+      artist_name: a.artist_name,
+      slug: a.slug,
+      profile_picture_url: a.profile_picture_url,
+    }));
+
+    try {
+      const catalogResults = await searchCatalog(query, "track,artist", 8);
+
+      // Merge Spotify tracks (deduplicate by spotify_track_id)
+      const existingTrackIds = new Set(songResults.map((s: any) => s.spotify_track_id));
+      const spotifyTracks = (catalogResults?.tracks?.items || [])
+        .filter((t: any) => !existingTrackIds.has(t.id))
+        .map((t: any) => ({
           spotify_track_id: t.id,
           track_name: t.name,
           artist_name: t.artists?.map((a: any) => a.name).join(", ") || "",
           album_art_url: t.album?.images?.[0]?.url || null,
           source: "spotify",
-        })) || [];
-        songResults = spotifyTracks;
+        }));
+      songResults = [...songResults, ...spotifyTracks];
 
-        // Also add Spotify artists if no internal artists found
-        if (artists.length === 0) {
-          const spotifyArtists = catalogResults?.artists?.items?.map((a: any) => ({
-            artist_name: a.name,
-            slug: null,
-            profile_picture_url: a.images?.[0]?.url || null,
-            source: "spotify",
-          })) || [];
-          return NextResponse.json({
-            artists: spotifyArtists,
-            communities: communities.map((c: any) => ({
-              name: c.name,
-              artist_slug: c.Artist?.slug ?? null,
-              profile_picture_url: c.Artist?.profile_picture_url ?? null,
-            })),
-            songs: songResults,
-            users: users.map((u: any) => ({
-              user_id: u.user_id,
-              username: u.username,
-              full_name: u.full_name,
-              profile_picture_url: u.profile_picture_url,
-            })),
-            reviews: songReviews.map((r: any) => ({
-              review_id: r.review_id,
-              spotify_track_id: r.spotify_track_id,
-              title: r.review_text?.substring(0, 80),
-              rating: r.rating,
-            })),
-          });
-        }
-      } catch (spotifyErr) {
-        console.error("Spotify fallback search failed:", spotifyErr);
-      }
+      // Merge Spotify artists (deduplicate by name)
+      const existingArtistNames = new Set(artistResults.map((a: any) => a.artist_name?.toLowerCase()));
+      const spotifyArtists = (catalogResults?.artists?.items || [])
+        .filter((a: any) => !existingArtistNames.has(a.name?.toLowerCase()))
+        .map((a: any) => ({
+          artist_name: a.name,
+          slug: null,
+          profile_picture_url: a.images?.[0]?.url || null,
+          source: "spotify",
+        }));
+      artistResults = [...artistResults, ...spotifyArtists];
+    } catch (spotifyErr) {
+      console.error("Spotify search failed:", spotifyErr);
     }
 
     return NextResponse.json({
-      artists: artists.map((a: any) => ({
-        artist_name: a.artist_name,
-        slug: a.slug,
-        profile_picture_url: a.profile_picture_url,
-      })),
+      artists: artistResults,
       communities: communities.map((c: any) => ({
         name: c.name,
         artist_slug: c.Artist?.slug ?? null,
