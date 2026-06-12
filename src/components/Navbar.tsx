@@ -9,6 +9,7 @@ import {
     FaUser,
     FaCog,
     FaExchangeAlt,
+    FaAndroid,
 } from "react-icons/fa";
 import { MdOutlineDynamicFeed } from "react-icons/md";
 import Link from "next/link";
@@ -165,6 +166,23 @@ const Navbar = () => {
                             </Link>
                         );
                     })}
+
+                    {/* Download Android App — standout green */}
+                    <a
+                        href="/download/android"
+                        className="flex items-center gap-4 rounded-lg transition-colors duration-200 hover:bg-[#3DDC84]/10"
+                    >
+                        <div className="w-[40px] h-[40px] flex-shrink-0 rounded-full flex items-center justify-center bg-[#3DDC84]">
+                            <FaAndroid className="w-5 h-5 text-[#0a3d23]" />
+                        </div>
+                        <span
+                            className={`${montserratClass} text-[#3DDC84] text-[20px] font-semibold leading-[24px] whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                                isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0"
+                            }`}
+                        >
+                            {t("Download App")}
+                        </span>
+                    </a>
                 </div>
 
                 {/* Role Switch Button */}

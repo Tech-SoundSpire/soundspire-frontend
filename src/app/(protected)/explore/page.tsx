@@ -119,6 +119,20 @@ export default function ExplorePage() {
     return (
         <div className="min-h-screen">
             <main className="md:ml-[54px] px-4 md:px-8 py-6">
+                {/* Get-the-app banner */}
+                <a
+                    href="/download/android"
+                    className="flex items-center justify-between gap-3 mb-6 px-4 md:px-5 py-3 rounded-xl bg-[#3DDC84] hover:bg-[#32c476] transition text-[#0a3d23]"
+                >
+                    <div className="flex items-center gap-3">
+                        <svg className="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M17.6 9.48l1.84-3.18a.4.4 0 0 0-.69-.4l-1.86 3.22a11.43 11.43 0 0 0-9.78 0L5.25 5.9a.4.4 0 1 0-.69.4l1.84 3.18A10.78 10.78 0 0 0 1 18h22a10.78 10.78 0 0 0-5.4-8.52zM7 15.25a1 1 0 1 1 1-1 1 1 0 0 1-1 1zm10 0a1 1 0 1 1 1-1 1 1 0 0 1-1 1z" />
+                        </svg>
+                        <span className="font-semibold text-sm md:text-base">{t('Get the SoundSpire Android app')}</span>
+                    </div>
+                    <span className="font-bold text-sm md:text-base whitespace-nowrap underline underline-offset-2">{t('Download')}</span>
+                </a>
+
                 {/* Header: Title + Search */}
                 <div className="flex flex-col md:flex-row items-start md:items-center mb-8 gap-4">
                     <h1 className={`${montserrat} text-[#FFD3C9] text-[32px] md:text-[47px] font-bold leading-[40px] md:leading-[56px] flex-shrink-0`}>
