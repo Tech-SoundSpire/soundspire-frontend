@@ -373,36 +373,29 @@ export default function FanArtPage() {
   };
   
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    
-    // Validate file types
+    // Restrict to a single image
+    const file = (e.target.files || [])[0];
+    if (!file) return;
+
+    // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    const invalidFiles = files.filter(f => !validTypes.includes(f.type));
-    
-    if (invalidFiles.length > 0) {
+    if (!validTypes.includes(file.type)) {
       toast.error('Only jpg, jpeg, png, gif, webp files allowed');
       return;
     }
-    
-    // Validate file size (max 1GB per file)
-    const oversizedFiles = files.filter(f => f.size > 1024 * 1024 * 1024);
-    if (oversizedFiles.length > 0) {
-      toast.error('Files must be under 1GB');
+
+    // Validate file size (max 1GB)
+    if (file.size > 1024 * 1024 * 1024) {
+      toast.error('File must be under 1GB');
       return;
     }
-    
-    setSelectedFiles(files);
-    
-    // Show crop modal for single image
-    if (files.length === 1) {
-      setCropOriginalFile(files[0]);
-      setCropImageSrc(URL.createObjectURL(files[0]));
-      return;
-    }
-    
-    // Generate preview URLs
-    const urls = files.map(file => URL.createObjectURL(file));
-    setPreviewUrls(urls);
+
+    setSelectedFiles([file]);
+
+    // Always show crop modal for the single image
+    setCropOriginalFile(file);
+    setCropImageSrc(URL.createObjectURL(file));
+    return;
   };
   
   const handleFanArtCropDone = (blob: Blob) => {
@@ -996,18 +989,17 @@ export default function FanArtPage() {
               {/* File Input */}
               <div className="mb-6">
                 <label className="block text-white font-semibold mb-2">
-                  Select Images
+                  Select Image
                 </label>
                 <input
                   type="file"
                   accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                  multiple
                   onChange={handleFileSelect}
                   className="w-full px-4 py-3 bg-[#1a1625] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   disabled={isUploading}
                 />
                 <p className="text-gray-500 text-sm mt-2">
-                  Supported: JPG, JPEG, PNG, GIF, WEBP (Max 1GB each)
+                  Supported: JPG, JPEG, PNG, GIF, WEBP (Max 1GB)
                 </p>
               </div>
               

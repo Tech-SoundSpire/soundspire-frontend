@@ -41,7 +41,8 @@ export async function GET() {
         name: user.full_name,
         email: user.email,
         photoURL: user.profile_picture_url,
-        provider: (user as any).provider || "local",
+        // No persisted `provider` column — derive it: a linked google_id means Google sign-in.
+        provider: (user as any).provider || (user.google_id ? "google" : "local"),
         is_verified: user.is_verified,
         spotifyLinked: user.spotify_linked,
         role,
