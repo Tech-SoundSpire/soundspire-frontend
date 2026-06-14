@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
             return NextResponse.json(
-                { error: "User already exists!", redirect: "/login" },
+                { error: "Email already in use. Please log in instead.", redirect: "/login" },
                 { status: 400 },
             );
         }
