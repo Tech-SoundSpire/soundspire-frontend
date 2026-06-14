@@ -59,6 +59,20 @@ export async function POST(request: NextRequest) {
                 });
                 if (u) {
                     userId = u.user_id;
+                    // Logged-in fan → artist upgrade: mark this account as an artist and
+                    // fill in any artist-form details. This keeps the same User row (so
+                    // view-as-fan stays intact) and is the ONLY legitimate path that turns
+                    // an existing account into an artist.
+                    await u.update({
+                        is_artist: true,
+                        full_name: artist_name || u.full_name,
+                        mobile_number: body.phone || u.mobile_number,
+                        city: body.city || u.city,
+                        country: body.country || u.country,
+                        bio: bio || u.bio,
+                        profile_picture_url:
+                            profile_picture_url || u.profile_picture_url,
+                    });
                 }
             } catch {}
         }
@@ -77,9 +91,17 @@ export async function POST(request: NextRequest) {
                 where: { email },
             });
 
-            if (user && !user.is_artist) {
+            // An email maps to exactly one account. If one already exists, a fresh artist
+            // signup must NOT silently reuse/overwrite it (that's what resurrected a stale
+            // artist identity). The legitimate "fan becomes an artist" upgrade happens via
+            // the logged-in path above (existingToken) — which keeps view-as-fan intact —
+            // not here. So reject any existing email and point them to log in.
+            if (user) {
                 return NextResponse.json(
-                    { error: "A fan account already exists with this email. Please use a different email for your artist account." },
+                    {
+                        error: "Email already in use. Please log in instead.",
+                        redirect: "/login",
+                    },
                     { status: 400 },
                 );
             }
@@ -144,29 +166,6 @@ export async function POST(request: NextRequest) {
                     country: body.country || null,
                     bio: bio || null,
                     profile_picture_url: profile_picture_url || null,
-                });
-            } else {
-                if (!user.password_hash && password_hash) {
-                    //upgrading existing user need validation
-                    if (!passwordRegex.test(password_hash)) {
-                        return NextResponse.json(
-                            { error: "Password does not meet requirements" },
-                            { status: 400 }
-                        );
-                    }
-                    const hashed = await bcryptjs.hash(password_hash, 10);
-                    await user.update({ password_hash: hashed });
-                }
-
-                await user.update({
-                    is_artist: true,
-                    full_name: artist_name || user.full_name,
-                    mobile_number: body.phone || user.mobile_number,
-                    city: body.city || user.city,
-                    country: body.country || user.country,
-                    bio: bio || user.bio,
-                    profile_picture_url:
-                        profile_picture_url || user.profile_picture_url,
                 });
             }
 
