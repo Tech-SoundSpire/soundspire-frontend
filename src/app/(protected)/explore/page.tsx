@@ -210,7 +210,19 @@ export default function ExplorePage() {
                         </div>
                     ) : (
                         <div className="flex gap-6 overflow-x-auto pb-4">
-                            {(suggestedArtists.length > 0 ? suggestedArtists : artists).map((artist: any) => {
+                            {/* Show the user's suggested artists first (personalization), then ALL
+                                onboarded artists — so every artist on the platform appears by
+                                default, whether or not the user picked them in preferences. */}
+                            {(() => {
+                                const seen = new Set<string>();
+                                const merged = [...suggestedArtists, ...artists].filter((a: any) => {
+                                    const key = a.slug || a.soundcharts_uuid || a.artist_id;
+                                    if (seen.has(key)) return false;
+                                    seen.add(key);
+                                    return true;
+                                });
+                                return merged;
+                            })().map((artist: any) => {
                                 const href = artist.onSoundSpire === false
                                     ? (artist.soundcharts_uuid ? `/community/sc/${artist.soundcharts_uuid}` : null)
                                     : (artist.slug ? `/community/${artist.slug}/` : null);

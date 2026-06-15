@@ -7,11 +7,16 @@ export async function GET(request: NextRequest) {
     try {
         const q = request.nextUrl.searchParams.get("q");
 
+        // - q = "<term>"  → name search (any artist, incl. cached SoundCharts rows)
+        // - q = ""        → return ALL artists (used by "See More")
+        // - no q          → default Explore carousel: ALL ONBOARDED artists (user_id set),
+        //                   so every artist who has joined the platform is shown by default,
+        //                   regardless of preferences or "featured" status.
         const where: any = q
             ? { artist_name: { [Op.iLike]: `%${q}%` } }
             : q === ""
-            ? {} // empty string = return all
-            : { featured: true };
+            ? {}
+            : { user_id: { [Op.ne]: null } };
 
         const artists = await Artist.findAll({
             where,
@@ -25,7 +30,7 @@ export async function GET(request: NextRequest) {
                 "third_party_id",
             ],
             order: [["created_at", "DESC"]],
-            limit: q ? 20 : 8,
+            limit: q ? 20 : 100,
         });
 
         return NextResponse.json(artists);
