@@ -31,6 +31,7 @@ export default function ArtistCatalogPage() {
   const [artist, setArtist] = useState<ArtistData | null>(null);
   const [albums, setAlbums] = useState<AlbumItem[]>([]);
   const [communitySlug, setCommunitySlug] = useState<string | null>(null);
+  const [voteUuid, setVoteUuid] = useState<string | null>(null); // SoundCharts uuid for off-platform artists
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"top" | "discography">("top");
 
@@ -50,13 +51,25 @@ export default function ArtistCatalogPage() {
         }
 
         // Check if this artist is onboarded to the platform
+        let onboardedSlug: string | null = null;
         if (nameHint) {
           try {
             const communityRes = await fetch(`/api/explore/artists?q=${encodeURIComponent(nameHint)}`);
             if (communityRes.ok) {
               const artists = await communityRes.json();
               const onboarded = artists.find((a: any) => a.user_id && a.artist_name?.toLowerCase() === nameHint.toLowerCase());
-              if (onboarded?.slug) setCommunitySlug(onboarded.slug);
+              if (onboarded?.slug) { onboardedSlug = onboarded.slug; setCommunitySlug(onboarded.slug); }
+            }
+          } catch {}
+        }
+
+        // Not onboarded → resolve a SoundCharts uuid so we can link to the vote page.
+        if (!onboardedSlug) {
+          try {
+            const resolveRes = await fetch(`/api/artists/resolve?spotifyId=${encodeURIComponent(id)}&name=${encodeURIComponent(nameHint)}`);
+            if (resolveRes.ok) {
+              const { soundchartsUuid } = await resolveRes.json();
+              if (soundchartsUuid) setVoteUuid(soundchartsUuid);
             }
           } catch {}
         }
@@ -105,11 +118,16 @@ export default function ArtistCatalogPage() {
                 Open on Spotify
               </a>
             )}
-            {communitySlug && (
+            {communitySlug ? (
               <Link href={`/community/${communitySlug}`} className="text-[#FF4E27] text-sm font-medium hover:underline">
                 Go to their community →
               </Link>
-            )}
+            ) : voteUuid ? (
+              // Not on SoundSpire yet — link to the "Vote for them to join" page.
+              <Link href={`/community/sc/${voteUuid}`} className="text-[#FF4E27] text-sm font-medium hover:underline">
+                Go to their community →
+              </Link>
+            ) : null}
           </div>
         </div>
       </div>

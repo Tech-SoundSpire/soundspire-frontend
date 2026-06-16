@@ -13,6 +13,7 @@ import Genres from "./Genres";
 import Languages from "./Languages";
 import Forum from "./Forum";
 import ForumPost from "./ForumPost";
+import SpotifySoundchartsMap from "./SpotifySoundchartsMap";
 
 import { defineAssociations } from "./associations";
 
@@ -31,6 +32,7 @@ const models = {
   Languages,
   Forum,
   ForumPost,
+  SpotifySoundchartsMap,
 };
 
 // Define a type for the models map

@@ -20,6 +20,7 @@ type NormalizedResult = {
   review_id?: string;
   post_id?: string;
   spotify_track_id?: string;
+  spotify_artist_id?: string; // for artists → rich /reviews/artist/{id} page
   user_id?: string;
 };
 
@@ -49,18 +50,30 @@ export default function SearchDropdown({
       return;
     }
 
-    // Navigate mode: fetch from API
+    // Navigate mode: fetch internal search + Spotify catalog artists in parallel.
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`${apiEndpoint}?search=${encodeURIComponent(query)}`);
+        const [res, catalogRes] = await Promise.all([
+          fetch(`${apiEndpoint}?search=${encodeURIComponent(query)}`),
+          // Catalog (Spotify) artists carry a Spotify ID → rich /reviews/artist/{id} page.
+          fetch(`/api/catalog/search?q=${encodeURIComponent(query)}&type=artist&limit=5`).catch(() => null),
+        ]);
         if (!res.ok) return;
         const data = await res.json();
         let combined: NormalizedResult[] = [];
 
-        if (data.artists) {
-          combined.push(...data.artists.map((a: any) => ({
-            type: "artist" as const, label: a.artist_name, slug: a.slug,
-          })));
+        // Artists from Spotify catalog (preferred — gives the full artist page).
+        if (catalogRes && catalogRes.ok) {
+          try {
+            const cat = await catalogRes.json();
+            const items = cat?.artists?.items || [];
+            combined.push(...items.slice(0, 3).map((a: any) => ({
+              type: "artist" as const,
+              label: a.name,
+              image: a.images?.[a.images.length - 1]?.url,
+              spotify_artist_id: a.id,
+            })));
+          } catch {}
         }
         if (data.reviews) {
           combined.push(...data.reviews.map((r: any) => ({
@@ -110,7 +123,8 @@ export default function SearchDropdown({
   }, []);
 
   const handleNavigation = (item: NormalizedResult) => {
-    if (item.type === "artist" && item.slug) router.push(`/community/${item.slug}`);
+    if (item.type === "artist" && item.spotify_artist_id) router.push(`/reviews/artist/${item.spotify_artist_id}?name=${encodeURIComponent(item.label)}`);
+    else if (item.type === "artist" && item.slug) router.push(`/community/${item.slug}`);
     else if (item.type === "community" && item.slug) router.push(`/community/${item.slug}`);
     else if (item.type === "review" && item.spotify_track_id) router.push(`/reviews/song/${item.spotify_track_id}`);
     else if (item.type === "review" && item.review_id) router.push(`/reviews/${item.review_id}`);
