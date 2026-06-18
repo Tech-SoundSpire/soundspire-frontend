@@ -295,27 +295,35 @@ export default function ArtistCommunityProfile() {
                         </div>
                     )}
 
-                    {/* Reviews */}
+                    {/* Reviews — song/album reviews that mention this artist */}
                     <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
-                        <BaseHeading headingLevel="h2" fontSize="normal" fontWeight={600} className="mb-6">{t('Reviews by the SoundSpire Team')}</BaseHeading>
+                        <BaseHeading headingLevel="h2" fontSize="normal" fontWeight={600} className="mb-6">{t('Reviews')}</BaseHeading>
                         {artistReviews.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {artistReviews.map((r: any) => (
-                                    <a key={r.review_id} href={`/reviews/${r.review_id}`} className="bg-[#1a1625] border border-gray-700 rounded-xl p-5 shadow-lg hover:shadow-xl hover:border-[#FA6400]/50 transition space-y-3 block">
-                                        {r.image_urls?.[0] && (
-                                            <div className="w-full h-32 rounded-lg overflow-hidden">
-                                                <img src={getImageUrl(r.image_urls[0])} alt={r.title} className="w-full h-full object-cover" />
-                                            </div>
-                                        )}
-                                        <BaseHeading fontSize="small" fontWeight={600}>{r.title}</BaseHeading>
-                                        <BaseText textColor="#d1d5db" fontSize="small">
-                                            {r.text_content.length > 150 ? r.text_content.slice(0, 150) + "..." : r.text_content}
-                                        </BaseText>
-                                        <BaseText textColor="#fa6400" fontSize="very small" fontWeight={500}>
-                                            {r.author || r.user?.full_name || "SoundSpire Team"} • {new Date(r.review_date || r.created_at).toLocaleDateString("en-US", { day: "numeric", month: "short" })}
-                                        </BaseText>
-                                    </a>
-                                ))}
+                                {artistReviews.map((r: any) => {
+                                    const isAlbum = r.spotify_track_id?.startsWith("album:");
+                                    const href = isAlbum
+                                        ? `/reviews/album/${r.spotify_track_id.replace("album:", "")}`
+                                        : `/reviews/song/${r.spotify_track_id}`;
+                                    return (
+                                        <a key={r.review_id} href={href} className="bg-[#1a1625] border border-gray-700 rounded-xl p-5 shadow-lg hover:shadow-xl hover:border-[#FA6400]/50 transition space-y-3 block">
+                                            {r.song?.album_art_url && (
+                                                <div className="w-full h-32 rounded-lg overflow-hidden">
+                                                    <img src={getImageUrl(r.song.album_art_url)} alt={r.song?.track_name || "Cover"} className="w-full h-full object-cover" />
+                                                </div>
+                                            )}
+                                            <BaseHeading fontSize="small" fontWeight={600}>{r.song?.track_name || "Review"}</BaseHeading>
+                                            {r.review_text && (
+                                                <BaseText textColor="#d1d5db" fontSize="small">
+                                                    {r.review_text.length > 150 ? r.review_text.slice(0, 150) + "..." : r.review_text}
+                                                </BaseText>
+                                            )}
+                                            <BaseText textColor="#fa6400" fontSize="very small" fontWeight={500}>
+                                                @{r.user?.username || "user"}{r.created_at ? ` • ${new Date(r.created_at).toLocaleDateString("en-US", { day: "numeric", month: "short" })}` : ""}
+                                            </BaseText>
+                                        </a>
+                                    );
+                                })}
                             </div>
                         ) : (
                             <BaseText textColor="#6b7280">{t('No reviews yet.')}</BaseText>
