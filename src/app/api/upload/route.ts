@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { getDataFromToken } from '@/utils/getDataFromToken';
 
 // Create S3 client with explicit configuration
 // Support both naming conventions for AWS credentials
@@ -25,6 +26,17 @@ const s3Client = getS3Client();
 
 export async function POST(request: NextRequest) {
   try {
+    // Require a logged-in caller so anonymous users can't mint S3 presigned URLs.
+    let callerId: string | undefined;
+    try {
+      callerId = getDataFromToken(request);
+    } catch {
+      callerId = undefined;
+    }
+    if (!callerId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const contentType = request.headers.get('content-type') || '';
     
     // Handle FormData (multiple file uploads for chat)
