@@ -1,14 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Like from '@/models/Like';
+import { getDataFromToken } from '@/utils/getDataFromToken';
+
+// Resolve the acting user from the verified JWT, never from the request body.
+function getCallerId(request: NextRequest): string | undefined {
+  try {
+    return getDataFromToken(request);
+  } catch {
+    return undefined;
+  }
+}
 
 export async function POST(request: NextRequest, context:{ params: Promise<{ id: string }> }) {
   const params = await context.params;
   const { id: comment_id } = params;
 
   try {
-    const { user_id } = await request.json();
+    const user_id = getCallerId(request);
     if (!user_id) {
-      return NextResponse.json({ error: 'user_id is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if user has already liked this comment
@@ -52,9 +62,9 @@ export async function DELETE(request: NextRequest, context:{ params: Promise<{ i
   const { id: comment_id } = params;
 
   try {
-    const { user_id } = await request.json();
+    const user_id = getCallerId(request);
     if (!user_id) {
-      return NextResponse.json({ error: 'user_id is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await Like.destroy({

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import models from '@/models';
+import { getDataFromToken } from '@/utils/getDataFromToken';
 const { Comment, Like, User, Review } = models;
 
 // GET: Fetch all comments for a review
@@ -66,11 +67,23 @@ export async function POST(
   try {
     const params = await context.params;
     const { id: review_id } = params;
-    const { user_id, content, parent_comment_id } = await request.json();
 
-    if (!user_id || !content || !review_id) {
+    // Author the comment as the JWT-verified caller, never a body-supplied user_id.
+    let user_id: string | undefined;
+    try {
+      user_id = getDataFromToken(request);
+    } catch {
+      user_id = undefined;
+    }
+    if (!user_id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { content, parent_comment_id } = await request.json();
+
+    if (!content || !review_id) {
       return NextResponse.json(
-        { error: 'Missing required parameters: user_id, content, and review_id are required' },
+        { error: 'Missing required parameters: content and review_id are required' },
         { status: 400 }
       );
     }
