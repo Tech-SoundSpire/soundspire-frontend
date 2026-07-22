@@ -32,7 +32,7 @@
     "music-genres": "^1.0.1",
     "nanoid": "^5.1.6",
     "next": "^16.2.6",
-    "nodemailer": "^8.0.4",
+    "nodemailer": "^9.0.3",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
     "react": "^18.3.1",
@@ -45,7 +45,7 @@
     "sequelize": "^6.37.7",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.1"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.9",
@@ -59,7 +59,7 @@
     "autoprefixer": "^10.0.1",
     "eslint": "^9.39.3",
     "eslint-config-next": "^16.1.6",
-    "postcss": "^8",
+    "postcss": "^8.5.10",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
   },
@@ -67,6 +67,9 @@
     "brace-expansion": "^2.0.3",
     "fast-xml-parser": "^5.3.4",
     "ajv": "^8.18.0",
-    "minimatch": "^10.2.1"
+    "minimatch": "^10.2.1",
+    "postcss": "^8.5.10",
+    "sharp": "^0.35.0",
+    "uuid": "^11.1.1"
   }
 }
