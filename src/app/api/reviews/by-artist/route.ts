@@ -35,16 +35,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "artistId required" }, { status: 400 });
     }
 
-    const debug = request.nextUrl.searchParams.get("debug") === "1";
-
-    // Look up the onboarded artist to get its Spotify artist ID (via SoundCharts uuid).
+    // Look up the onboarded artist to resolve its Spotify artist ID (by name, via Spotify).
     const artist = await Artist.findByPk(artistId);
-    if (!artist) return NextResponse.json(debug ? { reviews: [], _debug: "artist row not found" } : { reviews: [] });
+    if (!artist) return NextResponse.json({ reviews: [] });
 
     const spotifyArtistId = await resolveSpotifyArtistId(artist.artist_name);
     // Spotify IDs are base62 (alphanumeric); reject anything else before using in a literal.
     if (!spotifyArtistId || !/^[A-Za-z0-9]+$/.test(spotifyArtistId)) {
-      return NextResponse.json(debug ? { reviews: [], _debug: { msg: "no spotify id resolved", artist_name: artist.artist_name } } : { reviews: [] });
+      return NextResponse.json({ reviews: [] });
     }
 
     // Find cached tracks/albums by this Spotify artist. Match BOTH:
@@ -62,7 +60,7 @@ export async function GET(request: NextRequest) {
       limit: 200,
     });
 
-    if (songs.length === 0) return NextResponse.json(debug ? { reviews: [], _debug: { msg: "no cached songs for spotify artist", spotifyArtistId } } : { reviews: [] });
+    if (songs.length === 0) return NextResponse.json({ reviews: [] });
 
     const trackIds = songs.map((s: any) => s.spotify_track_id);
     const songByTrack = new Map(songs.map((s: any) => [s.spotify_track_id, s]));

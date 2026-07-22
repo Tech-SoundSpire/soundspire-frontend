@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import models from '@/models';
 import { notifyUser } from '@/utils/notifications';
+import { getDataFromToken } from '@/utils/getDataFromToken';
 import Comment from '@/models/Comment';
 import Post from '@/models/Post';
 import { User } from '@/models/User';
 const { Like } = models;
+
+// Resolve the acting user from the verified JWT, never from the request body.
+function getCallerId(request: NextRequest): string | undefined {
+  try {
+    return getDataFromToken(request);
+  } catch {
+    return undefined;
+  }
+}
 
 type LikeWhereClause = {
   user_id: string;
@@ -14,9 +24,14 @@ type LikeWhereClause = {
 
 export async function POST(request : NextRequest){
     try{
-        const { user_id,post_id,comment_id} = await request.json();
-        
-         if (!user_id || (!post_id && !comment_id)) {
+        const user_id = getCallerId(request);
+        if (!user_id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { post_id, comment_id } = await request.json();
+
+         if (!post_id && !comment_id) {
             return NextResponse.json({ error: 'Missing required parameters.' }, { status: 400 });
         }
 
@@ -69,9 +84,14 @@ export async function POST(request : NextRequest){
 
 export async function DELETE(request:NextRequest){
     try{
-        const { user_id,post_id,comment_id} = await request.json();
-        
-        if (!user_id || (!post_id && !comment_id)) {
+        const user_id = getCallerId(request);
+        if (!user_id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { post_id, comment_id } = await request.json();
+
+        if (!post_id && !comment_id) {
             return NextResponse.json({ error: 'Missing required parameters.' }, { status: 400 });
         }
 

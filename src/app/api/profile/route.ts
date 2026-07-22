@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getDataFromToken } from "@/utils/getDataFromToken";
 // Import concrete model classes directly to satisfy Sequelize include
 import { User } from "@/models/User";
 import CommunitySubscription from "@/models/CommunitySubscription";
@@ -27,20 +28,26 @@ interface UserWithSubscriptions
     CommunitySubscriptions?: CommunitySubscriptionAttributes[];
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
-        const email = searchParams.get("email");
+        // Identify the caller from the verified JWT — never trust a client-supplied
+        // email, otherwise anyone can read any user's PII.
+        let userId: string | undefined;
+        try {
+            userId = getDataFromToken(request);
+        } catch {
+            userId = undefined;
+        }
 
-        if (!email) {
+        if (!userId) {
             return NextResponse.json(
-                { error: "Email is required" },
-                { status: 400 }
+                { error: "Unauthorized" },
+                { status: 401 }
             );
         }
 
     const user = await User.findOne({
-      where: { email },
+      where: { user_id: userId },
       attributes: [
         'full_name',
         'username',
@@ -99,10 +106,25 @@ export async function GET(request: Request) {
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
     try {
+        // Identify the caller from the verified JWT — the profile being updated is
+        // always the caller's own, never one selected by a client-supplied email.
+        let userId: string | undefined;
+        try {
+            userId = getDataFromToken(request);
+        } catch {
+            userId = undefined;
+        }
+
+        if (!userId) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
         const {
-            email,
             full_name,
             username,
             gender,
@@ -114,26 +136,22 @@ export async function PUT(request: Request) {
             spotify_linked,
         } = await request.json();
 
-        if (!email || !full_name || !username) {
-            return NextResponse.json(
-                { error: "Email, full_name, and username are required" },
-                { status: 400 }
-            );
-        }
+        // Only include fields that were actually provided, so a partial update
+        // (e.g. the Spotify-link toggle) doesn't null out other columns.
+        const updates: Record<string, unknown> = {};
+        if (full_name !== undefined) updates.full_name = full_name;
+        if (username !== undefined) updates.username = username;
+        if (gender !== undefined) updates.gender = gender;
+        if (mobile_number !== undefined) updates.mobile_number = mobile_number;
+        if (date_of_birth !== undefined) updates.date_of_birth = date_of_birth;
+        if (city !== undefined) updates.city = city;
+        if (country !== undefined) updates.country = country;
+        if (profile_picture_url !== undefined) updates.profile_picture_url = profile_picture_url;
+        if (spotify_linked !== undefined) updates.spotify_linked = spotify_linked;
 
         const [updatedCount] = await User.update(
-            {
-                full_name,
-                username,
-                gender,
-                mobile_number,
-                date_of_birth,
-                city,
-                country,
-                profile_picture_url,
-                spotify_linked,
-            },
-            { where: { email } }
+            updates,
+            { where: { user_id: userId } }
         );
 
         if (updatedCount === 0) {
