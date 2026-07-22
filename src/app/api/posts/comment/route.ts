@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import models from '@/models';
 import { notifyUser } from '@/utils/notifications';
+import { getDataFromToken } from '@/utils/getDataFromToken';
 const { Comment, Like, User } = models;
 
 export async function POST(request:NextRequest) {
     try{
-        const { user_id, content, post_id, parent_comment_id } = await request.json();
+        // Author the comment as the JWT-verified caller, never a body-supplied user_id.
+        let user_id: string | undefined;
+        try {
+            user_id = getDataFromToken(request);
+        } catch {
+            user_id = undefined;
+        }
+        if (!user_id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
-        if (!user_id || !content || !post_id ){
+        const { content, post_id, parent_comment_id } = await request.json();
+
+        if (!content || !post_id ){
         return NextResponse.json({ error: 'Missing Required Parameters.' }, { status: 400 });
         }
 

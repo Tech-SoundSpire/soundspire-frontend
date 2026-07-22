@@ -6,6 +6,7 @@ import { User } from '@/models/User';
 import Comment from '@/models/Comment';
 import Like from '@/models/Like';
 import { notifyCommunitySubscribers } from '@/utils/notifications';
+import { getDataFromToken } from '@/utils/getDataFromToken';
 
 export async function GET(request: NextRequest) {
   try {
@@ -80,27 +81,53 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { artist_id, community_id, content_text, media_urls } = body;
+    // Identify the caller from the verified JWT.
+    let userId: string | undefined;
+    try {
+      userId = getDataFromToken(request);
+    } catch {
+      userId = undefined;
+    }
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!artist_id || !community_id) {
+    const body = await request.json();
+    const { community_id, content_text, media_urls } = body;
+
+    if (!community_id) {
       return NextResponse.json(
-        { error: 'artist_id and community_id are required' },
+        { error: 'community_id is required' },
         { status: 400 }
       );
     }
 
-    // Verify artist owns the community
+    // Look up the community and confirm the CALLER actually owns its artist.
+    // The artist is taken from the community record, not from the client body,
+    // so a caller can't post as an artist they don't control.
     const community = await Community.findOne({
-      where: { community_id, artist_id }
+      where: { community_id }
     });
 
     if (!community) {
       return NextResponse.json(
-        { error: 'Unauthorized: Artist does not own this community' },
+        { error: 'Community not found' },
+        { status: 404 }
+      );
+    }
+
+    const owningArtist = await Artist.findOne({
+      where: { artist_id: community.artist_id, user_id: userId }
+    });
+
+    if (!owningArtist) {
+      return NextResponse.json(
+        { error: 'Forbidden: you do not own this community' },
         { status: 403 }
       );
     }
+
+    const artist_id = community.artist_id;
 
     const post = await Post.create({
       artist_id,
