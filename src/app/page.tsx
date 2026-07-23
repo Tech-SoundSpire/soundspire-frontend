@@ -83,9 +83,53 @@ export default function LandingPage() {
   }, []);
 
 
+  // Static JSON-LD for search engines + AI answer engines (GEO). All values are
+  // hardcoded/derived from faqItems (no user input); escaping `<` prevents any
+  // string (e.g. a future FAQ answer) from breaking out of the <script> tag.
+  // Computed before the auth gate so it's always in the server-rendered HTML.
+  const jsonLd = JSON.stringify([
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "SoundSpire",
+      url: "https://app.soundspire.online",
+      logo: "https://app.soundspire.online/api/images/assets/ss_logo.png",
+      description:
+        "SoundSpire is a music platform that connects fans directly with their favorite artists through exclusive communities, reviews, and personalized discovery.",
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "SoundSpire",
+      url: "https://app.soundspire.online",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: "https://app.soundspire.online/explore?q={search_term_string}",
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqItems.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: { "@type": "Answer", text: item.answer },
+      })),
+    },
+  ]).replace(/</g, "\\u003c");
+
+  const jsonLdScript = (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: jsonLd }}
+    />
+  );
+
   if (isLoading || user) {
     return (
       <div className="min-h-screen bg-[#0a0612] flex items-center justify-center">
+        {jsonLdScript}
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF4E27]" />
       </div>
     );
@@ -93,6 +137,7 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen bg-[#0a0612] text-white overflow-x-hidden">
+      {jsonLdScript}
       {/* ===== NAVBAR ===== */}
       <header className="fixed top-0 left-0 right-0 z-50 px-3 md:px-4 py-3 md:py-4">
         <nav className="max-w-[1400px] mx-auto flex items-center justify-between px-4 md:px-8 py-3 bg-white/30 backdrop-blur-2xl rounded-2xl border border-white/40 shadow-lg">
