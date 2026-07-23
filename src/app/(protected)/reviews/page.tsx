@@ -118,10 +118,15 @@ function ReviewCard({ review }: { review: ReviewItem }) {
     setCommentLoading(false);
   };
 
+  // Albums carry an "album:" prefix on spotify_track_id and live at /reviews/album/<id>.
+  const reviewHref = review.spotify_track_id.startsWith("album:")
+    ? `/reviews/album/${review.spotify_track_id.replace("album:", "")}`
+    : `/reviews/song/${review.spotify_track_id}`;
+
   return (
     <article className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/[0.07] transition-colors">
       <div className="flex items-start gap-4">
-        <Link href={`/reviews/song/${review.spotify_track_id}`} className="shrink-0">
+        <Link href={reviewHref} className="shrink-0">
           {review.song?.album_art_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={review.song.album_art_url} alt="" className="w-14 h-14 rounded-md object-cover shadow-lg" />
@@ -148,7 +153,7 @@ function ReviewCard({ review }: { review: ReviewItem }) {
               {review.song && (
                 <>
                   <span className="text-white/30 mx-1">·</span>
-                  <Link href={`/reviews/song/${review.spotify_track_id}`} className="font-semibold text-white hover:text-[#FF4E27] transition">
+                  <Link href={reviewHref} className="font-semibold text-white hover:text-[#FF4E27] transition">
                     {review.song.track_name}
                   </Link>
                 </>
