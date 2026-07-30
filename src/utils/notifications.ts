@@ -2,6 +2,7 @@ import Notification from "@/models/Notification";
 import CommunitySubscription from "@/models/CommunitySubscription";
 import Community from "@/models/Community";
 import Artist from "@/models/Artist";
+import { User } from "@/models";
 
 interface NotifyOptions {
   actorImage?: string | null;
@@ -34,7 +35,16 @@ export async function notifyCommunitySubscribers(
 
   userIds.delete(excludeUserId);
 
-  const notifications = Array.from(userIds).map((uid) => ({
+  // Drop ids with no matching users row. Orphaned subscriptions (user deleted,
+  // subscription left behind) would otherwise fail the whole bulkCreate on the
+  // notifications_user_id_fkey constraint.
+  const existing = await User.findAll({
+    where: { user_id: Array.from(userIds) },
+    attributes: ["user_id"],
+  });
+  const validIds = new Set(existing.map((u) => u.user_id));
+
+  const notifications = Array.from(validIds).map((uid) => ({
     user_id: uid,
     type,
     message,

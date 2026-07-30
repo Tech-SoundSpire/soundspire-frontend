@@ -91,17 +91,21 @@ export async function GET(
       offset
     });
 
-    // Add like count and user liked status
-    const postsWithLikeInfo = posts.map(post => {
+    // Add like count, user liked status, and comment count
+    const postsWithLikeInfo = await Promise.all(posts.map(async post => {
       const postJson = post.toJSON() as any;
       return {
         ...postJson,
+        reactions: postJson.reactions || {},
+        commentCount: await ForumPost.count({
+          where: { parent_post_id: postJson.forum_post_id }
+        }),
         likes_count: postJson.likes?.length || 0,
-        user_has_liked: postJson.likes?.some((like: any) => 
+        user_has_liked: postJson.likes?.some((like: any) =>
           like.user_id === userId
         ) || false
       };
-    });
+    }));
 
     const total = await ForumPost.count({
       where: { forum_id: forumId, media_type: 'image' }

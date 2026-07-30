@@ -206,30 +206,14 @@ export default function FanArtPage() {
       if (res.ok) {
         const data = await res.json();
         
-        // Fetch comment counts and reactions for each post
-        const postsWithCounts = await Promise.all(
-          data.posts.map(async (post: FanArtPost) => {
-            const { count } = await supabase
-              .from('forum_posts')
-              .select('*', { count: 'exact', head: true })
-              .eq('parent_post_id', post.forum_post_id);
-            
-            // Fetch reactions from Supabase
-            const { data: postData } = await supabase
-              .from('forum_posts')
-              .select('reactions')
-              .eq('forum_post_id', post.forum_post_id)
-              .single();
-            
-            return {
-              ...post,
-              reactions: postData?.reactions || {},
-              comments: [],
-              commentCount: count || 0
-            };
-          })
-        );
-        
+        // Route returns reactions + commentCount per post
+        const postsWithCounts = data.posts.map((post: FanArtPost & { reactions?: Record<string, string[]>; commentCount?: number }) => ({
+          ...post,
+          reactions: post.reactions || {},
+          comments: [],
+          commentCount: post.commentCount || 0,
+        }));
+
         setPosts(postsWithCounts);
 
         // Calculate new posts since last visit
@@ -507,7 +491,7 @@ export default function FanArtPage() {
       const res = await fetch(`/api/forums/${forumId}/messages/${postId}/react`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id, emoji })
+        body: JSON.stringify({ emoji })
       });
       
       if (!res.ok) throw new Error('Failed to add reaction');
@@ -533,35 +517,15 @@ export default function FanArtPage() {
         return next;
       });
     } else {
-      // Fetch comments from Supabase (forum_posts with parent_post_id)
-      const { data, error } = await supabase
-        .from('forum_posts')
-        .select('*')
-        .eq('parent_post_id', postId)
-        .order('created_at', { ascending: true });
-      
-      if (!error && data) {
+      // Fetch comments (and their nested replies) via authenticated route
+      const commentsRes = await fetch(`/api/forums/${forumId}/messages?parent=${postId}`);
+      if (commentsRes.ok) {
+        const { messages: comments } = await commentsRes.json();
         const commentsWithUsers = await Promise.all(
-          data.map(async (comment) => {
-            const userRes = await fetch(`/api/users/${comment.user_id}`);
-            const { user: userData } = userRes.ok ? await userRes.json() : { user: null };
-            
-            // Fetch replies (nested forum_posts)
-            const { data: replies } = await supabase
-              .from('forum_posts')
-              .select('*')
-              .eq('parent_post_id', comment.forum_post_id)
-              .order('created_at', { ascending: true });
-            
-            const repliesWithUsers = await Promise.all(
-              (replies || []).map(async (reply) => {
-                const replyUserRes = await fetch(`/api/users/${reply.user_id}`);
-                const { user: replyUserData } = replyUserRes.ok ? await replyUserRes.json() : { user: null };
-                return { ...reply, user: replyUserData, reactions: reply.reactions || {} };
-              })
-            );
-            
-            return { ...comment, user: userData, reactions: comment.reactions || {}, replies: repliesWithUsers };
+          comments.map(async (comment: { forum_post_id: string }) => {
+            const repliesRes = await fetch(`/api/forums/${forumId}/messages?parent=${comment.forum_post_id}`);
+            const replies = repliesRes.ok ? (await repliesRes.json()).messages : [];
+            return { ...comment, replies };
           })
         );
         
@@ -581,20 +545,18 @@ export default function FanArtPage() {
     if (!text || !forumId) return;
     
     try {
-      const { data, error } = await supabase
-        .from('forum_posts')
-        .insert({
-          forum_id: forumId,
+      const res = await fetch(`/api/forums/${forumId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           parent_post_id: parentPostId || postId,
-          user_id: user?.id,
           content: text,
-          media_type: 'text'
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
+          media_type: 'text',
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to add comment');
+
       // Don't manually update state - let real-time handle it
       setCommentText(prev => ({ ...prev, [key]: '' }));
       setReplyingTo(null);
@@ -609,7 +571,7 @@ export default function FanArtPage() {
       const res = await fetch(`/api/forums/${forumId}/messages/${commentPostId}/react`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id, emoji })
+        body: JSON.stringify({ emoji })
       });
       
       if (!res.ok) throw new Error('Failed to add reaction');
