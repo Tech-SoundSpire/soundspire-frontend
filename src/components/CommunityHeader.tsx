@@ -55,9 +55,10 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
 
   useEffect(() => { fetchUnread(); }, [fetchUnread]);
 
-  // Realtime notifications for artists
+  // Realtime notifications. Only subscribe when Navbar is NOT mounted (i.e. role === "artist"),
+  // otherwise a dual-role user (role "user" + isArtist) gets two subscribers -> duplicate toasts.
   useEffect(() => {
-    if (!isArtist || !user?.id) return;
+    if (user?.role !== "artist" || !user?.id) return;
     const channel = supabase
       .channel(`artist-notif:${user.id}`)
       .on("postgres_changes", {
@@ -65,15 +66,27 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
         schema: "public",
         table: "notifications",
         filter: `user_id=eq.${user.id}`,
-      }, (payload: any) => {
-        setUnreadCount((prev) => prev + 1);
-                setNotifications((prev) => [payload.new, ...prev]);
+      }, async () => {
+        // anon cannot SELECT notifications, so the realtime payload is stripped.
+        // Use the event only as a trigger; fetch the real row from the authed route.
+        let latest: { notification_id?: string; message?: string; link?: string } | null = null;
+        try {
+          const res = await fetch("/api/notifications", { credentials: "include" });
+          if (res.ok) {
+            const data = await res.json();
+            setUnreadCount(data.unreadCount ?? 0); // real count, not prev+1 (idempotent on double-fire)
+            setNotifications(data.notifications ?? []);
+            latest = data.notifications?.[0] ?? null;
+          }
+        } catch { /* ignore */ }
+        if (!latest?.message) return;
         toast((t) => (
           <div className="flex items-center gap-3 max-w-sm">
-            <span className="flex-1 text-sm">{payload.new.message}</span>
+            <span className="flex-1 text-sm">{latest!.message}</span>
             <button onClick={async () => {
               toast.dismiss(t.id);
-              const link = payload.new.link;
+              const link = latest!.link;
+              if (!link) return;
               const isOwnCommunity = link.includes(`/community/${slug}/`);
               if (!isOwnCommunity && (link.startsWith("/feed") || link.startsWith("/community/"))) {
                 await switchRole("user");
@@ -82,11 +95,12 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
             }} className="text-[#FF4E27] font-semibold text-sm whitespace-nowrap">View</button>
             <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white text-lg leading-none ml-1">×</button>
           </div>
-        ), { duration: 3000, style: { background: "#1a1625", color: "#fff", border: "1px solid #FF4E27", padding: "12px 16px" } });
+        // stable id = notification id, so duplicate triggers (incl. Navbar) collapse into one toast
+        ), { id: latest.notification_id, duration: 3000, style: { background: "#1a1625", color: "#fff", border: "1px solid #FF4E27", padding: "12px 16px" } });
       })
       .subscribe();
     return () => { channel.unsubscribe(); };
-  }, [isArtist, user?.id, router]);
+  }, [user?.role, user?.id, router, slug, switchRole]);
 
   const defaultLogout = async () => {
     await logout();

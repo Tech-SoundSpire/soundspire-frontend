@@ -9,13 +9,15 @@ interface ForumPostAttributes {
   content?: string;
   media_type?: string;
   media_urls?: string[];
+  parent_post_id?: string | null;
+  reactions?: Record<string, string[]>;
   is_pinned: boolean;
   is_answered: boolean;
   created_at: Date;
   updated_at: Date;
 }
 
-interface ForumPostCreationAttributes extends Optional<ForumPostAttributes, 'forum_post_id' | 'title' | 'content' | 'media_type' | 'media_urls' | 'is_pinned' | 'is_answered' | 'created_at' | 'updated_at'> {}
+interface ForumPostCreationAttributes extends Optional<ForumPostAttributes, 'forum_post_id' | 'title' | 'content' | 'media_type' | 'media_urls' | 'parent_post_id' | 'reactions' | 'is_pinned' | 'is_answered' | 'created_at' | 'updated_at'> {}
 
 class ForumPost extends Model<ForumPostAttributes, ForumPostCreationAttributes> implements ForumPostAttributes {
   declare forum_post_id: string;
@@ -25,6 +27,8 @@ class ForumPost extends Model<ForumPostAttributes, ForumPostCreationAttributes> 
   declare content: string;
   declare media_type: string;
   declare media_urls: string[];
+  declare parent_post_id: string | null;
+  declare reactions: Record<string, string[]>;
   declare is_pinned: boolean;
   declare is_answered: boolean;
   declare created_at: Date;
@@ -68,6 +72,15 @@ ForumPost.init({
   media_urls: {
     type: DataTypes.ARRAY(DataTypes.TEXT),
     defaultValue: [],
+    allowNull: true
+  },
+  parent_post_id: {
+    type: DataTypes.UUID,
+    allowNull: true
+  },
+  reactions: {
+    type: DataTypes.JSONB,
+    defaultValue: {},
     allowNull: true
   },
   is_pinned: {

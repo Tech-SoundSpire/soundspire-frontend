@@ -406,39 +406,10 @@ export default function AllChatPage() {
         try {
             setLoading(true);
 
-            // Fetch parent messages from Supabase
-            const { data, error } = await supabase
-                .from("forum_posts")
-                .select("*")
-                .eq("forum_id", forumId)
-                .is("parent_post_id", null)
-                .order("created_at", { ascending: true })
-                .limit(50);
-
-            if (error) throw error;
-
-            // Fetch user details and reply counts for each message
-            const messagesWithUsers = await Promise.all(
-                (data || []).map(async (msg) => {
-                    const userRes = await fetch(`/api/users/${msg.user_id}`);
-                    const { user: userData } = userRes.ok
-                        ? await userRes.json()
-                        : { user: null };
-
-                    // Get reply count
-                    const { count } = await supabase
-                        .from("forum_posts")
-                        .select("*", { count: "exact", head: true })
-                        .eq("parent_post_id", msg.forum_post_id);
-
-                    return {
-                        ...msg,
-                        user: userData,
-                        replyCount: count || 0,
-                        reactions: msg.reactions || {},
-                    };
-                })
-            );
+            // Fetch parent messages (server route returns user + replyCount + reactions)
+            const res = await fetch(`/api/forums/${forumId}/messages?parent=root`);
+            if (!res.ok) throw new Error("Failed to load messages");
+            const { messages: messagesWithUsers } = await res.json();
 
             setMessages(messagesWithUsers);
 
@@ -486,25 +457,24 @@ export default function AllChatPage() {
                 setUploadProgress(0);
             }
 
-            // Insert message via Supabase
+            // Insert message via authenticated server route
             const mentionPrefix = replyingTo?.user?.username ? `@${replyingTo.user.username} ` : "";
-            const { data, error } = await supabase
-                .from("forum_posts")
-                .insert({
-                    forum_id: forumId,
-                    user_id: user.id,
+            const res = await fetch(`/api/forums/${forumId}/messages`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
                     content: mentionPrefix + (inputMessage || ""),
                     media_type: mediaUrls.length > 0 ? (selectedFiles.some(f => f.type.startsWith("video/")) ? "video" : "image") : "text",
                     media_urls: mediaUrls,
                     parent_post_id: replyingTo?.forum_post_id || null,
-                })
-                .select()
-                .single();
+                }),
+            });
 
-            if (error) {
-                console.error("Supabase insert error:", error);
-                throw error;
+            if (!res.ok) {
+                console.error("Message insert error:", await res.text());
+                throw new Error("Failed to send message");
             }
+            const { message: data } = await res.json();
 
             setInputMessage("");
             setSelectedFiles([]);
@@ -534,7 +504,8 @@ export default function AllChatPage() {
 
     const deleteMessage = async (postId: string) => {
         if (!confirm("Delete this message?")) return;
-        await supabase.from("forum_posts").delete().eq("forum_post_id", postId);
+        const res = await fetch(`/api/forums/${forumId}/messages/${postId}`, { method: "DELETE" });
+        if (!res.ok) { toast.error("Failed to delete message"); return; }
         setMessages(prev => prev.filter(m => m.forum_post_id !== postId));
     };
 
@@ -545,14 +516,17 @@ export default function AllChatPage() {
 
     const saveEdit = async (postId: string) => {
         if (!editingContent.trim()) return;
-        const { error } = await supabase
-            .from("forum_posts")
-            .update({ content: editingContent })
-            .eq("forum_post_id", postId);
-        if (!error) {
+        const res = await fetch(`/api/forums/${forumId}/messages/${postId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: editingContent }),
+        });
+        if (res.ok) {
             setMessages(prev => prev.map(m =>
                 m.forum_post_id === postId ? { ...m, content: editingContent } : m
             ));
+        } else {
+            toast.error("Failed to edit message");
         }
         setEditingMessageId(null);
     };
@@ -564,7 +538,7 @@ export default function AllChatPage() {
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ userId: user?.id, emoji }),
+                    body: JSON.stringify({ emoji }),
                 }
             );
 
@@ -594,30 +568,10 @@ export default function AllChatPage() {
                 return next;
             });
         } else {
-            // Fetch replies
-            const { data, error } = await supabase
-                .from("forum_posts")
-                .select("*")
-                .eq("parent_post_id", postId)
-                .order("created_at", { ascending: true });
-
-            if (!error && data) {
-                const repliesWithUsers = await Promise.all(
-                    data.map(async (msg) => {
-                        const userRes = await fetch(
-                            `/api/users/${msg.user_id}`
-                        );
-                        const { user: userData } = userRes.ok
-                            ? await userRes.json()
-                            : { user: null };
-                        return {
-                            ...msg,
-                            user: userData,
-                            reactions: msg.reactions || {},
-                        };
-                    })
-                );
-
+            // Fetch replies (server route returns user + reactions)
+            const res = await fetch(`/api/forums/${forumId}/messages?parent=${postId}`);
+            if (res.ok) {
+                const { messages: repliesWithUsers } = await res.json();
                 setThreadReplies((prev) => ({
                     ...prev,
                     [postId]: repliesWithUsers,

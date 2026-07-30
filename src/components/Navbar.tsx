@@ -63,15 +63,27 @@ const Navbar = () => {
                 schema: "public",
                 table: "notifications",
                 filter: `user_id=eq.${user.id}`,
-            }, (payload: any) => {
-                setUnreadCount((prev) => prev + 1);
+            }, async () => {
+                // anon cannot SELECT notifications, so the realtime payload is stripped.
+                // Use the event only as a trigger; fetch the real row from the authed route.
+                let latest: { notification_id?: string; message?: string; link?: string } | null = null;
+                try {
+                    const res = await fetch("/api/notifications", { credentials: "include" });
+                    if (res.ok) {
+                        const data = await res.json();
+                        setUnreadCount(data.unreadCount ?? 0); // real count, not prev+1 (idempotent on double-fire)
+                        latest = data.notifications?.[0] ?? null;
+                    }
+                } catch { /* ignore */ }
+                if (!latest?.message) return;
                 toast((t) => (
                     <div className="flex items-center gap-3 max-w-sm">
-                        <span className="flex-1 text-sm">{payload.new.message}</span>
-                        <button onClick={() => { toast.dismiss(t.id); router.push(payload.new.link); }} className="text-[#FF4E27] font-semibold text-sm whitespace-nowrap">View</button>
+                        <span className="flex-1 text-sm">{latest!.message}</span>
+                        <button onClick={() => { toast.dismiss(t.id); if (latest!.link) router.push(latest!.link); }} className="text-[#FF4E27] font-semibold text-sm whitespace-nowrap">View</button>
                         <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white text-lg leading-none ml-1">×</button>
                     </div>
-                ), { duration: 3000, style: { background: "#1a1625", color: "#fff", border: "1px solid #FF4E27", padding: "12px 16px" } });
+                // stable id = notification id, so duplicate triggers collapse into one toast
+                ), { id: latest.notification_id, duration: 3000, style: { background: "#1a1625", color: "#fff", border: "1px solid #FF4E27", padding: "12px 16px" } });
             })
             .subscribe();
         return () => { channel.unsubscribe(); };
