@@ -5,6 +5,9 @@ import { useParams } from "next/navigation";
 import { Star, Heart, Calendar, MapPin } from "lucide-react";
 import Link from "next/link";
 import { getImageUrl } from "@/utils/userProfileImageUtils";
+import { useAuth } from "@/context/AuthContext";
+import ReportButton from "@/components/moderation/ReportButton";
+import BlockButton from "@/components/moderation/BlockButton";
 
 interface UserProfile {
   user_id: string;
@@ -24,6 +27,7 @@ interface ReviewItem {
 
 export default function ReviewProfilePage() {
   const params = useParams();
+  const { user } = useAuth();
   const id = params.id as string;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
@@ -72,6 +76,12 @@ export default function ReviewProfilePage() {
           <h1 className="text-3xl md:text-4xl font-black text-white mb-1">{profile?.username || "User"}</h1>
           {profile?.bio && (
             <p className="text-white/60 max-w-lg mb-4 text-sm leading-relaxed">{profile.bio}</p>
+          )}
+          {profile?.user_id && profile.user_id !== user?.id && (
+            <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
+              <ReportButton targetType="user" targetId={profile.user_id} label="Report user" />
+              <BlockButton blockedUserId={profile.user_id} username={profile.username} />
+            </div>
           )}
           <div className="flex items-center justify-center md:justify-start gap-6">
             <div className="flex flex-col items-center md:items-start">

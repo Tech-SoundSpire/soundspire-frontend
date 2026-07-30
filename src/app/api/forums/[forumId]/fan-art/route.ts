@@ -3,6 +3,7 @@ import { ForumPost, Forum, User, Like, CommunitySubscription, Community, Artist 
 import { getDataFromToken } from '@/utils/getDataFromToken';
 import { Op } from 'sequelize';
 import { notifyCommunitySubscribers } from '@/utils/notifications';
+import { applyUgcVisibility, isBanned } from '@/utils/moderation';
 
 // GET - List fan art posts
 export async function GET(
@@ -63,12 +64,12 @@ export async function GET(
       }
     }
 
-    // Fetch fan art posts (only image posts)
+    // Fetch fan art posts (only image posts), hiding moderator-hidden posts +
+    // posts by blocked/banned authors.
+    const fanArtWhere: Record<string, unknown> = { forum_id: forumId, media_type: 'image' };
+    await applyUgcVisibility(fanArtWhere, userId);
     const posts = await ForumPost.findAll({
-      where: {
-        forum_id: forumId,
-        media_type: 'image'
-      },
+      where: fanArtWhere,
       include: [
         {
           model: User,
@@ -134,6 +135,9 @@ export async function POST(
     const userId = await getDataFromToken(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (await isBanned(userId)) {
+      return NextResponse.json({ error: 'Account suspended' }, { status: 403 });
     }
 
     const { forumId } = await params;

@@ -410,11 +410,11 @@ export default function SignupPage() {
                         className="mt-4"
                     >
                         By continuing, you agree to SoundSpire&apos;s{" "}
-                        <a href="#" className="text-primary hover:underline">
+                        <a href="/terms" className="text-primary hover:underline">
                             Terms of Service
                         </a>{" "}
                         and{" "}
-                        <a href="#" className="text-primary hover:underline">
+                        <a href="/privacy" className="text-primary hover:underline">
                             Privacy Policy
                         </a>
                         .

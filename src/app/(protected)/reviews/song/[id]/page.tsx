@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { getImageUrl } from "@/utils/userProfileImageUtils";
 import toast from "react-hot-toast";
+import ReportButton from "@/components/moderation/ReportButton";
+import BlockButton from "@/components/moderation/BlockButton";
 
 interface TrackData {
   spotify_track_id: string;
@@ -357,6 +359,16 @@ export default function SongPage() {
                     <div className="flex items-center gap-4 mt-3 text-white/40 text-xs">
                       <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> {review.like_count}</span>
                       <span>{new Date(review.created_at).toLocaleDateString()}</span>
+                      {review.user_id && review.user_id !== user?.id && (
+                        <>
+                          <ReportButton targetType="review" targetId={review.review_id} />
+                          <BlockButton
+                            blockedUserId={review.user_id}
+                            username={review.user.username}
+                            onBlocked={() => setReviews((prev) => prev.filter((r) => r.user_id !== review.user_id))}
+                          />
+                        </>
+                      )}
                     </div>
                   </article>
                 ))

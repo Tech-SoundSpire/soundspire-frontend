@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import SongReview from "@/models/reviews/SongReview";
 import SongRating from "@/models/reviews/SongRating";
+import { isBanned } from "@/utils/moderation";
 import jwt from "jsonwebtoken";
 
 function getUserId(request: NextRequest): string | null {
@@ -21,6 +22,7 @@ export async function POST(request: NextRequest) {
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     await connectionTestingAndHelper();
+    if (await isBanned(userId)) return NextResponse.json({ error: "Account suspended" }, { status: 403 });
     const { spotify_track_id, rating, review_text, contains_spoilers } = await request.json();
 
     if (!spotify_track_id || !review_text || review_text.trim().length < 10) {

@@ -21,6 +21,8 @@ export async function GET() {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
     const user = await User.findOne({ where: { user_id: decoded.id } });
     if (!user) return NextResponse.json({ user: null });
+    // Banned users are treated as logged out.
+    if (user.is_banned) return NextResponse.json({ user: null });
 
     const role = decoded.role || (user.is_artist ? "artist" : "user");
 
@@ -49,6 +51,7 @@ export async function GET() {
         isAlsoArtist,
         isAlsoUser: user.is_artist ? true : false, // artists are always also users
         artistId,
+        isAdmin: user.is_admin || false,
       },
     });
   } catch (error) {

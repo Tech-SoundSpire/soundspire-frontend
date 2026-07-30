@@ -10,13 +10,15 @@ interface SongReviewAttributes {
   review_text: string;
   contains_spoilers: boolean;
   is_private: boolean;
+  is_hidden: boolean;
+  hidden_reason: string | null;
   like_count: number;
   comment_count: number;
   created_at: Date;
   updated_at: Date;
 }
 
-type SongReviewCreationAttributes = Optional<SongReviewAttributes, "review_id" | "rating" | "contains_spoilers" | "is_private" | "like_count" | "comment_count" | "created_at" | "updated_at">;
+type SongReviewCreationAttributes = Optional<SongReviewAttributes, "review_id" | "rating" | "contains_spoilers" | "is_private" | "is_hidden" | "hidden_reason" | "like_count" | "comment_count" | "created_at" | "updated_at">;
 
 class SongReview extends Model<SongReviewAttributes, SongReviewCreationAttributes> implements SongReviewAttributes {
   declare review_id: string;
@@ -26,6 +28,8 @@ class SongReview extends Model<SongReviewAttributes, SongReviewCreationAttribute
   declare review_text: string;
   declare contains_spoilers: boolean;
   declare is_private: boolean;
+  declare is_hidden: boolean;
+  declare hidden_reason: string | null;
   declare like_count: number;
   declare comment_count: number;
   declare created_at: Date;
@@ -64,6 +68,14 @@ SongReview.init(
     is_private: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
+    },
+    is_hidden: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    hidden_reason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
     like_count: {
       type: DataTypes.INTEGER,

@@ -64,6 +64,14 @@ export async function POST(request: NextRequest) {
     }
     console.log("password validated");
 
+    // Banned users cannot obtain a session.
+    if (user.is_banned) {
+      return NextResponse.json(
+        { message: "This account has been suspended." },
+        { status: 403 },
+      );
+    }
+
     await user.update({
       last_login: new Date(),
     });

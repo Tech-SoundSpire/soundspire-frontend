@@ -4,6 +4,7 @@ import SongReview from "@/models/reviews/SongReview";
 import SongCache from "@/models/reviews/SongCache";
 import ReviewLike from "@/models/reviews/ReviewLike";
 import { User } from "@/models/User";
+import { applyUgcVisibility } from "@/utils/moderation";
 import jwt from "jsonwebtoken";
 
 export async function GET(request: NextRequest) {
@@ -13,8 +14,18 @@ export async function GET(request: NextRequest) {
     const limit = 20;
     const offset = (page - 1) * limit;
 
+    // Resolve the viewer (feed is viewable logged-out; filter only when logged in).
+    let viewerId: string | null = null;
+    const authToken = request.cookies.get("token")?.value;
+    if (authToken) {
+      try { viewerId = (jwt.verify(authToken, process.env.JWT_SECRET!) as { id: string }).id; } catch {}
+    }
+
+    const reviewWhere: Record<string, unknown> = { is_private: false };
+    if (viewerId) await applyUgcVisibility(reviewWhere, viewerId);
+
     const { rows: reviews, count } = await SongReview.findAndCountAll({
-      where: { is_private: false },
+      where: reviewWhere,
       order: [["created_at", "DESC"]],
       limit,
       offset,
