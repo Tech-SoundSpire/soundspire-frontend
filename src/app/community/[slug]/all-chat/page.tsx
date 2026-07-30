@@ -15,6 +15,8 @@ import HLSVideo from "@/components/HLSVideo";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { uploadToS3 } from "@/utils/uploadToS3";
 import TranslatableText from "@/components/TranslatableText";
+import ReportButton from "@/components/moderation/ReportButton";
+import BlockButton from "@/components/moderation/BlockButton";
 
 interface Message {
     forum_post_id: string;
@@ -1156,7 +1158,7 @@ export default function AllChatPage() {
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                                                         Reply
                                                     </button>
-                                                    {msg.user_id === user?.id && (
+                                                    {msg.user_id === user?.id ? (
                                                         <>
                                                             <button
                                                                 onClick={() => startEdit(msg)}
@@ -1171,7 +1173,16 @@ export default function AllChatPage() {
                                                                 🗑️ Delete
                                                             </button>
                                                         </>
-                                                    )}
+                                                    ) : msg.user_id ? (
+                                                        <div className="flex items-center gap-1.5 px-2 py-1">
+                                                            <ReportButton targetType="chat_message" targetId={msg.forum_post_id} />
+                                                            <BlockButton
+                                                                blockedUserId={msg.user_id}
+                                                                username={msg.user?.username}
+                                                                onBlocked={() => setMessages((prev) => prev.filter((m) => m.user_id !== msg.user_id))}
+                                                            />
+                                                        </div>
+                                                    ) : null}
                                                     <div className="relative">
                                                         <button
                                                             onClick={() =>

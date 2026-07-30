@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import SongReview from "@/models/reviews/SongReview";
 import { User } from "@/models/User";
+import { applyUgcVisibility } from "@/utils/moderation";
+import jwt from "jsonwebtoken";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -14,8 +16,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const order: any = sort === "popular" ? [["like_count", "DESC"]] : [["created_at", "DESC"]];
 
+    // Filter hidden reviews + blocked/banned authors for logged-in viewers.
+    let viewerId: string | null = null;
+    const authToken = request.cookies.get("token")?.value;
+    if (authToken) {
+      try { viewerId = (jwt.verify(authToken, process.env.JWT_SECRET!) as { id: string }).id; } catch {}
+    }
+    const reviewWhere: Record<string, unknown> = { spotify_track_id: id, is_private: false };
+    if (viewerId) await applyUgcVisibility(reviewWhere, viewerId);
+
     const { rows: reviews, count } = await SongReview.findAndCountAll({
-      where: { spotify_track_id: id, is_private: false },
+      where: reviewWhere,
       order,
       limit,
       offset,

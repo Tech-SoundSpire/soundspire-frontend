@@ -11,6 +11,7 @@ export interface User {
   isAlsoArtist?: boolean;
   isAlsoUser?: boolean;
   artistId?: string | null;
+  isAdmin?: boolean;
 }
 
 interface AuthContextType {
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isAlsoArtist: data.user.isAlsoArtist || false,
           isAlsoUser: data.user.isAlsoUser || false,
           artistId: data.user.artistId || null,
+          isAdmin: data.user.isAdmin || false,
         };
         setUser(normalizedUser);
       } else {

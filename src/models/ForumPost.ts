@@ -13,11 +13,13 @@ interface ForumPostAttributes {
   reactions?: Record<string, string[]>;
   is_pinned: boolean;
   is_answered: boolean;
+  is_hidden: boolean;
+  hidden_reason?: string | null;
   created_at: Date;
   updated_at: Date;
 }
 
-interface ForumPostCreationAttributes extends Optional<ForumPostAttributes, 'forum_post_id' | 'title' | 'content' | 'media_type' | 'media_urls' | 'parent_post_id' | 'reactions' | 'is_pinned' | 'is_answered' | 'created_at' | 'updated_at'> {}
+interface ForumPostCreationAttributes extends Optional<ForumPostAttributes, 'forum_post_id' | 'title' | 'content' | 'media_type' | 'media_urls' | 'parent_post_id' | 'reactions' | 'is_pinned' | 'is_answered' | 'is_hidden' | 'hidden_reason' | 'created_at' | 'updated_at'> {}
 
 class ForumPost extends Model<ForumPostAttributes, ForumPostCreationAttributes> implements ForumPostAttributes {
   declare forum_post_id: string;
@@ -31,6 +33,8 @@ class ForumPost extends Model<ForumPostAttributes, ForumPostCreationAttributes> 
   declare reactions: Record<string, string[]>;
   declare is_pinned: boolean;
   declare is_answered: boolean;
+  declare is_hidden: boolean;
+  declare hidden_reason: string | null;
   declare created_at: Date;
   declare updated_at: Date;
 }
@@ -92,6 +96,15 @@ ForumPost.init({
     type: DataTypes.BOOLEAN,
     defaultValue: false,
     allowNull: false
+  },
+  is_hidden: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false
+  },
+  hidden_reason: {
+    type: DataTypes.TEXT,
+    allowNull: true
   },
   created_at: {
     type: DataTypes.DATE,

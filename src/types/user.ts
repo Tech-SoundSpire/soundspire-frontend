@@ -14,6 +14,8 @@ export interface UserAttributes {
   bio?: string;
   is_verified: boolean;
   is_artist: boolean;
+  is_admin: boolean;
+  is_banned: boolean;
   google_id?: string;
   spotify_linked: boolean;
   created_at?: Date;

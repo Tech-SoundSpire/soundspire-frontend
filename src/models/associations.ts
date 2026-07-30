@@ -10,6 +10,8 @@ import Social from "./Social";
 import Forum from "./Forum";
 import ForumPost from "./ForumPost";
 import Like from "./Like";
+import Report from "./Report";
+import Block from "./Block";
 
 export function defineAssociations() {
   User.hasMany(CommunitySubscription, {
@@ -176,4 +178,11 @@ export function defineAssociations() {
   Comment.belongsTo(ForumPost, {
     foreignKey: "forum_post_id",
   });
+
+  // Reports: link to the reporter for admin queue display.
+  Report.belongsTo(User, { foreignKey: "reporter_user_id", as: "reporter" });
+
+  // Blocks: link to both users for the blocked-users list.
+  Block.belongsTo(User, { foreignKey: "blocked_user_id", as: "blockedUser" });
+  Block.belongsTo(User, { foreignKey: "blocker_user_id", as: "blockerUser" });
 }

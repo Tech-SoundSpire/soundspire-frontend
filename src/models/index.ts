@@ -14,6 +14,9 @@ import Languages from "./Languages";
 import Forum from "./Forum";
 import ForumPost from "./ForumPost";
 import SpotifySoundchartsMap from "./SpotifySoundchartsMap";
+import Report from "./Report";
+import Block from "./Block";
+import ModeratorAction from "./ModeratorAction";
 
 import { defineAssociations } from "./associations";
 
@@ -33,6 +36,9 @@ const models = {
   Forum,
   ForumPost,
   SpotifySoundchartsMap,
+  Report,
+  Block,
+  ModeratorAction,
 };
 
 // Define a type for the models map
@@ -84,5 +90,8 @@ export {
   Genres,
   Languages,
   Forum,
-  ForumPost
+  ForumPost,
+  Report,
+  Block,
+  ModeratorAction
 };

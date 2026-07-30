@@ -13,6 +13,8 @@ import MobileNav from '@/components/MobileNav';
 import ImageCropModal from '@/components/ImageCropModal';
 import { uploadToS3 } from '@/utils/uploadToS3';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import ReportButton from '@/components/moderation/ReportButton';
+import BlockButton from '@/components/moderation/BlockButton';
 
 interface Comment {
   forum_post_id: string;
@@ -32,6 +34,7 @@ interface Comment {
 
 interface FanArtPost {
   forum_post_id: string;
+  user_id: string;
   title: string;
   content: string;
   media_urls: string[];
@@ -849,6 +852,17 @@ export default function FanArtPage() {
                 </div>
                 {post.content && (
                   <p className="text-gray-300 text-xs line-clamp-2">{post.content}</p>
+                )}
+                {/* Report / Block (not on own posts) */}
+                {post.user_id && post.user_id !== user?.id && (
+                  <div className="flex items-center gap-3 mt-2">
+                    <ReportButton targetType="fan_art" targetId={post.forum_post_id} />
+                    <BlockButton
+                      blockedUserId={post.user_id}
+                      username={post.user?.username}
+                      onBlocked={() => setPosts((prev) => prev.filter((p) => p.user_id !== post.user_id))}
+                    />
+                  </div>
                 )}
                 {/* Reactions */}
                 {post.reactions && Object.keys(post.reactions).length > 0 && (

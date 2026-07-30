@@ -12,6 +12,8 @@ type UserCreationAttributes = Optional<
     | "updated_at"
     | "is_verified"
     | "is_artist"
+    | "is_admin"
+    | "is_banned"
     | "spotify_linked"
     | "password_hash"
     | "gender"
@@ -38,6 +40,8 @@ export class User
     declare bio?: string;
     declare is_verified: boolean;
     declare is_artist: boolean;
+    declare is_admin: boolean;
+    declare is_banned: boolean;
     declare google_id?: string;
     declare spotify_linked: boolean;
     declare created_at?: Date;
@@ -122,6 +126,14 @@ User.init(
             defaultValue: false,
         },
         is_artist: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
+        is_admin: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
+        is_banned: {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
         },

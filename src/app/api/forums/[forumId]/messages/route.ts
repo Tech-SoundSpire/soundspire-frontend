@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ForumPost, User } from '@/models';
 import { getDataFromToken } from '@/utils/getDataFromToken';
 import { verifyForumAccess } from '@/utils/forumAccess';
+import { applyUgcVisibility, isBanned } from '@/utils/moderation';
 import { Op } from 'sequelize';
 
 const USER_ATTRS = ['user_id', 'username', 'full_name', 'profile_picture_url'];
@@ -36,6 +37,8 @@ export async function GET(
     } else {
       where.parent_post_id = parent;
     }
+    // Hide moderator-hidden posts + posts by blocked/banned authors.
+    await applyUgcVisibility(where, userId);
 
     const messages = await ForumPost.findAll({
       where,
@@ -70,6 +73,7 @@ export async function POST(
   try {
     const userId = await getDataFromToken(request);
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (await isBanned(userId)) return NextResponse.json({ error: 'Account suspended' }, { status: 403 });
 
     const { forumId } = await params;
     const access = await verifyForumAccess(forumId, userId);
