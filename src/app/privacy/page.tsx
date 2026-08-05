@@ -21,7 +21,7 @@ export default function PrivacyPage() {
       <h3>3.1 Information you give us</h3>
       <ul>
         <li><strong>Account information:</strong> name or display name, email address, and password. Passwords are stored only as a salted hash (bcrypt); we never store your password in plain text. If you sign up using Google, we receive basic profile information (name, email, profile photo) from Google.</li>
-        <li><strong>Profile information:</strong> username, profile photo, bio, links, and (for artists) artist name, genre, and other details you choose to add.</li>
+        <li><strong>Profile information:</strong> username, profile photo, bio, links, date of birth, gender, phone number, city and country, and (for artists) artist name, genre, and other details you choose to add.</li>
         <li><strong>Content you create:</strong> reviews, ratings, posts, comments, community messages, fan art, and any files or media you upload.</li>
         <li><strong>Communications:</strong> messages you send us (support requests, feedback, survey responses).</li>
       </ul>
