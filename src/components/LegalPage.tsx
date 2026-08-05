@@ -40,6 +40,7 @@ export default function LegalPage({
           <Link href="/privacy" className="hover:text-white">Privacy</Link>
           <Link href="/community-guidelines" className="hover:text-white">Guidelines</Link>
           <Link href="/artist-terms" className="hover:text-white">Artist Terms</Link>
+          <Link href="/child-safety" className="hover:text-white">Child Safety</Link>
           <Link href="/delete-account" className="hover:text-white">Delete account</Link>
         </div>
       </div>

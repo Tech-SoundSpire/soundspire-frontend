@@ -23,6 +23,7 @@ export default function SettingsPage() {
                     <Link href="/terms" className="hover:text-white">Terms</Link>
                     <Link href="/privacy" className="hover:text-white">Privacy</Link>
                     <Link href="/community-guidelines" className="hover:text-white">Guidelines</Link>
+                    <Link href="/child-safety" className="hover:text-white">Child Safety</Link>
                 </div>
             </div>
         </div>
