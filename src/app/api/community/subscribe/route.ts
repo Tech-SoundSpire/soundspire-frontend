@@ -8,6 +8,15 @@ import { notifyUser } from "@/utils/notifications";
 import { type communityDataFromAPI } from "@/types/communityGetAllAPIData";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { NextRequest, NextResponse } from "next/server";
+import { Op } from "sequelize";
+
+// A subscription counts as active only while it has not expired and is not
+// explicitly deactivated. Applied on read so expired rows stop reporting as
+// subscribed (the button flips back to "Subscribe"). Rows are kept for history.
+const activeSubscriptionWhere = () => ({
+    end_date: { [Op.gt]: new Date() },
+    [Op.not]: { is_active: false },
+});
 export async function DELETE(request: NextRequest) {
     try {
         await connectionTestingAndHelper();
@@ -67,7 +76,7 @@ export async function GET(request: NextRequest) {
         // ASKS FOR SPECIFIC ID, USED ON THE ARTIST PROFILE PAGE
         if (community_id && community_id !== "undefined") {
             const communitySubscription = await CommunitySubscription.findOne({
-                where: { user_id: user_id, community_id: community_id },
+                where: { user_id, community_id, ...activeSubscriptionWhere() },
             });
             if (communitySubscription) {
                 return NextResponse.json(
@@ -90,7 +99,7 @@ export async function GET(request: NextRequest) {
         }
         // IN GENERAL TO GET ALL THE SUBSCRIPTIONS FOR A USER.
         const allSubscriptions = await CommunitySubscription.findAll({
-            where: { user_id },
+            where: { user_id, ...activeSubscriptionWhere() },
             raw: false,
             include: [
                 {
@@ -202,10 +211,26 @@ export async function POST(request: NextRequest) {
             where: { user_id, community_id },
         });
         if (subscription) {
-            return NextResponse.json(
-                { error: "User is already subscribed to this community!" },
-                { status: 400 },
-            );
+            const stillActive =
+                subscription.is_active !== false &&
+                new Date(subscription.end_date) > new Date();
+            if (stillActive) {
+                return NextResponse.json(
+                    { error: "User is already subscribed to this community!" },
+                    { status: 400 },
+                );
+            }
+            // A lapsed (expired/inactive) row exists — reactivate it for the new
+            // period instead of blocking, so the user can re-subscribe.
+            await subscription.update({
+                start_date,
+                end_date,
+                is_active: is_active ?? true,
+                auto_renew,
+                payment_id,
+                updated_at,
+            });
+            return NextResponse.json({ subscription: subscription.get({ plain: true }) });
         }
         subscription = await CommunitySubscription.create({
             community_id,

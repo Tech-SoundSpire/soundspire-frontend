@@ -30,7 +30,7 @@
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.531.0",
     "music-genres": "^1.0.1",
-    "nanoid": "^5.1.6",
+    "nanoid": "^5.1.16",
     "next": "^16.2.6",
     "nodemailer": "^8.0.4",
     "pg": "^8.16.3",
