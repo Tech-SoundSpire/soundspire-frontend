@@ -25,12 +25,16 @@ export async function notifyCommunitySubscribers(
 
   const userIds = new Set(subs.map((s) => s.user_id));
 
+  // Default the notification image to the community's artist avatar when the caller
+  // didn't supply one (e.g. "New message in <community>"), so it isn't the blank default.
+  let communityAvatar: string | null = null;
   const community = await Community.findByPk(communityId);
   if (community) {
     const artist = await Artist.findOne({ where: { artist_id: community.artist_id } });
     if (artist?.user_id) {
       userIds.add(artist.user_id);
     }
+    communityAvatar = artist?.profile_picture_url ?? null;
   }
 
   userIds.delete(excludeUserId);
@@ -49,7 +53,7 @@ export async function notifyCommunitySubscribers(
     type,
     message,
     link,
-    actor_image: options.actorImage || null,
+    actor_image: options.actorImage || communityAvatar,
     thumbnail: options.thumbnail || null,
   }));
 
