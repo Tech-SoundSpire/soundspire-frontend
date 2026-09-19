@@ -60,6 +60,19 @@ export async function GET(
       }
     }
 
+    // Backfill a Suggestions forum for communities created before this feature.
+    const hasSuggestions = await Forum.findOne({
+      where: { community_id: communityId, forum_type: 'suggestions' },
+    });
+    if (!hasSuggestions) {
+      await Forum.create({
+        community_id: communityId,
+        name: 'Suggestions',
+        description: 'Share suggestions with the artist',
+        forum_type: 'suggestions',
+      });
+    }
+
     // Get all forums for this community
     const forums = await Forum.findAll({
       where: { community_id: communityId },

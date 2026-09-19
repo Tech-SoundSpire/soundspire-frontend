@@ -40,6 +40,13 @@ export async function POST(req: Request) {
                 forum_type: "fan_art"
             });
 
+            await Forum.create({
+                community_id: community.community_id,
+                name: "Suggestions",
+                description: "Share suggestions with the artist",
+                forum_type: "suggestions"
+            });
+
             console.log(`✅ Created forums for community: ${name}`);
         } catch (forumError) {
             console.error("⚠️ Failed to create forums:", forumError);
