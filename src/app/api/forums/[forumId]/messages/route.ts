@@ -86,6 +86,11 @@ export async function POST(
     const mediaUrls: string[] = Array.isArray(body.media_urls) ? body.media_urls.slice(0, 10) : [];
     const parentPostId = body.parent_post_id || null;
 
+    // In a Suggestions forum, only the community's artist may reply to a suggestion.
+    if (parentPostId && access.forum.forum_type === 'suggestions' && !access.isOwner) {
+      return NextResponse.json({ error: 'Only the artist can reply to suggestions' }, { status: 403 });
+    }
+
     if (!content && mediaUrls.length === 0) {
       return NextResponse.json({ error: 'Message is empty' }, { status: 400 });
     }

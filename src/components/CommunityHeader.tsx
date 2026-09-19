@@ -129,6 +129,7 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
       'forum': `/community/${slug}/forum`,
       'all-chat': `/community/${slug}/all-chat`,
       'fan-art': `/community/${slug}/fan-art`,
+      'suggestions': `/community/${slug}/suggestions`,
     };
     
     if (routes[page]) {
@@ -207,8 +208,15 @@ export default function CommunityHeader({ slug, communityName, isSubscribed, isA
           </BaseText>
         </button>
         
-        <button 
-          className={`transition ${currentPage === 'suggestions' ? 'text-[#FA6400] font-semibold' : 'hover:text-[#FA6400]'}`}
+        <button
+          onClick={() => handleNavigation('suggestions', true)}
+          className={`transition ${
+            currentPage === 'suggestions'
+              ? 'text-[#FA6400] font-semibold'
+              : (isSubscribed || isArtist)
+                ? 'hover:text-[#FA6400] cursor-pointer'
+                : 'opacity-50 cursor-not-allowed pointer-events-none'
+          }`}
         >
           <BaseText wrapper="span" textColor="inherit" fontSize="normal">
             {t('Suggestions')}

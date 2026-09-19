@@ -234,6 +234,7 @@ export async function POST(request: NextRequest) {
                 });
                 await Forum.create({ community_id: community.community_id, name: "All Chat", description: "Real-time chat for all subscribed members", forum_type: "all_chat" });
                 await Forum.create({ community_id: community.community_id, name: "Fan Art", description: "Share your artwork with the community", forum_type: "fan_art" });
+                await Forum.create({ community_id: community.community_id, name: "Suggestions", description: "Share suggestions with the artist", forum_type: "suggestions" });
 
                 cookieStore.set({ name: "artist_id", value: dupByName.artist_id, httpOnly: true, path: "/", maxAge: 60 * 60 * 24 * 2, sameSite: "lax" });
                 return NextResponse.json({
