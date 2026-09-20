@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import UserPreferences from "@/models/UserPreferences";
 import Artist from "@/models/Artist";
+import { Op } from "sequelize";
 import "@/models/index";
 
 export async function GET(request: NextRequest) {
@@ -45,6 +46,23 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Fallback reconciliation by name (temporary): an artist may onboard without carrying the
+    // favorited SoundCharts uuid as third_party_id, so also match onboarded artists by name.
+    // NOTE: name matching is unsafe for homonyms/spelling variants - replace with a stable
+    // external-ID bridge (Spotify artist ID / SoundCharts UUID) captured at onboarding.
+    const scNames = scArtists.map((a: any) => a.name).filter(Boolean);
+    const joinedByName = new Map<string, any>();
+    if (scNames.length > 0) {
+      const byName = await Artist.findAll({
+        where: {
+          user_id: { [Op.ne]: null },
+          [Op.or]: scNames.map((n: string) => ({ artist_name: { [Op.iLike]: n } })),
+        },
+        attributes: ["artist_id", "artist_name", "profile_picture_url", "slug", "third_party_id", "user_id"],
+      });
+      byName.forEach((a) => joinedByName.set(a.artist_name.toLowerCase(), a));
+    }
+
     const merged = [
       ...dbArtists.map((a) => ({
         artist_id: a.artist_id,
@@ -57,7 +75,7 @@ export async function GET(request: NextRequest) {
       ...scArtists
         .filter((a: any) => !dbByName.has(a.name?.toLowerCase()))
         .map((a: any) => {
-          const joined = joinedSCMap.get(a.soundcharts_uuid);
+          const joined = joinedSCMap.get(a.soundcharts_uuid) || joinedByName.get(a.name?.toLowerCase());
           if (joined) {
             // Artist has joined the platform — show their community page
             return {
