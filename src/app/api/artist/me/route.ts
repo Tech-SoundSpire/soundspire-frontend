@@ -46,6 +46,7 @@ export async function GET(req: NextRequest) {
                         "description",
                         "subscription_fee",
                         "subscription_interval",
+                        "highlights",
                     ],
                 },
                 {

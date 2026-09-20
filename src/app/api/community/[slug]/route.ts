@@ -24,6 +24,7 @@ export async function GET(
                         "description",
                         "subscription_fee",
                         "subscription_interval",
+                        "highlights",
                     ],
                 },
                 {

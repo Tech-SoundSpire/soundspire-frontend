@@ -18,12 +18,18 @@ import CommunityHeader from "@/components/CommunityHeader";
 import ImageCropModal from "@/components/ImageCropModal";
 import ShareButton from "@/components/ShareButton";
 
+interface Highlight {
+    imageUrl: string | null;
+    text: string;
+}
+
 interface CommunityData {
     community_id: string;
     name: string;
     description?: string | null;
     subscription_fee: number;
     subscription_interval: string;
+    highlights?: Highlight[] | null;
 }
 
 export interface ArtistData {
@@ -62,6 +68,10 @@ export default function ArtistDashboard() {
     const [cropModal, setCropModal] = useState<{ src: string; type: "profile" | "cover"; originalFile: File } | null>(null);
     const profileInputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
+    // Community Highlights edit state
+    const [editingHL, setEditingHL] = useState(false);
+    const [highlightDraft, setHighlightDraft] = useState<Highlight[]>([]);
+    const [savingHL, setSavingHL] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -166,6 +176,58 @@ export default function ArtistDashboard() {
             toast.success(`${type === "profile" ? "Profile" : "Cover"} photo updated`);
         } else {
             toast.error("Failed to update image in database");
+        }
+    };
+
+    // --- Community Highlights editing ---
+    const startEditingHighlights = () => {
+        const hl = artist?.community?.highlights || [];
+        setHighlightDraft([0, 1, 2].map((i) => hl[i] || { imageUrl: null, text: "" }));
+        setEditingHL(true);
+    };
+
+    const uploadHighlightImage = async (file: File, idx: number) => {
+        if (!artist) return;
+        if (file.size > 5 * 1024 * 1024) { toast.error("Max 5MB"); return; }
+        try {
+            const ext = file.name.split(".").pop() || "jpg";
+            const fileName = `images/artists/${artist.artist_id}-highlight-${idx}-${Date.now()}.${ext}`;
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fileName, fileType: file.type }),
+            });
+            if (!res.ok) throw new Error();
+            const { uploadUrl } = await res.json();
+            const up = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+            if (!up.ok) throw new Error();
+            const s3 = `s3://soundspirewebsiteassets/${fileName}`;
+            setHighlightDraft((prev) => prev.map((h, i) => (i === idx ? { ...h, imageUrl: s3 } : h)));
+        } catch {
+            toast.error("Failed to upload image");
+        }
+    };
+
+    const saveHighlights = async () => {
+        if (!artist) return;
+        setSavingHL(true);
+        const cleaned = highlightDraft
+            .map((h) => ({ imageUrl: h.imageUrl, text: h.text.trim().slice(0, 120) }))
+            .filter((h) => h.imageUrl || h.text);
+        try {
+            const res = await fetch("/api/artist/me/edit", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ highlights: cleaned }),
+            });
+            if (!res.ok) throw new Error();
+            setArtist({ ...artist, community: artist.community ? { ...artist.community, highlights: cleaned } : artist.community });
+            setEditingHL(false);
+            toast.success("Highlights updated");
+        } catch {
+            toast.error("Failed to save highlights");
+        } finally {
+            setSavingHL(false);
         }
     };
 
@@ -341,17 +403,56 @@ export default function ArtistDashboard() {
                     )}
                 </div>
 
-                {/* Community Highlights */}
+                {/* Community Highlights (artist-editable: image + text) */}
                 {artist.community && (
                     <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
-                        <BaseHeading fontSize="normal" fontWeight={600} className="mb-3">Community Highlights</BaseHeading>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {["Be a part of the TRIBE", "Get Access to the Screens", "Tap into the Global Community"].map((title, idx) => (
-                                <div key={idx} className="relative h-40 rounded-xl overflow-hidden bg-gradient-to-br from-purple-900/30 to-[#1a1625] border border-gray-700 flex items-end p-4">
-                                    <BaseText fontWeight={600} fontSize="small">{title}</BaseText>
+                        <div className="flex items-center justify-between mb-3">
+                            <BaseHeading fontSize="normal" fontWeight={600}>Community Highlights</BaseHeading>
+                            {editingHL ? (
+                                <div className="flex gap-2">
+                                    <button onClick={() => setEditingHL(false)} className="px-3 py-1 rounded-lg text-gray-300 hover:text-white text-sm">Cancel</button>
+                                    <button onClick={saveHighlights} disabled={savingHL} className="px-3 py-1 rounded-lg bg-[#FA6400] text-white text-sm font-medium disabled:opacity-50">{savingHL ? "Saving..." : "Save"}</button>
                                 </div>
-                            ))}
+                            ) : (
+                                <button onClick={startEditingHighlights} className="px-3 py-1 rounded-lg border border-gray-600 text-gray-200 hover:border-[#FA6400] text-sm">Edit</button>
+                            )}
                         </div>
+
+                        {editingHL ? (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {highlightDraft.map((h, idx) => (
+                                    <div key={idx} className="rounded-xl overflow-hidden bg-[#1a1625] border border-gray-700">
+                                        <label className="relative block h-28 cursor-pointer group">
+                                            {h.imageUrl ? (
+                                                <img src={getImageUrl(h.imageUrl)} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs bg-gradient-to-br from-purple-900/30 to-[#1a1625]">Tap to add image</div>
+                                            )}
+                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition" />
+                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadHighlightImage(f, idx); e.target.value = ""; }} />
+                                        </label>
+                                        <input
+                                            value={h.text}
+                                            onChange={(e) => setHighlightDraft((prev) => prev.map((x, i) => (i === idx ? { ...x, text: e.target.value.slice(0, 120) } : x)))}
+                                            placeholder="Highlight text"
+                                            className="w-full bg-transparent text-white text-sm p-2 border-t border-gray-700 outline-none placeholder-gray-500"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (artist.community.highlights && artist.community.highlights.length > 0) ? (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {artist.community.highlights.map((h, idx) => (
+                                    <div key={idx} className="relative h-40 rounded-xl overflow-hidden bg-gradient-to-br from-purple-900/30 to-[#1a1625] border border-gray-700 flex items-end p-4">
+                                        {h.imageUrl && <img src={getImageUrl(h.imageUrl)} alt="" className="absolute inset-0 w-full h-full object-cover" />}
+                                        {h.imageUrl && <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />}
+                                        <BaseText fontWeight={600} fontSize="small"><span className="relative z-10">{h.text}</span></BaseText>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <BaseText textColor="#6b7280" fontSize="small">No highlights yet. Click Edit to add image + text cards.</BaseText>
+                        )}
                     </div>
                 )}
 
