@@ -21,11 +21,13 @@ export default function ReportButton({
   targetId,
   label = "Report",
   className = "",
+  onDone,
 }: {
   targetType: TargetType;
   targetId: string;
   label?: string;
   className?: string;
+  onDone?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("spam");
@@ -46,6 +48,7 @@ export default function ReportButton({
       toast.success(data.alreadyReported ? "Already reported - thank you." : "Reported. Thank you.");
       setOpen(false);
       setDetails("");
+      onDone?.();
     } catch {
       toast.error("Failed to submit report");
     } finally {
