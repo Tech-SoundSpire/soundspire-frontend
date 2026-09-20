@@ -228,13 +228,13 @@
     font-size: var(--normal-text);
     color: #f0f0f0;
     transition: background-color 0.3s ease-out;
-    width: 80%;
+    width: fit-content;
+    margin: 0 auto;
 }
 @media (min-width: 768px) {
     .community-link {
-        width: 50%;
-        padding: 1rem;
-        gap: 1rem;
+        padding: 0.6rem 1.5rem;
+        gap: 0.6rem;
     }
 }
 .community-link:hover {
