@@ -15,6 +15,7 @@ import { Star, StarHalf, Heart } from "lucide-react";
 import { getFontClass } from "@/utils/getFontClass";
 import { ArtistAttributes } from "@/models/Artist";
 import { useLanguage } from "@/context/LanguageContext";
+import { genreEmoji } from "@/utils/genreVisuals";
 
 interface SongReview {
     review_id: string;
@@ -296,22 +297,16 @@ export default function ExplorePage() {
                     ) : (
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             {genres.map((genre) => (
-                                <div
+                                <Link
                                     key={genre.genre_id}
-                                    className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#2d2838] cursor-pointer hover:scale-105 transition-transform duration-200"
+                                    href={`/explore/genre/${genre.genre_id}`}
+                                    className="relative flex flex-col items-center justify-center gap-2 aspect-[4/3] rounded-2xl border border-white/20 bg-white/10 hover:bg-white/[0.16] backdrop-blur-xl shadow-lg hover:scale-105 hover:border-white/30 transition-all duration-200"
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                    <img
-                                        src={getImageUrl(DEFAULT_PROFILE_IMAGE)}
-                                        alt={genre.name}
-                                        className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
-                                    />
-                                    <div className="absolute bottom-4 left-4">
-                                        <h3 className={`${montserrat} text-white text-[20px] font-bold`}>
-                                            {genre.name.toUpperCase()}
-                                        </h3>
-                                    </div>
-                                </div>
+                                    <span className="text-5xl md:text-6xl drop-shadow-lg">{genreEmoji(genre.name)}</span>
+                                    <span className={`${montserrat} text-xl md:text-3xl font-bold text-center px-2 bg-gradient-to-r from-purple-400 to-[#FA6400] bg-clip-text text-transparent`}>
+                                        {genre.name}
+                                    </span>
+                                </Link>
                             ))}
                         </div>
                     )}
