@@ -5,6 +5,19 @@ import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import Artist from "@/models/Artist";
 import { User } from "@/models/User";
 import Social from "@/models/Social";
+import Community from "@/models/Community";
+
+// Keep at most 3 highlights, each { imageUrl, text } with trimmed, length-capped text.
+function sanitizeHighlights(input: unknown): { imageUrl: string | null; text: string }[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .slice(0, 3)
+    .map((h: any) => ({
+      imageUrl: typeof h?.imageUrl === "string" && h.imageUrl.trim() ? h.imageUrl.trim() : null,
+      text: typeof h?.text === "string" ? h.text.trim().slice(0, 120) : "",
+    }))
+    .filter((h) => h.imageUrl || h.text);
+}
 
 export async function PUT(req: NextRequest) {
   try {
@@ -18,7 +31,7 @@ export async function PUT(req: NextRequest) {
     if (!artist) return NextResponse.json({ error: "Artist not found" }, { status: 404 });
 
     const body = await req.json();
-    const { bio, profile_picture_url, cover_photo_url, socials } = body;
+    const { bio, profile_picture_url, cover_photo_url, socials, highlights } = body;
 
     await artist.update({
       ...(bio !== undefined && { bio }),
@@ -31,6 +44,13 @@ export async function PUT(req: NextRequest) {
       await User.update(
         { profile_picture_url },
         { where: { user_id: decoded.id } }
+      );
+    }
+
+    if (highlights !== undefined) {
+      await Community.update(
+        { highlights: sanitizeHighlights(highlights) },
+        { where: { artist_id: artist.artist_id } }
       );
     }
 

@@ -281,14 +281,16 @@ export default function ArtistCommunityProfile() {
                         )}
                     </div>
 
-                    {/* Community Highlights */}
-                    {artist.community && (
+                    {/* Community Highlights (artist-configured; hidden when empty) */}
+                    {artist.community?.highlights && artist.community.highlights.length > 0 && (
                         <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
                             <BaseHeading fontSize="normal" fontWeight={600} className="mb-3">{t('Community Highlights')}</BaseHeading>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {[t("Be a part of the TRIBE"), t("Get Access to the Screens"), t("Tap into the Global Community")].map((title, idx) => (
+                                {artist.community.highlights.map((h: { imageUrl: string | null; text: string }, idx: number) => (
                                     <div key={idx} className="relative h-40 rounded-xl overflow-hidden bg-gradient-to-br from-purple-900/30 to-[#1a1625] border border-gray-700 flex items-end p-4">
-                                        <BaseText fontWeight={600} fontSize="small">{title}</BaseText>
+                                        {h.imageUrl && <img src={getImageUrl(h.imageUrl)} alt="" className="absolute inset-0 w-full h-full object-cover" />}
+                                        {h.imageUrl && <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />}
+                                        <BaseText fontWeight={600} fontSize="small"><span className="relative z-10">{h.text}</span></BaseText>
                                     </div>
                                 ))}
                             </div>

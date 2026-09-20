@@ -11,6 +11,7 @@ interface CommunityAttributes {
     description?: string | null;
     subscription_fee: number;
     subscription_interval: string;
+    highlights?: { imageUrl: string | null; text: string }[] | null;
     created_at: Date;
     updated_at: Date;
 }
@@ -32,6 +33,7 @@ class Community
     declare description: string | null;
     declare subscription_fee: number;
     declare subscription_interval: string;
+    declare highlights: { imageUrl: string | null; text: string }[] | null;
     declare created_at: Date;
     declare updated_at: Date;
     declare artist?: NonAttribute<Artist>;
@@ -68,6 +70,12 @@ Community.init(
             type: DataTypes.STRING(20),
             allowNull: false,
             defaultValue: "monthly",
+        },
+        // Artist-editable "Community Highlights": up to 3 { imageUrl, text } cards.
+        highlights: {
+            type: DataTypes.JSONB,
+            allowNull: true,
+            defaultValue: [],
         },
         created_at: {
             type: DataTypes.DATE,
