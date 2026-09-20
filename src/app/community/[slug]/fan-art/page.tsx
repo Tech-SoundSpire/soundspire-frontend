@@ -13,8 +13,7 @@ import MobileNav from '@/components/MobileNav';
 import ImageCropModal from '@/components/ImageCropModal';
 import { uploadToS3 } from '@/utils/uploadToS3';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import ReportButton from '@/components/moderation/ReportButton';
-import BlockButton from '@/components/moderation/BlockButton';
+import ModerationMenu from '@/components/moderation/ModerationMenu';
 
 interface Comment {
   forum_post_id: string;
@@ -849,20 +848,19 @@ export default function FanArtPage() {
                   <span className="text-gray-500 text-xs ml-auto">
                     {new Date(post.created_at).toLocaleDateString()}
                   </span>
-                </div>
-                {post.content && (
-                  <p className="text-gray-300 text-xs line-clamp-2">{post.content}</p>
-                )}
-                {/* Report / Block (not on own posts) */}
-                {post.user_id && post.user_id !== user?.id && (
-                  <div className="flex items-center gap-3 mt-2">
-                    <ReportButton targetType="fan_art" targetId={post.forum_post_id} />
-                    <BlockButton
+                  {/* Report / Block burger menu (not on own posts) */}
+                  {post.user_id && post.user_id !== user?.id && (
+                    <ModerationMenu
+                      targetType="fan_art"
+                      targetId={post.forum_post_id}
                       blockedUserId={post.user_id}
                       username={post.user?.username}
                       onBlocked={() => setPosts((prev) => prev.filter((p) => p.user_id !== post.user_id))}
                     />
-                  </div>
+                  )}
+                </div>
+                {post.content && (
+                  <p className="text-gray-300 text-xs line-clamp-2">{post.content}</p>
                 )}
                 {/* Reactions */}
                 {post.reactions && Object.keys(post.reactions).length > 0 && (
