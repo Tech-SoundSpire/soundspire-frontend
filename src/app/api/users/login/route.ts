@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Artist from "@/models/Artist";
+import { isArtistUnderReview, UNDER_REVIEW_MESSAGE } from "@/utils/artistReview";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
     const { email, password_hash } = reqBody; //taking what is needed
 
     //validation
-    console.log(reqBody);
+    // console.log(reqBody); // disabled: logs the plaintext password
 
     //Getting the user
     const user = await User.findOne({
@@ -68,6 +69,14 @@ export async function POST(request: NextRequest) {
     if (user.is_banned) {
       return NextResponse.json(
         { message: "This account has been suspended." },
+        { status: 403 },
+      );
+    }
+
+    // Artists awaiting the manual background check cannot obtain a session.
+    if (await isArtistUnderReview(user)) {
+      return NextResponse.json(
+        { message: UNDER_REVIEW_MESSAGE, underReview: true },
         { status: 403 },
       );
     }

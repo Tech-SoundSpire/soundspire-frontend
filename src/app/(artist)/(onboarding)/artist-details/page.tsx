@@ -1216,7 +1216,7 @@ function ArtistDetailsContent() {
                             Verify Your Email
                         </BaseHeading>
                         <BaseText className="text-gray-300 mb-6">
-                            A verification email has been sent to <span className="text-white font-semibold">{formData.email}</span>. Please check your inbox and verify your account before logging in.
+                            A verification email has been sent to <span className="text-white font-semibold">{formData.email}</span>. Please verify your email. The SoundSpire team will then review your profile and be in touch.
                         </BaseText>
                         <button
                             onClick={() => router.push("/artist/login")}

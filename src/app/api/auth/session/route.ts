@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { User, Artist } from "@/models/index";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
+import { ARTIST_UNDER_REVIEW } from "@/utils/artistReview";
 
 interface DecodedToken {
   id: string;
@@ -31,6 +32,8 @@ export async function GET() {
     let isAlsoArtist = false;
     if (user.is_artist) {
       const artist = await Artist.findOne({ where: { user_id: user.user_id } });
+      // Artists awaiting manual review are treated as logged out (like banned users).
+      if (artist?.verification_status === ARTIST_UNDER_REVIEW) return NextResponse.json({ user: null });
       if (artist) {
         artistId = artist.artist_id;
         isAlsoArtist = true;
