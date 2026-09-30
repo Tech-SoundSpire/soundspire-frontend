@@ -18,7 +18,7 @@ import Navbar from "@/components/Navbar";
 import MobileNav from "@/components/MobileNav";
 import CommunityHeader from "@/components/CommunityHeader";
 import ShareButton from "@/components/ShareButton";
-import { FaFacebook, FaInstagram, FaTiktok, FaYoutube } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaSpotify, FaTiktok, FaYoutube } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { IconType } from "react-icons/lib";
 import { useLanguage } from "@/context/LanguageContext";
@@ -256,6 +256,7 @@ export default function ArtistCommunityProfile() {
                                     case "twitter": case "x": Icon = FaXTwitter; break;
                                     case "facebook": Icon = FaFacebook; break;
                                     case "tiktok": Icon = FaTiktok; break;
+                                    case "spotify": Icon = FaSpotify; break;
                                     default: return null;
                                 }
                                 return (
