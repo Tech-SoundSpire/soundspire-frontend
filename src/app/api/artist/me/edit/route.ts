@@ -6,6 +6,7 @@ import Artist from "@/models/Artist";
 import { User } from "@/models/User";
 import Social from "@/models/Social";
 import Community from "@/models/Community";
+import { normalizeSocialPlatform } from "@/utils/socialPlatform";
 
 // Keep at most 3 highlights, each { imageUrl, text } with trimmed, length-capped text.
 function sanitizeHighlights(input: unknown): { imageUrl: string | null; text: string }[] {
@@ -60,7 +61,7 @@ export async function PUT(req: NextRequest) {
         if (s.platform && s.url) {
           await Social.create({
             artist_id: artist.artist_id,
-            platform: s.platform.toLowerCase().trim(),
+            platform: normalizeSocialPlatform(s.platform, s.url),
             url: s.url,
             external_id: "",
           });

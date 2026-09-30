@@ -24,15 +24,14 @@ export async function POST(request: NextRequest) {
     // Google token but not that it was issued for *us* — without this an attacker could replay
     // a token from a different client to sign in as its email. Client ids are public (they ship
     // in the Android APK / iOS Info.plist), so the known ids are safe defaults; env vars override.
-    
-    // const ALLOWED_AUDIENCES = [
-    //   process.env.GOOGLE_CLIENT_ID ?? "421253082792-2fc4cd0v0r1pep0i3is5dcj2u8k47a0e.apps.googleusercontent.com",
-    //   process.env.GOOGLE_ANDROID_CLIENT_ID ?? "421253082792-lku45fmvbf8a7q7i5rtihj3f04i7jcrt.apps.googleusercontent.com",
-    //   process.env.GOOGLE_IOS_CLIENT_ID ?? "421253082792-1fsa935t66ci1ka08duh087058sg9i3d.apps.googleusercontent.com",
-    // ].filter(Boolean);
-    // if (!tokenData.aud || !ALLOWED_AUDIENCES.includes(tokenData.aud)) {
-    //   return NextResponse.json({ error: "Invalid token audience" }, { status: 401 });
-    // }
+    const ALLOWED_AUDIENCES = [
+      process.env.GOOGLE_CLIENT_ID ?? "421253082792-2fc4cd0v0r1pep0i3is5dcj2u8k47a0e.apps.googleusercontent.com",
+      process.env.GOOGLE_ANDROID_CLIENT_ID ?? "421253082792-lku45fmvbf8a7q7i5rtihj3f04i7jcrt.apps.googleusercontent.com",
+      process.env.GOOGLE_IOS_CLIENT_ID ?? "421253082792-1fsa935t66ci1ka08duh087058sg9i3d.apps.googleusercontent.com",
+    ].filter(Boolean);
+    if (!tokenData.aud || !ALLOWED_AUDIENCES.includes(tokenData.aud)) {
+      return NextResponse.json({ error: "Invalid token audience" }, { status: 401 });
+    }
 
     const email = tokenData.email;
     const name = tokenData.name || email.split("@")[0];

@@ -7,6 +7,7 @@ import Artist from "@/models/Artist";
 import { User } from "@/models";
 import Social from "@/models/Social";
 import { saveArtistGenres } from "@/utils/artistGenres";
+import { normalizeSocialPlatform } from "@/utils/socialPlatform";
 import Community from "@/models/Community";
 import Forum from "@/models/Forum";
 import { createArtistSlug } from "@/utils/createArtistSlug";
@@ -22,7 +23,7 @@ async function saveArtistSocials(artistId: string, socials: unknown) {
     if (!Array.isArray(socials)) return;
     for (const s of socials) {
         if (!s?.platform) continue;
-        const platform = String(s.platform).toLowerCase().trim();
+        const platform = normalizeSocialPlatform(s.platform, s.url);
         const existing = await Social.findOne({ where: { artist_id: artistId, platform } });
         if (existing) {
             await existing.update({ url: s.url ?? existing.url, external_id: s.external_id ?? existing.external_id });

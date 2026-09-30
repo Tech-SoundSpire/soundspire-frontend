@@ -79,6 +79,7 @@ function ArtistDetailsContent() {
     });
 
     const [socialFields, setSocialFields] = useState([
+        "spotify",
         "facebook",
         "instagram",
         "youtube",
@@ -798,6 +799,7 @@ function ArtistDetailsContent() {
                                 />
                                 {/* Remove button for dynamic fields only */}
                                 {![
+                                    "spotify",
                                     "facebook",
                                     "instagram",
                                     "youtube",
