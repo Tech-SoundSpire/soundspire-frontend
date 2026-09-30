@@ -11,6 +11,7 @@ import Community from "@/models/Community";
 import Forum from "@/models/Forum";
 import { createArtistSlug } from "@/utils/createArtistSlug";
 import { sendEmail } from "@/utils/mailer";
+import { ARTIST_UNDER_REVIEW } from "@/utils/artistReview";
 
 interface DecodedToken {
     id: string;
@@ -221,7 +222,7 @@ export async function POST(request: NextRequest) {
                     bio: bio || dupByName.bio,
                     profile_picture_url: profile_picture_url || dupByName.profile_picture_url,
                     cover_photo_url: cover_photo_url || dupByName.cover_photo_url,
-                    verification_status: "pending",
+                    verification_status: ARTIST_UNDER_REVIEW,
                 });
                 // Create community + forums (same as artist-details does for new artists)
                 const communityName = body.community_name?.trim() || `${artist_name}'s Community`;
@@ -259,7 +260,7 @@ export async function POST(request: NextRequest) {
             third_party_id: third_party_id || null,
             profile_picture_url: profile_picture_url || null,
             cover_photo_url: cover_photo_url || null,
-            verification_status: "pending",
+            verification_status: ARTIST_UNDER_REVIEW,
             featured: false,
             payout_method: null,
             slug,

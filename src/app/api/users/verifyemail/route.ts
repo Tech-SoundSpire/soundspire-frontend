@@ -3,6 +3,7 @@ import { User } from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { UserVerification } from "@/models/UserVerification";
+import { isArtistUnderReview, UNDER_REVIEW_MESSAGE } from "@/utils/artistReview";
 
 interface VerificationTokenPayload {
   userId: string;
@@ -36,6 +37,15 @@ export async function POST(request: NextRequest) {
     if (!user.is_verified) {
       await user.update({ is_verified: true });
       console.log("Email verified for user:", user.email);
+    }
+
+    // Artists awaiting the manual background check: email is verified, but no session.
+    if (await isArtistUnderReview(user)) {
+      return NextResponse.json({
+        message: UNDER_REVIEW_MESSAGE,
+        success: true,
+        underReview: true,
+      });
     }
 
     const authToken = jwt.sign(

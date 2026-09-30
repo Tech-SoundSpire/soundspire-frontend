@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 
-type Tab = "reports" | "users" | "audit";
+type Tab = "reports" | "users" | "artists" | "audit";
 
 interface Report {
   report_id: string;
@@ -23,6 +23,13 @@ interface AdminUser {
   full_name: string | null;
   is_banned: boolean;
   is_admin: boolean;
+}
+interface PendingArtist {
+  artist_id: string;
+  artist_name: string;
+  slug: string | null;
+  created_at: string;
+  user?: { email?: string; is_verified?: boolean; mobile_number?: string | null; city?: string | null; country?: string | null };
 }
 interface Action {
   action_id: string;
@@ -44,7 +51,7 @@ export default function ModerationDashboard() {
   return (
     <Shell>
       <div className="flex gap-2 mb-6">
-        {(["reports", "users", "audit"] as Tab[]).map((t) => (
+        {(["reports", "users", "artists", "audit"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -56,6 +63,7 @@ export default function ModerationDashboard() {
       </div>
       {tab === "reports" && <ReportsTab />}
       {tab === "users" && <UsersTab />}
+      {tab === "artists" && <ArtistReviewTab />}
       {tab === "audit" && <AuditTab />}
     </Shell>
   );
@@ -202,6 +210,46 @@ function UsersTab() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// Artists awaiting the manual background check. Approving lets them log in.
+function ArtistReviewTab() {
+  const [artists, setArtists] = useState<PendingArtist[]>([]);
+  const [loading, setLoading] = useState(true);
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/artist-review", { credentials: "include" });
+      const data = await res.json();
+      setArtists(data.artists || []);
+    } catch { toast.error("Failed to load artists"); }
+    finally { setLoading(false); }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const approve = async (a: PendingArtist) => {
+    if (!confirm(`Approve ${a.artist_name}? They will be able to log in.`)) return;
+    try { await post("/api/admin/artist-review", { artist_id: a.artist_id }); toast.success("Artist approved"); load(); }
+    catch (e) { toast.error((e as Error).message); }
+  };
+
+  if (loading) return <p className="text-white/50">Loading…</p>;
+  if (artists.length === 0) return <p className="text-white/50">No artists awaiting review.</p>;
+  return (
+    <div className="space-y-2">
+      {artists.map((a) => (
+        <div key={a.artist_id} className="bg-[#241e33] rounded-lg p-3 border border-white/10 flex justify-between items-center gap-4">
+          <div className="text-sm">
+            <span className="font-medium">{a.artist_name}</span>
+            {!a.user?.is_verified && <span className="ml-2 text-xs text-yellow-400">email not verified</span>}
+            <div className="text-white/40 text-xs">{a.user?.email} {a.user?.mobile_number ? `· ${a.user.mobile_number}` : ""} {a.user?.city || a.user?.country ? `· ${[a.user?.city, a.user?.country].filter(Boolean).join(", ")}` : ""}</div>
+            <div className="text-white/40 text-xs">signed up {new Date(a.created_at).toLocaleString()}</div>
+          </div>
+          <button onClick={() => approve(a)} className="text-xs px-3 py-1 rounded bg-[#FF4E27] hover:bg-[#ff6a4a] shrink-0">Approve</button>
+        </div>
+      ))}
     </div>
   );
 }

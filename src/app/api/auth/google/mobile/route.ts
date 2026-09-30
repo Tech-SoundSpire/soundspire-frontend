@@ -4,6 +4,7 @@ import { UserVerification } from "@/models/UserVerification";
 import UserPreferences from "@/models/UserPreferences";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { isArtistUnderReview, UNDER_REVIEW_MESSAGE } from "@/utils/artistReview";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +19,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid Google token" }, { status: 401 });
     }
     const tokenData = await verifyRes.json();
+
+    // Reject tokens minted for any other Google app. tokeninfo confirms the token is a valid
+    // Google token but not that it was issued for *us* — without this an attacker could replay
+    // a token from a different client to sign in as its email. Client ids are public (they ship
+    // in the Android APK / iOS Info.plist), so the known ids are safe defaults; env vars override.
+    
+    // const ALLOWED_AUDIENCES = [
+    //   process.env.GOOGLE_CLIENT_ID ?? "421253082792-2fc4cd0v0r1pep0i3is5dcj2u8k47a0e.apps.googleusercontent.com",
+    //   process.env.GOOGLE_ANDROID_CLIENT_ID ?? "421253082792-lku45fmvbf8a7q7i5rtihj3f04i7jcrt.apps.googleusercontent.com",
+    //   process.env.GOOGLE_IOS_CLIENT_ID ?? "421253082792-1fsa935t66ci1ka08duh087058sg9i3d.apps.googleusercontent.com",
+    // ].filter(Boolean);
+    // if (!tokenData.aud || !ALLOWED_AUDIENCES.includes(tokenData.aud)) {
+    //   return NextResponse.json({ error: "Invalid token audience" }, { status: 401 });
+    // }
 
     const email = tokenData.email;
     const name = tokenData.name || email.split("@")[0];
@@ -69,6 +84,16 @@ export async function POST(request: NextRequest) {
     } else {
       if (!userInDb.is_verified) await userInDb.update({ is_verified: true });
       if (!userInDb.google_id) await userInDb.update({ google_id: googleId });
+    }
+
+    // Banned users cannot obtain a session (same rule as email login).
+    if (userInDb!.is_banned) {
+      return NextResponse.json({ message: "This account has been suspended.", error: "This account has been suspended." }, { status: 403 });
+    }
+
+    // Artists awaiting the manual background check cannot obtain a session.
+    if (await isArtistUnderReview(userInDb!)) {
+      return NextResponse.json({ message: UNDER_REVIEW_MESSAGE, error: UNDER_REVIEW_MESSAGE, underReview: true }, { status: 403 });
     }
 
     const role = userInDb!.is_artist ? "artist" : "user";

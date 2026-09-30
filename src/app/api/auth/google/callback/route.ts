@@ -4,6 +4,7 @@ import { UserVerification } from "@/models/UserVerification";
 import UserPreferences from "@/models/UserPreferences";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { isArtistUnderReview } from "@/utils/artistReview";
 
 export const dynamic = "force-dynamic";
 
@@ -125,6 +126,16 @@ export async function GET(request: Request) {
       if (!userInDb.google_id) {
         await userInDb.update({ google_id: userData.id });
       }
+    }
+
+    // Banned users cannot obtain a session (same rule as email login).
+    if (userInDb!.is_banned) {
+      return NextResponse.redirect(`${FRONTEND_URL}?error=account_suspended`);
+    }
+
+    // Artists awaiting the manual background check cannot obtain a session.
+    if (await isArtistUnderReview(userInDb!)) {
+      return NextResponse.redirect(`${FRONTEND_URL}/under-review`);
     }
 
     // Determine role and redirect

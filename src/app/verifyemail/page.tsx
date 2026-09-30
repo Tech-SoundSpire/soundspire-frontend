@@ -25,11 +25,17 @@ export default function VerifyEmailPage() {
         const verifyUserEmail = async () => {
             setLoading(true);
             try {
-                await axios.post(
+                const res = await axios.post(
                     "/api/users/verifyemail",
                     { token },
                     { withCredentials: true }
                 );
+
+                // Artists awaiting manual review get no session; show the thank-you page.
+                if (res.data?.underReview) {
+                    router.replace("/under-review");
+                    return;
+                }
 
                 setVerified(true);
                 setError(false);
