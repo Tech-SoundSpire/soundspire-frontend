@@ -8,7 +8,7 @@ import {
     DEFAULT_PROFILE_IMAGE,
     getLogoUrl,
 } from "@/utils/userProfileImageUtils";
-import { FaYoutube, FaInstagram, FaFacebook, FaTiktok, FaPen, FaTimes, FaCheck } from "react-icons/fa";
+import { FaYoutube, FaInstagram, FaFacebook, FaTiktok, FaSpotify, FaPen, FaTimes, FaCheck } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import BaseText from "@/components/BaseText/BaseText";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
@@ -50,6 +50,7 @@ const SOCIAL_ICONS: Record<string, any> = {
     x: FaXTwitter,
     facebook: FaFacebook,
     tiktok: FaTiktok,
+    spotify: FaSpotify,
 };
 
 export default function ArtistDashboard() {
@@ -379,7 +380,7 @@ export default function ArtistDashboard() {
                                 <div key={i} className="flex gap-2 items-center">
                                     <select value={s.platform} onChange={(e) => { const n = [...editSocials]; n[i].platform = e.target.value; setEditSocials(n); }}
                                         className="px-3 py-2 bg-[#1a1625] text-white rounded-lg border border-gray-700 text-sm">
-                                        {["youtube", "instagram", "twitter", "facebook", "tiktok"].map((p) => (
+                                        {["spotify", "youtube", "instagram", "twitter", "facebook", "tiktok"].map((p) => (
                                             <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
                                         ))}
                                     </select>
