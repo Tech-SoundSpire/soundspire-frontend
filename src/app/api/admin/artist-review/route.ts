@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     const artists = await Artist.findAll({
       where: { verification_status: ARTIST_UNDER_REVIEW },
-      attributes: ["artist_id", "artist_name", "slug", "profile_picture_url", "created_at"],
+      attributes: ["artist_id", "artist_name", "slug", "profile_picture_url", "distribution_company", "created_at"],
       include: [{ model: User, as: "user", attributes: ["email", "is_verified", "mobile_number", "city", "country"] }],
       order: [["created_at", "ASC"]],
     });
