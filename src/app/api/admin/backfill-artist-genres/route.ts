@@ -3,8 +3,8 @@ import { Op } from "sequelize";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { requireAdmin } from "@/utils/moderation";
 import Artist from "@/models/Artist";
-import Genres from "@/models/Genres";
 import "@/models/index";
+import { resolveGenre } from "@/utils/artistGenres";
 
 // One-off admin backfill: tag artists with genres pulled from SoundCharts.
 //   GET /api/admin/backfill-artist-genres            -> DRY RUN (shows what it would tag)
@@ -33,13 +33,6 @@ function parseGenreNames(object: any): string[] {
 
 // Reuse an existing genre row (case-insensitive) so artists link to the canonical genre Explore
 // uses, instead of spawning duplicates.
-async function resolveGenre(name: string) {
-  const existing = await Genres.findOne({ where: { name: { [Op.iLike]: name } } });
-  if (existing) return existing;
-  const [g] = await Genres.findOrCreate({ where: { name } });
-  return g;
-}
-
 export async function GET(request: NextRequest) {
   try {
     await connectionTestingAndHelper();
