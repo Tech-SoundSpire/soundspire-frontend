@@ -28,6 +28,7 @@ interface PendingArtist {
   artist_id: string;
   artist_name: string;
   slug: string | null;
+  distribution_company?: string | null;
   created_at: string;
   user?: { email?: string; is_verified?: boolean; mobile_number?: string | null; city?: string | null; country?: string | null };
 }
@@ -245,6 +246,7 @@ function ArtistReviewTab() {
             <span className="font-medium">{a.artist_name}</span>
             {!a.user?.is_verified && <span className="ml-2 text-xs text-yellow-400">email not verified</span>}
             <div className="text-white/40 text-xs">{a.user?.email} {a.user?.mobile_number ? `· ${a.user.mobile_number}` : ""} {a.user?.city || a.user?.country ? `· ${[a.user?.city, a.user?.country].filter(Boolean).join(", ")}` : ""}</div>
+            {a.distribution_company && <div className="text-white/40 text-xs">distributor: {a.distribution_company}</div>}
             <div className="text-white/40 text-xs">signed up {new Date(a.created_at).toLocaleString()}</div>
           </div>
           <button onClick={() => approve(a)} className="text-xs px-3 py-1 rounded bg-[#FF4E27] hover:bg-[#ff6a4a] shrink-0">Approve</button>

@@ -5,8 +5,8 @@ import { cookies } from "next/headers";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import Artist from "@/models/Artist";
 import { User } from "@/models";
-import Genres from "@/models/Genres";
 import Social from "@/models/Social";
+import { saveArtistGenres } from "@/utils/artistGenres";
 import Community from "@/models/Community";
 import Forum from "@/models/Forum";
 import { createArtistSlug } from "@/utils/createArtistSlug";
@@ -17,6 +17,21 @@ interface DecodedToken {
     id: string;
 }
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+// Upsert the socials entered at signup (one row per platform).
+async function saveArtistSocials(artistId: string, socials: unknown) {
+    if (!Array.isArray(socials)) return;
+    for (const s of socials) {
+        if (!s?.platform) continue;
+        const platform = String(s.platform).toLowerCase().trim();
+        const existing = await Social.findOne({ where: { artist_id: artistId, platform } });
+        if (existing) {
+            await existing.update({ url: s.url ?? existing.url, external_id: s.external_id ?? existing.external_id });
+        } else {
+            await Social.create({ artist_id: artistId, platform, url: s.url, external_id: s.external_id ?? "" });
+        }
+    }
+}
+
 export async function POST(request: NextRequest) {
     try {
         await connectionTestingAndHelper();
@@ -36,6 +51,7 @@ export async function POST(request: NextRequest) {
             password_hash,
             socials,
             genre_names,
+            distribution_company,
         } = body;
 
         if (!artist_name || !artist_name.trim()) {
@@ -223,6 +239,7 @@ export async function POST(request: NextRequest) {
                     profile_picture_url: profile_picture_url || dupByName.profile_picture_url,
                     cover_photo_url: cover_photo_url || dupByName.cover_photo_url,
                     verification_status: ARTIST_UNDER_REVIEW,
+                    distribution_company: distribution_company?.trim() || dupByName.distribution_company,
                 });
                 // Create community + forums (same as artist-details does for new artists)
                 const communityName = body.community_name?.trim() || `${artist_name}'s Community`;
@@ -236,6 +253,9 @@ export async function POST(request: NextRequest) {
                 await Forum.create({ community_id: community.community_id, name: "All Chat", description: "Real-time chat for all subscribed members", forum_type: "all_chat" });
                 await Forum.create({ community_id: community.community_id, name: "Fan Art", description: "Share your artwork with the community", forum_type: "fan_art" });
                 await Forum.create({ community_id: community.community_id, name: "Suggestions", description: "Share suggestions with the artist", forum_type: "suggestions" });
+                // This early return used to skip genres and socials, so claimed artists lost them.
+                await saveArtistSocials(dupByName.artist_id, socials);
+                await saveArtistGenres(dupByName, genre_names);
 
                 cookieStore.set({ name: "artist_id", value: dupByName.artist_id, httpOnly: true, path: "/", maxAge: 60 * 60 * 24 * 2, sameSite: "lax" });
                 return NextResponse.json({
@@ -261,54 +281,15 @@ export async function POST(request: NextRequest) {
             profile_picture_url: profile_picture_url || null,
             cover_photo_url: cover_photo_url || null,
             verification_status: ARTIST_UNDER_REVIEW,
+            distribution_company: distribution_company?.trim() || null,
             featured: false,
             payout_method: null,
             slug,
         });
 
-        if (Array.isArray(socials)) {
-            for (const s of socials) {
-                if (!s?.platform) {
-                    continue;
-                }
-                const platform = String(s.platform).toLowerCase().trim();
+        await saveArtistSocials(artist.artist_id, socials);
 
-                const existing = await Social.findOne({
-                    where: { artist_id: artist.artist_id, platform },
-                });
-                if (existing) {
-                    await existing.update({
-                        url: s.url ?? existing.url,
-                        external_id: s.external_id ?? existing.external_id,
-                    });
-                } else {
-                    await Social.create({
-                        artist_id: artist.artist_id,
-                        platform,
-                        url: s.url,
-                        external_id: s.external_id ?? "",
-                    });
-                }
-            }
-        }
-
-        if (Array.isArray(genre_names) && genre_names.length > 0) {
-            const genreRecords = [];
-
-            for (const name of genre_names) {
-                const cleanName = name.trim().toLowerCase();
-                if (!cleanName) continue;
-
-                const [genre] = await Genres.findOrCreate({
-                    where: { name: cleanName },
-                    defaults: { name: cleanName },
-                });
-
-                genreRecords.push(genre);
-            }
-
-            await artist.setGenres(genreRecords);
-        }
+        await saveArtistGenres(artist, genre_names);
 
         cookieStore.set({
             name: "artist_id",

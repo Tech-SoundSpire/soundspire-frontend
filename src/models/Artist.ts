@@ -17,6 +17,7 @@ export interface ArtistAttributes {
     verification_status?: string | null;
     third_party_platform?: string | null;
     third_party_id?: string | null;
+    distribution_company?: string | null;
     featured: boolean;
     payout_method?: PayoutMethod | null;
     created_at: Date;
@@ -44,6 +45,7 @@ class Artist
     declare verification_status: string | null;
     declare third_party_platform: string | null;
     declare third_party_id: string | null;
+    declare distribution_company: string | null;
     declare featured: boolean;
     declare payout_method: PayoutMethod | null;
     declare created_at: Date;
@@ -97,6 +99,11 @@ Artist.init(
             allowNull: true,
         },
         third_party_id: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        // Distributor named at artist signup (e.g. DistroKid, TuneCore). Optional.
+        distribution_company: {
             type: DataTypes.STRING(255),
             allowNull: true,
         },
