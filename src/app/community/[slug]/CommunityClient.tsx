@@ -1,0 +1,338 @@
+"use client";
+import BaseHeading from "@/components/BaseHeading/BaseHeading";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ArtistData } from "@/app/(artist)/artist/dashboard/page";
+import toast from "react-hot-toast";
+import BaseText from "@/components/BaseText/BaseText";
+import { sanitizeURL } from "@/utils/sanitizeURL";
+import {
+    getDefaultProfileImageUrl,
+    getImageUrl,
+    getLogoUrl,
+} from "@/utils/userProfileImageUtils";
+import { useAuth } from "@/context/AuthContext";
+import { communitySubscriptionData } from "@/types/communitySubscription";
+import styles from "./community_profile.module.css";
+import Navbar from "@/components/Navbar";
+import MobileNav from "@/components/MobileNav";
+import CommunityHeader from "@/components/CommunityHeader";
+import ShareButton from "@/components/ShareButton";
+import { FaFacebook, FaInstagram, FaSpotify, FaTiktok, FaYoutube } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
+import { IconType } from "react-icons/lib";
+import { useLanguage } from "@/context/LanguageContext";
+const default_image = getDefaultProfileImageUrl();
+// Client UI for /community/[slug]. The server page loads the artist (initialArtist) so the
+// public About content is in the HTML for logged-out visitors and crawlers; subscription
+// state is per-user and still loads here.
+export default function CommunityClient({ slug, initialArtist }: { slug: string; initialArtist: ArtistData }) {
+    const router = useRouter();
+    const { t } = useLanguage();
+    const [artist] = useState<ArtistData | null>(initialArtist);
+    const [loading, setLoading] = useState(true);
+    const [savingSubscription, setSavingSubscription] = useState(false);
+
+    const [alreadySubscribed, setAlreadySubscribed] = useState(false);
+    const [artistReviews, setArtistReviews] = useState<any[]>([]);
+    const { user, switchRole } = useAuth();
+
+    // If an artist visits someone else's community page, switch them to fan mode
+    useEffect(() => {
+        if (!user || user.role !== "artist") return;
+        const isOwnCommunity = user.isAlsoArtist && artist && user.artistId === artist.artist_id;
+        if (!isOwnCommunity) switchRole("user");
+    }, [user, artist]);
+    useEffect(() => {
+        if (!artist?.artist_id) return;
+        (async () => {
+            try {
+                const revRes = await fetch(`/api/reviews/by-artist?artistId=${artist.artist_id}`);
+                if (revRes.ok) {
+                    const revData = await revRes.json();
+                    setArtistReviews(revData.reviews || []);
+                }
+            } catch { /* ignore */ }
+        })();
+    }, [artist?.artist_id]);
+    useEffect(() => {
+        if (!artist) return;
+        if (!user || !artist.community?.community_id) { setLoading(false); return; }
+        (async () => {
+            try {
+                const res = await fetch(
+                    `/api/community/subscribe?community_id=${artist.community?.community_id}&user_id=${user.id}`
+                );
+                if (!res.ok)
+                    throw new Error("Error fetching subscription data!!!!");
+                const json = await res.json();
+                setAlreadySubscribed(json.subscribed);
+            } catch (err: any) {
+                toast.error(err.message || "Failed to load subscription data");
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, [artist, user]);
+
+    if (!artist) {
+        return (
+            <>
+                {user?.role !== "artist" && <><div className="hidden md:block"><Navbar /></div><MobileNav /></>}
+
+                <div className="min-h-screen bg-[#1a1625] text-white flex flex-col items-center justify-center">
+                    <BaseText>No artist data found.</BaseText>
+                </div>
+            </>
+        );
+    }
+    const artistImage = artist.profile_picture_url
+        ? getImageUrl(artist.profile_picture_url)
+        : getDefaultProfileImageUrl();
+    const profile_image = sanitizeURL(artistImage);
+    const unsubscribe = async () => {
+        if (!user) return;
+        setSavingSubscription(true);
+        try {
+            const res = await fetch(
+                `/api/community/subscribe?user_id=${user.id}&community_id=${artist.community?.community_id}`,
+                {
+                    method: "DELETE",
+                }
+            );
+            if (!res.ok)
+                throw new Error("Error trying to fetch route for delete");
+            const data = await res.json();
+            if (!data.subscribed) {
+                setAlreadySubscribed(false);
+            }
+        } catch (err) {
+            toast.error(`Error trying to unsubscribe: ${err}`);
+        } finally {
+            setSavingSubscription(false);
+        }
+    };
+    const subscribe = async () => {
+        if (!user || !artist.community) return;
+        setSavingSubscription(true);
+        
+        const now = new Date();
+        const endDate = new Date(now);
+        endDate.setMonth(endDate.getMonth() + 1); // Add 1 month
+        
+        const post: communitySubscriptionData = {
+            auto_renew: true,
+            community_id: artist.community.community_id,
+            created_at: now.toISOString(),
+            end_date: endDate.toISOString(),
+            is_active: true,
+            payment_id: null,
+            start_date: now.toISOString(),
+            updated_at: now.toISOString(),
+            user_id: user.id,
+        };
+        try {
+            const res = await fetch("/api/community/subscribe", {
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify(post),
+            });
+            if (!res.ok) {
+                console.error(`Request failed: ${res.status}`);
+            }
+            const data = await res.json();
+            if (data.subscription) {
+                setAlreadySubscribed(true);
+            }
+        } catch (err: any) {
+            toast.error(
+                err.message || "Error trying to fetch the subscription route "
+            );
+        } finally {
+            setSavingSubscription(false);
+        }
+    };
+    const handleSubscribe = async () => {
+        if (!user) { router.push("/login"); return; }
+        if (savingSubscription || loading) return;
+        if (alreadySubscribed) {
+            await unsubscribe();
+        } else {
+            await subscribe();
+        }
+    };
+    const isOwnCommunity = !!(user?.isAlsoArtist && artist?.artist_id && user?.artistId === artist?.artist_id);
+    const cover_image = getImageUrl(artist.cover_photo_url);
+    const buttonText = !user
+        ? `Log in to join ${artist.community ? `the ${artist.community.name} community` : `${artist.artist_name}'s community`}`
+        : savingSubscription && !alreadySubscribed
+            ? "Subscribing..."
+            : savingSubscription && alreadySubscribed
+            ? "Unsubscribing..."
+            : alreadySubscribed
+            ? `Unsubscribe from ${
+                  artist.community
+                      ? `the ${artist.community.name} community`
+                      : `${artist.artist_name}'s community`
+              }`
+            : `Subscribe to ${
+                  artist.community
+                      ? `the ${artist.community.name} community`
+                      : `${artist.artist_name}'s community`
+              }`;
+    return (
+        <>
+            {user?.role !== "artist" && <><div className="hidden md:block"><Navbar /></div><MobileNav /></>}
+            <div className="min-h-screen text-white flex flex-col pb-16 md:pb-0" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
+                <CommunityHeader
+                    slug={slug}
+                    communityName={artist.community?.name}
+                    isSubscribed={alreadySubscribed}
+                    currentPage="about"
+                />
+                <div className="relative w-full mt-16">
+                    {/* Cover image - full width */}
+                    <div className="w-full h-56 md:h-72 overflow-hidden">
+                        <img
+                            src={cover_image}
+                            alt="Cover"
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                    {/* Profile photo overlapping bottom of cover */}
+                    <div className="absolute left-1/2 -translate-x-1/2 -bottom-16 z-10">
+                        <div className="w-32 h-32 md:w-36 md:h-36 rounded-full border-4 border-[#1a1625] overflow-hidden bg-gray-700 shadow-xl">
+                            <img src={profile_image} alt={artist.artist_name} className="w-full h-full object-cover" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Name + Social icons */}
+                <div className="mt-20 text-center">
+                    <BaseHeading fontSize="large" fontWeight={700}>
+                        {artist.artist_name}
+                    </BaseHeading>
+                    {artist.community?.name && (
+                        <div className="mt-1">
+                            <BaseText wrapper="span" textColor="#9ca3af" fontSize="small" fontStyle="italic">
+                                {artist.community.name}
+                            </BaseText>
+                            <span className="inline-flex items-center ml-2 align-middle">
+                                <ShareButton url={`/community/${slug}`} light iconOnly />
+                            </span>
+                        </div>
+                    )}
+                    {artist.socials && artist.socials.length > 0 && (
+                        <div className="flex justify-center gap-4 mt-3">
+                            {artist.socials.map((s, i) => {
+                                let Icon: IconType | null = null;
+                                switch (s.platform.toLowerCase()) {
+                                    case "youtube": Icon = FaYoutube; break;
+                                    case "instagram": Icon = FaInstagram; break;
+                                    case "twitter": case "x": Icon = FaXTwitter; break;
+                                    case "facebook": Icon = FaFacebook; break;
+                                    case "tiktok": Icon = FaTiktok; break;
+                                    case "spotify": Icon = FaSpotify; break;
+                                    default: return null;
+                                }
+                                return (
+                                    <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#FA6400] transition text-2xl">
+                                        <Icon />
+                                    </a>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+                {/* MAIN CONTENT */}
+                <div className="max-w-4xl w-full mx-auto px-6 py-8 pb-24 space-y-8">
+                    {/* About */}
+                    <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
+                        <BaseHeading fontWeight={600} fontSize="normal" className="mb-3">{t('About')}</BaseHeading>
+                        {artist.bio ? (
+                            <BaseText className="leading-relaxed" textColor="#d1d5db" fontSize="normal">
+                                {artist.bio}
+                            </BaseText>
+                        ) : (
+                            <BaseText textColor="#6b7280">{t('No bio available yet.')}</BaseText>
+                        )}
+                    </div>
+
+                    {/* Community Highlights (artist-configured; hidden when empty) */}
+                    {artist.community?.highlights && artist.community.highlights.length > 0 && (
+                        <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
+                            <BaseHeading fontSize="normal" fontWeight={600} className="mb-3">{t('Community Highlights')}</BaseHeading>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {artist.community.highlights.map((h: { imageUrl: string | null; text: string }, idx: number) => (
+                                    <div key={idx} className="relative h-40 rounded-xl overflow-hidden bg-gradient-to-br from-purple-900/30 to-[#1a1625] border border-gray-700 flex items-end p-4">
+                                        {h.imageUrl && <img src={getImageUrl(h.imageUrl)} alt="" className="absolute inset-0 w-full h-full object-cover" />}
+                                        {h.imageUrl && <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />}
+                                        <BaseText fontWeight={600} fontSize="small"><span className="relative z-10">{h.text}</span></BaseText>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Reviews — song/album reviews that mention this artist */}
+                    <div className="p-6 rounded-2xl bg-[#221c2f] border border-gray-800">
+                        <BaseHeading headingLevel="h2" fontSize="normal" fontWeight={600} className="mb-6">{t('Reviews')}</BaseHeading>
+                        {artistReviews.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {artistReviews.map((r: any) => {
+                                    const isAlbum = r.spotify_track_id?.startsWith("album:");
+                                    const href = isAlbum
+                                        ? `/reviews/album/${r.spotify_track_id.replace("album:", "")}`
+                                        : `/reviews/song/${r.spotify_track_id}`;
+                                    return (
+                                        <a key={r.review_id} href={href} className="bg-[#1a1625] border border-gray-700 rounded-xl p-5 shadow-lg hover:shadow-xl hover:border-[#FA6400]/50 transition space-y-3 block">
+                                            {r.song?.album_art_url && (
+                                                <div className="w-full h-32 rounded-lg overflow-hidden">
+                                                    <img src={getImageUrl(r.song.album_art_url)} alt={r.song?.track_name || "Cover"} className="w-full h-full object-cover" />
+                                                </div>
+                                            )}
+                                            <BaseHeading fontSize="small" fontWeight={600}>{r.song?.track_name || "Review"}</BaseHeading>
+                                            {r.review_text && (
+                                                <BaseText textColor="#d1d5db" fontSize="small">
+                                                    {r.review_text.length > 150 ? r.review_text.slice(0, 150) + "..." : r.review_text}
+                                                </BaseText>
+                                            )}
+                                            <BaseText textColor="#fa6400" fontSize="very small" fontWeight={500}>
+                                                @{r.user?.username || "user"}{r.created_at ? ` • ${new Date(r.created_at).toLocaleDateString("en-US", { day: "numeric", month: "short" })}` : ""}
+                                            </BaseText>
+                                        </a>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <BaseText textColor="#6b7280">{t('No reviews yet.')}</BaseText>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {!isOwnCommunity && (
+            <div className={styles["subscribe-banner"]}>
+                <button
+                    disabled={savingSubscription}
+                    className={`${styles.button} ${
+                        alreadySubscribed
+                            ? styles.unsubscribe
+                            : styles.subscribe
+                    }`}
+                    onClick={handleSubscribe}
+                >
+                    <BaseText
+                        wrapper="span"
+                        textColor={"#f0f0f0"}
+                        fontName="inter"
+                        fontSize="normal"
+                    >
+                        {buttonText}
+                    </BaseText>
+                </button>
+            </div>
+            )}
+        </>
+    );
+}

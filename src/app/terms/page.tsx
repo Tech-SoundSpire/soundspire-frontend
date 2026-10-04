@@ -1,6 +1,10 @@
 import LegalPage from "@/components/LegalPage";
 
-export const metadata = { title: "Terms of Service - SoundSpire" };
+export const metadata = {
+  title: "Terms of Service",
+  description: "The terms that govern your use of SoundSpire, the music community connecting fans and artists.",
+  alternates: { canonical: "/terms" },
+};
 
 export default function TermsPage() {
   return (

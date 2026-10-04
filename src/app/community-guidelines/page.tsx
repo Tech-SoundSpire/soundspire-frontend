@@ -1,6 +1,10 @@
 import LegalPage from "@/components/LegalPage";
 
-export const metadata = { title: "Community Guidelines - SoundSpire" };
+export const metadata = {
+  title: "Community Guidelines",
+  description: "The rules that keep SoundSpire communities respectful and safe for fans and artists.",
+  alternates: { canonical: "/community-guidelines" },
+};
 
 export default function CommunityGuidelinesPage() {
   return (

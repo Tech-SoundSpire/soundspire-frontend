@@ -1,66 +1,18 @@
 export const dynamic = 'force-dynamic';
-import Artist from "@/models/Artist";
-import Community from "@/models/Community";
-import Social from "@/models/Social";
-import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import { NextRequest, NextResponse } from "next/server";
+import { getCommunityArtist } from "@/lib/communityArtist";
+
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ slug: string }> }
 ) {
     try {
-        await connectionTestingAndHelper();
         const { slug } = await params;
-
-        const artist = await Artist.findOne({
-            where: { slug },
-            include: [
-                {
-                    model: Community,
-                    as: "Communities",
-                    attributes: [
-                        "community_id",
-                        "name",
-                        "description",
-                        "subscription_fee",
-                        "subscription_interval",
-                        "highlights",
-                    ],
-                },
-                {
-                    model: Social,
-                    as: "socials",
-                    attributes: ["platform", "url"],
-                },
-            ],
-        });
+        const artist = await getCommunityArtist(slug);
         if (!artist) {
             return NextResponse.json({ error: "Artist not found" }, { status: 404 });
         }
-        // Cached but not onboarded — not a real community page yet
-        if (!artist.user_id) {
-            return NextResponse.json({ error: "Artist not found" }, { status: 404 });
-        }
-        // Force reload to get latest data
-        await artist.reload();
-        // console.log(`[community/${slug}] profile_picture_url:`, artist.profile_picture_url);
-        const artistData = artist.get({ plain: true }) as any;
-        return NextResponse.json({
-            artist: {
-                artist_id: artist.artist_id,
-                user_id: artist.user_id,
-                artist_name: artist.artist_name,
-                bio: artist.bio,
-                profile_picture_url: artist.profile_picture_url,
-                cover_photo_url: artist.cover_photo_url,
-                verification_status: artist.verification_status,
-                socials: artistData.socials || [],
-                community: artistData.Communities?.length
-                    ? artistData.Communities[0]
-                    : null,
-                slug,
-            },
-        });
+        return NextResponse.json({ artist });
     } catch (err) {
         console.error("Error fetching artist profile: ", err);
         return NextResponse.json(

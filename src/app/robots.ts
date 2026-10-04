@@ -6,7 +6,9 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: "/",
+      // /api/images/ serves artist photos and the logo used in share cards and structured
+      // data, so crawlers must be able to fetch it. The rest of /api/ stays blocked.
+      allow: ["/", "/api/images/"],
       // Auth-gated / non-content surfaces — no value to crawlers, keep them out.
       disallow: [
         "/api/",
@@ -20,6 +22,7 @@ export default function robots(): MetadataRoute.Robots {
         "/reset-password",
         "/forgot-password",
         "/verifyemail",
+        "/under-review",
       ],
     },
     sitemap: `${BASE}/sitemap.xml`,

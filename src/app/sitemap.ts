@@ -9,9 +9,11 @@ const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://app.soundspire.online"
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${BASE}/`, changeFrequency: "weekly", priority: 1 },
-    { url: `${BASE}/signup`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE}/login`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${BASE}/artist-onboarding`, changeFrequency: "monthly", priority: 0.5 },
+    // Login/signup omitted: no search value. Legal pages are public, indexable content.
+    ...["privacy", "terms", "artist-terms", "community-guidelines", "child-safety", "delete-account"].map(
+      (p) => ({ url: `${BASE}/${p}`, changeFrequency: "yearly" as const, priority: 0.2 })
+    ),
   ];
 
   // Onboarded artists (user_id set) → public community pages.
