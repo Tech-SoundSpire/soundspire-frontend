@@ -160,9 +160,10 @@ export default function SuggestionsPage() {
     }
 
     return (
-        <div className={`min-h-screen text-white ${!isArtist ? "md:ml-[54px]" : ""}`}
+        <div className={`min-h-screen text-white ${user?.role !== "artist" ? "md:ml-[54px]" : ""}`}
             style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 30%, #1a0a2e 70%, #0a0612 100%)" }}>
-            <Navbar />
+            {/* Artists use their dashboard nav, not the fan Navbar (same rule as the other tabs). */}
+            {user?.role !== "artist" && <div className="hidden md:block"><Navbar /></div>}
             <CommunityHeader slug={slug} communityName={communityName} isSubscribed={true} isArtist={isArtist} currentPage="suggestions" />
 
             <main className="max-w-4xl mx-auto px-4 pt-24 pb-40">
@@ -251,7 +252,7 @@ export default function SuggestionsPage() {
                     </button>
                 </div>
             </div>
-            <MobileNav />
+            {user?.role !== "artist" && <MobileNav />}
         </div>
     );
 }
