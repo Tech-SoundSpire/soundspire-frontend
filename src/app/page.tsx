@@ -96,17 +96,28 @@ export default function LandingPage() {
       logo: "https://app.soundspire.online/api/images/assets/ss_logo.png",
       description:
         "SoundSpire is a music platform that connects fans directly with their favorite artists through exclusive communities, reviews, and personalized discovery.",
+      contactPoint: { "@type": "ContactPoint", contactType: "customer support", email: "support@soundspire.online" },
     },
     {
+      // No SearchAction: /explore needs login and is disallowed in robots.txt.
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: "SoundSpire",
       url: "https://app.soundspire.online",
-      potentialAction: {
-        "@type": "SearchAction",
-        target: "https://app.soundspire.online/explore?q={search_term_string}",
-        "query-input": "required name=search_term_string",
-      },
+    },
+    {
+      // The Android app. No rating fields until there are real Play ratings to cite.
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "SoundSpire",
+      operatingSystem: "Android",
+      applicationCategory: "SocialNetworkingApplication",
+      description:
+        "Join your favorite artists' communities: chat with fans, share fan art, send suggestions, and review music.",
+      url: "https://play.google.com/store/apps/details?id=com.aistudio.soundspire.vsqtyz",
+      downloadUrl: "https://play.google.com/store/apps/details?id=com.aistudio.soundspire.vsqtyz",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+      publisher: { "@type": "Organization", name: "SoundSpire" },
     },
     {
       "@context": "https://schema.org",

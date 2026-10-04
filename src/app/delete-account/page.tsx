@@ -1,6 +1,10 @@
 import LegalPage from "@/components/LegalPage";
 
-export const metadata = { title: "Delete Your Account - SoundSpire" };
+export const metadata = {
+  title: "Delete Your Account",
+  description: "How to delete your SoundSpire account and what data is removed.",
+  alternates: { canonical: "/delete-account" },
+};
 
 // Publicly reachable (no auth) account-deletion info page. Required for the
 // Play Store data-deletion gate. The actual deletion endpoint is auth-only.
