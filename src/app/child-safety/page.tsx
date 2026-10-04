@@ -1,6 +1,10 @@
 import LegalPage from "@/components/LegalPage";
 
-export const metadata = { title: "Child Safety Standards - SoundSpire" };
+export const metadata = {
+  title: "Child Safety Standards",
+  description: "SoundSpire's standards against child sexual abuse and exploitation, and how to report concerns.",
+  alternates: { canonical: "/child-safety" },
+};
 
 // Published CSAE standards page, required by Google Play's Child Safety Standards
 // policy for social apps. Must stay a live, public, non-PDF URL.

@@ -1,6 +1,10 @@
 import LegalPage from "@/components/LegalPage";
 
-export const metadata = { title: "Privacy Policy - SoundSpire" };
+export const metadata = {
+  title: "Privacy Policy",
+  description: "How SoundSpire collects, uses, and protects your personal data, and the privacy rights you have.",
+  alternates: { canonical: "/privacy" },
+};
 
 export default function PrivacyPage() {
   return (

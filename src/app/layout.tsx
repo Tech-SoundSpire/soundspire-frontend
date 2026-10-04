@@ -23,7 +23,6 @@ export const metadata: Metadata = {
         "artist platform",
         "music reviews",
     ],
-    alternates: { canonical: "/" },
     icons: {
         icon: "/api/images/assets/ss_logo.png",
     },
@@ -33,15 +32,14 @@ export const metadata: Metadata = {
         title: "SoundSpire — The Superfan Experience",
         description:
             "Connect directly with your favorite artists, access exclusive releases, and join a community that shares your passion.",
-        url: BASE_URL,
-        images: ["/api/images/assets/index.png"],
+        images: [{ url: "/og.png", width: 1200, height: 630, alt: "SoundSpire - The Superfan Experience" }],
     },
     twitter: {
         card: "summary_large_image",
         title: "SoundSpire — The Superfan Experience",
         description:
             "Connect directly with your favorite artists, access exclusive releases, and join a community that shares your passion.",
-        images: ["/api/images/assets/index.png"],
+        images: [{ url: "/og.png", width: 1200, height: 630, alt: "SoundSpire - The Superfan Experience" }],
     },
 };
 

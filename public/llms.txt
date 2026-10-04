@@ -1,0 +1,35 @@
+# SoundSpire
+
+> SoundSpire is a music community platform for superfans and the artists they follow. Each artist has an official community where fans subscribe, chat in real time, share fan art, send suggestions the artist can reply to, and review songs and albums. Available on the web and as an Android app.
+
+## For fans
+
+- Join the official community of an artist you love and talk with other fans in All Chat.
+- Share fan art, react to posts, and send suggestions directly to the artist.
+- Discover artists by genre and read or write song and album reviews.
+- If an artist is not on SoundSpire yet, fans can vote to bring them onto the platform.
+
+## For artists
+
+- Artists sign up, verify their email, and are reviewed by the SoundSpire team before going live.
+- Each artist gets a community with an About page, highlights, social links, a forum, All Chat, Fan Art, and Suggestions.
+
+## Links
+
+- [Website](https://app.soundspire.online/): sign up, explore artists, and join communities
+- [Android app on Google Play](https://play.google.com/store/apps/details?id=com.aistudio.soundspire.vsqtyz)
+- [Artist sign up](https://app.soundspire.online/artist-onboarding)
+- [Community example](https://app.soundspire.online/community/coldplay): public artist community page
+
+## Policies
+
+- [Privacy Policy](https://app.soundspire.online/privacy)
+- [Terms of Service](https://app.soundspire.online/terms)
+- [Artist Terms](https://app.soundspire.online/artist-terms)
+- [Community Guidelines](https://app.soundspire.online/community-guidelines)
+- [Child Safety Standards](https://app.soundspire.online/child-safety)
+- [Delete your account](https://app.soundspire.online/delete-account)
+
+## Contact
+
+- support@soundspire.online
