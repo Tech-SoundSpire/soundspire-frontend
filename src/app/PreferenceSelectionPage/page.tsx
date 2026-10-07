@@ -17,6 +17,8 @@ import BaseHeading from "@/components/BaseHeading/BaseHeading";
 import BaseText from "@/components/BaseText/BaseText";
 import ISO6391 from "iso-639-1";
 import musicGenres from "music-genres";
+import { genreKey } from "@/utils/genreKey";
+import { genreEmoji } from "@/utils/genreVisuals";
 
 // --- TYPE DEFINITIONS ---
 interface Language {
@@ -29,7 +31,7 @@ interface Language {
 interface Genre {
     genre_id: string;
     name: string;
-    isParent: boolean;
+    artistCount?: number; // artists on SoundSpire with this genre (0/undefined = list-only genre)
 }
 
 interface Artist {
@@ -184,48 +186,23 @@ const LanguageSelection: React.FC<SelectionProps<Language>> = ({
     );
 };
 
-// Genre color mapping for parent genres
-const genreColors: Record<string, string> = {
-    Alternative: "border-purple-500 bg-purple-500/10",
-    Blues: "border-blue-500 bg-blue-500/10",
-    Country: "border-amber-500 bg-amber-500/10",
-    Electronic: "border-cyan-500 bg-cyan-500/10",
-    "Hip Hop Rap": "border-red-500 bg-red-500/10",
-    Jazz: "border-yellow-500 bg-yellow-500/10",
-    Latino: "border-orange-500 bg-orange-500/10",
-    Metal: "border-gray-400 bg-gray-400/10",
-    Pop: "border-pink-500 bg-pink-500/10",
-    Punk: "border-green-500 bg-green-500/10",
-    "R B Soul": "border-violet-500 bg-violet-500/10",
-    Reggae: "border-emerald-500 bg-emerald-500/10",
-    Rock: "border-rose-500 bg-rose-500/10",
-};
+// Step 2: Genre Selection. Popular genres (the ones real artists on SoundSpire have) are
+// shown as cards; everything else is found by search. Duplicate spellings are merged by
+// genreKey, and the user's picks always stay visible at the top.
+const POPULAR_CARDS = 12;
+const MORE_PILLS = 24;
+const MAX_RESULTS = 60;
 
-const genreEmojis: Record<string, string> = {
-    Alternative: "🎸", Blues: "🎷", Country: "🤠", Electronic: "🎛️",
-    "Hip Hop Rap": "🎤", Jazz: "🎺", Latino: "💃", Metal: "🤘",
-    Pop: "🎵", Punk: "⚡", "R B Soul": "🎙️", Reggae: "🌴", Rock: "🎸",
-};
-
-// Step 2: Genre Selection
 const GenreSelection: React.FC<SelectionProps<Genre>> = ({
     selected,
     onSelect,
     items,
     searchQuery,
 }) => {
-    const filteredItems = items.filter((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
+    const isPicked = (g: Genre) => selected.some((s) => genreKey(s.name) === genreKey(g.name));
     const handleToggle = (genre: Genre) => {
-        const isSelected = selected.some(
-            (item) => item.genre_id === genre.genre_id
-        );
-        if (isSelected) {
-            onSelect(
-                selected.filter((item) => item.genre_id !== genre.genre_id)
-            );
+        if (isPicked(genre)) {
+            onSelect(selected.filter((s) => genreKey(s.name) !== genreKey(genre.name)));
         } else if (selected.length < 5) {
             onSelect([...selected, genre]);
         } else {
@@ -233,17 +210,37 @@ const GenreSelection: React.FC<SelectionProps<Genre>> = ({
         }
     };
 
-    // Group: parent genres shown as big cards, subgenres as pills
-    const parentGenres = filteredItems.filter((g) => g.isParent);
-    const subGenres = filteredItems.filter((g) => !g.isParent);
+    const q = searchQuery.trim().toLowerCase();
+    // Search: prefix matches first, then other matches, each ranked by artist count.
+    const results = q
+        ? items
+              .filter((g) => g.name.toLowerCase().includes(q))
+              .sort((a, b) =>
+                  Number(b.name.toLowerCase().startsWith(q)) - Number(a.name.toLowerCase().startsWith(q)) ||
+                  (b.artistCount || 0) - (a.artistCount || 0) || a.name.localeCompare(b.name))
+              .slice(0, MAX_RESULTS)
+        : [];
+    const popular = items.filter((g) => (g.artistCount || 0) > 0).slice(0, POPULAR_CARDS);
+    const more = items.filter((g) => !popular.includes(g)).slice(0, MORE_PILLS);
+
+    const pill = (genre: Genre) => (
+        <button
+            key={genreKey(genre.name)}
+            onClick={() => handleToggle(genre)}
+            className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 capitalize ${
+                isPicked(genre)
+                    ? "border-orange-400 bg-orange-500/20 text-orange-300"
+                    : "border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-400 hover:bg-gray-700/50"
+            }`}
+        >
+            {isPicked(genre) && "✓ "}{genre.name}
+        </button>
+    );
 
     return (
         <div className="space-y-6">
             <div className="text-left">
-                <BaseHeading
-                    headingLevel="h2"
-                    className="text-3xl font-bold mb-2"
-                >
+                <BaseHeading headingLevel="h2" className="text-3xl font-bold mb-2">
                     Choose Your Favorite Genres
                 </BaseHeading>
                 <BaseText textColor="#fb923c" fontWeight={500}>
@@ -251,68 +248,54 @@ const GenreSelection: React.FC<SelectionProps<Genre>> = ({
                 </BaseText>
             </div>
 
-            {/* Parent genres as cards */}
-            {parentGenres.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {parentGenres.map((genre) => {
-                        const isSelected = selected.some(
-                            (item) => item.genre_id === genre.genre_id
-                        );
-                        const color = genreColors[genre.name] || "border-gray-500 bg-gray-500/10";
-                        const emoji = genreEmojis[genre.name] || "🎶";
-                        return (
-                            <div
-                                key={genre.genre_id}
-                                onClick={() => handleToggle(genre)}
-                                className={`relative cursor-pointer group transition-all duration-200 rounded-2xl border-2 p-4 flex flex-col items-center justify-center gap-2 ${color} ${
-                                    isSelected
-                                        ? "!border-orange-400 !bg-orange-400/20 shadow-lg shadow-orange-400/20 scale-105"
-                                        : "hover:brightness-125 hover:scale-105"
-                                }`}
-                            >
-                                <span className="text-3xl">{emoji}</span>
-                                <span className="text-white text-sm font-bold text-center">
-                                    {genre.name}
-                                </span>
-                                {isSelected && (
-                                    <div className="absolute -top-2 -right-2">
-                                        <CheckCircle className="w-7 h-7 text-white bg-orange-500 rounded-full p-0.5" />
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+            {selected.length > 0 && (
+                <div>
+                    <BaseText textColor="#9ca3af" fontSize="small" className="mb-2">Your picks ({selected.length}/5)</BaseText>
+                    <div className="flex flex-wrap gap-2">{selected.map(pill)}</div>
                 </div>
             )}
 
-            {/* Subgenres as pills */}
-            {subGenres.length > 0 && (
+            {q ? (
+                results.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">{results.map(pill)}</div>
+                ) : (
+                    <BaseText textColor="#9ca3af">No genres match &ldquo;{searchQuery}&rdquo;.</BaseText>
+                )
+            ) : (
                 <>
-                    {parentGenres.length > 0 && (
-                        <BaseText textColor="#9ca3af" fontSize="small" className="mt-2">
-                            Subgenres
-                        </BaseText>
+                    {popular.length > 0 && (
+                        <div>
+                            <BaseText textColor="#9ca3af" fontSize="small" className="mb-2">Popular on SoundSpire</BaseText>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {popular.map((genre) => (
+                                    <div
+                                        key={genreKey(genre.name)}
+                                        onClick={() => handleToggle(genre)}
+                                        className={`relative cursor-pointer transition-all duration-200 rounded-2xl border-2 p-4 flex flex-col items-center justify-center gap-2 border-white/15 bg-white/5 ${
+                                            isPicked(genre)
+                                                ? "!border-orange-400 !bg-orange-400/20 shadow-lg shadow-orange-400/20 scale-105"
+                                                : "hover:brightness-125 hover:scale-105"
+                                        }`}
+                                    >
+                                        <span className="text-3xl">{genreEmoji(genre.name)}</span>
+                                        <span className="text-white text-sm font-bold text-center capitalize">{genre.name}</span>
+                                        {isPicked(genre) && (
+                                            <div className="absolute -top-2 -right-2">
+                                                <CheckCircle className="w-7 h-7 text-white bg-orange-500 rounded-full p-0.5" />
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     )}
-                    <div className="flex flex-wrap gap-2">
-                        {subGenres.map((genre) => {
-                            const isSelected = selected.some(
-                                (item) => item.genre_id === genre.genre_id
-                            );
-                            return (
-                                <button
-                                    key={genre.genre_id}
-                                    onClick={() => handleToggle(genre)}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ${
-                                        isSelected
-                                            ? "border-orange-400 bg-orange-500/20 text-orange-300"
-                                            : "border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-400 hover:bg-gray-700/50"
-                                    }`}
-                                >
-                                    {isSelected && "✓ "}{genre.name}
-                                </button>
-                            );
-                        })}
-                    </div>
+                    {more.length > 0 && (
+                        <div>
+                            <BaseText textColor="#9ca3af" fontSize="small" className="mb-2">More genres</BaseText>
+                            <div className="flex flex-wrap gap-2">{more.map(pill)}</div>
+                        </div>
+                    )}
+                    <BaseText textColor="#6b7280" fontSize="small">Can&apos;t see yours? Search above to find any genre.</BaseText>
                 </>
             )}
         </div>
@@ -533,25 +516,31 @@ const PreferenceSelectionPage: React.FC = () => {
         }));
         setAvailableLanguages(allLangs);
 
-        // Genres from music-genres (top-level + subgenres flattened)
+        // Genres: real ones from SoundSpire (with artist counts, most popular first), then the
+        // music-genres list for anything not yet on the platform. Merged by genreKey so each
+        // genre appears once.
+        const staticGenres: Genre[] = [];
         const allGenresObj = musicGenres.getAllGenres();
-        const genreList: Genre[] = [];
         Object.keys(allGenresObj).forEach((parent) => {
-            const displayName = parent.replace(/_/g, " ");
-            genreList.push({
-                genre_id: parent,
-                name: displayName,
-                isParent: true,
-            });
-            (allGenresObj[parent] as string[]).forEach((sub: string) => {
-                genreList.push({
-                    genre_id: `${parent}_${sub}`,
-                    name: sub,
-                    isParent: false,
-                });
-            });
+            staticGenres.push({ genre_id: `static:${parent}`, name: parent.replace(/_/g, " ") });
+            (allGenresObj[parent] as string[]).forEach((sub: string) =>
+                staticGenres.push({ genre_id: `static:${parent}_${sub}`, name: sub }));
         });
-        setAvailableGenres(genreList);
+        const mergeGenres = (fromDb: Genre[]) => {
+            const seen = new Set<string>();
+            return [...fromDb, ...staticGenres].filter((g) => {
+                const k = genreKey(g.name);
+                if (!k || seen.has(k)) return false;
+                seen.add(k);
+                return true;
+            });
+        };
+        setAvailableGenres(mergeGenres([]));
+        axios.get("/api/preferences/available/genres")
+            .then((res) => setAvailableGenres(mergeGenres(
+                (res.data.genres || []).map((g: any) => ({ genre_id: g.genre_id, name: g.name, artistCount: g.artist_count || 0 }))
+            )))
+            .catch(() => { /* keep the static list */ });
 
         // Artists still from DB
         const loadArtists = async () => {

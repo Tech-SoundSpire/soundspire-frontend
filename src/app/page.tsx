@@ -600,6 +600,8 @@ export default function LandingPage() {
                 <li><a href="#about" className="hover:text-white transition">About</a></li>
                 <li><Link href="/signup" className="hover:text-white transition">Sign Up</Link></li>
                 <li><Link href="/login" className="hover:text-white transition">Login</Link></li>
+                <li><Link href="/blog" className="hover:text-white transition">Blog</Link></li>
+                <li><Link href="/press" className="hover:text-white transition">Press</Link></li>
               </ul>
             </div>
             <div>

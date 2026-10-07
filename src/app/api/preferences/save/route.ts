@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import UserPreferences from "@/models/UserPreferences";
 import Genres from "@/models/Genres";
+import { genreKey } from "@/utils/genreKey";
 import Languages from "@/models/Languages";
 import Artist from "@/models/Artist";
 
@@ -20,8 +21,9 @@ export async function POST(request: NextRequest) {
     // Also try to match DB records for backward compatibility
     let genreIds: string[] = [];
     if (genres && genres.length > 0) {
-      const genreRecords = await Genres.findAll({ where: { name: genres } });
-      genreIds = genreRecords.map(g => g.genre_id);
+      // Match by genreKey so "Hip Hop" finds the stored "hip-hop" row.
+      const byKey = new Map((await Genres.findAll({ attributes: ["genre_id", "name"] })).map((g) => [genreKey(g.name), g.genre_id]));
+      genreIds = [...new Set((genres as string[]).map((n) => byKey.get(genreKey(String(n)))).filter((id): id is string => !!id))];
     }
 
     let languageIds: string[] = [];
