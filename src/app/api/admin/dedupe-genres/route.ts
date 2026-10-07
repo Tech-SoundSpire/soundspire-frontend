@@ -61,9 +61,10 @@ export async function GET(request: NextRequest) {
             for (const { keep, remove } of merges) {
                 const dupIds = remove.map((r) => r.genre_id);
                 // Move artist links to the canonical genre (skip artists that already have it).
+                // ::uuid is required: with DISTINCT, Postgres types a bare literal as text.
                 await sequelize.query(
                     `INSERT INTO artist_genres (artist_id, genre_id)
-                     SELECT DISTINCT ag.artist_id, :keep FROM artist_genres ag
+                     SELECT DISTINCT ag.artist_id, :keep::uuid FROM artist_genres ag
                       WHERE ag.genre_id IN (:dups)
                         AND NOT EXISTS (SELECT 1 FROM artist_genres x WHERE x.artist_id = ag.artist_id AND x.genre_id = :keep)`,
                     { replacements: { keep: keep.genre_id, dups: dupIds }, transaction }
@@ -87,6 +88,13 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ dryRun: false, applied: true, preferencesUpdated: prefsUpdated, ...summary });
     } catch (error) {
         console.error("Error de-duplicating genres:", error);
-        return NextResponse.json({ error: "Failed to de-duplicate genres" }, { status: 500 });
+        // Admin-only route: include the database reason so failures can be fixed. Nothing was
+        // changed (the merge runs in one transaction).
+        const e = error as { message?: string; parent?: { message?: string; detail?: string } };
+        return NextResponse.json({
+            error: "Failed to de-duplicate genres (no changes were made)",
+            reason: e?.parent?.message || e?.message || String(error),
+            detail: e?.parent?.detail,
+        }, { status: 500 });
     }
 }
