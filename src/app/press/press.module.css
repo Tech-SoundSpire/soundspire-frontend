@@ -1,0 +1,197 @@
+/* Press kit styles, scoped to the /press page (ported from SoundSpire Press Kit.html). */
+.root { --bg:#120B1F;
+  --surface:#1B1230;
+  --surface-2:#241839;
+  --fg:#F4ECE6;
+  --muted:#A294BA;
+  --accent:#E85D24;
+  --accent-dim:#B8420F;
+  --line:#2E2144;
+  --flag:#E8B339;
+  --flag-bg:#2A2012;
+  --display:var(--font-archivo),"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:var(--font-figtree),"Figtree","Helvetica Neue",Arial,sans-serif;
+  --mono:var(--font-plex-mono),"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  color-scheme:dark; }
+.root * { box-sizing:border-box }
+.root { background:var(--bg);
+  color:var(--fg);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.6;
+  margin:0;
+  -webkit-font-smoothing:antialiased; }
+.root :global(.wrap) { max-width:860px;margin:0 auto;padding-inline:20px }
+.root :global(.masthead) { border-bottom:1px solid var(--line) }
+.root :global(.masthead) :global(.wrap) { padding-block:52px 40px }
+.root :global(.wordmark) { font-family:var(--display);
+  font-weight:800;
+  font-size:clamp(38px,8vw,62px);
+  letter-spacing:-0.03em;
+  line-height:1;
+  margin:0 0 18px; }
+.root :global(.wordmark) :global(.s1) { color:var(--accent) }
+.root :global(.wordmark) :global(.s2) { color:var(--fg) }
+.root :global(.kicker) { font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:0 0 26px; }
+.root :global(.lede) { font-size:clamp(19px,3.4vw,23px);
+  line-height:1.45;
+  color:var(--fg);
+  max-width:34ch;
+  margin:0 0 14px;
+  text-wrap:balance;
+  font-weight:500; }
+.root :global(.sub) { color:var(--muted);margin:0;max-width:60ch;font-size:16.5px }
+.root nav { position:sticky;
+  top:env(safe-area-inset-top,0px);
+  z-index:20;
+  background:rgba(18,11,31,.93);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line); }
+.root nav :global(.wrap) { padding-block:11px;
+  display:flex;gap:6px;
+  overflow-x:auto;
+  scrollbar-width:none; }
+.root nav :global(.wrap)::-webkit-scrollbar { display:none }
+.root nav a { font-family:var(--mono);
+  font-size:11.5px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+  text-decoration:none;
+  padding:6px 10px;
+  border-radius:4px;
+  white-space:nowrap;
+  transition:color .15s,background .15s; }
+.root nav a:hover, .root nav a:focus-visible { color:var(--fg);background:var(--surface-2) }
+.root section { border-bottom:1px solid var(--line) }
+.root section :global(.wrap) { padding-block:46px }
+.root h2 { font-family:var(--display);
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin:0 0 26px; }
+.root h3 { font-family:var(--display);
+  font-weight:700;
+  font-size:19px;
+  letter-spacing:-0.01em;
+  margin:0 0 10px;
+  color:var(--fg); }
+.root p { margin:0 0 16px;max-width:66ch }
+.root p:last-child { margin-bottom:0 }
+.root a { color:var(--accent) }
+.root :global(.glance) { display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:1px;
+  background:var(--line);
+  border:1px solid var(--line);
+  border-radius:6px;
+  overflow:hidden; }
+.root :global(.glance) div { background:var(--surface);padding:18px 18px 20px;min-width:0 }
+.root :global(.glance) dt { font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:7px; }
+.root :global(.glance) dd { margin:0;
+  font-family:var(--display);
+  font-weight:600;
+  font-size:17px;
+  letter-spacing:-0.01em;
+  line-height:1.3; }
+.root :global(.copyblock) { background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:22px;
+  margin-bottom:18px; }
+.root :global(.copyblock-head) { display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  margin-bottom:14px;
+  flex-wrap:wrap; }
+.root :global(.copyblock-label) { font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--muted); }
+.root :global(.copybtn) { font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  background:transparent;
+  color:var(--accent);
+  border:1px solid var(--accent-dim);
+  border-radius:4px;
+  padding:5px 11px;
+  cursor:pointer;
+  transition:background .15s,color .15s; }
+.root :global(.copybtn):hover, .root :global(.copybtn):focus-visible { background:var(--accent);color:#17101F }
+.root :global(.copyblock) p { margin:0;color:var(--fg);max-width:none }
+.root :global(.features) { display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden }
+.root :global(.feature) { background:var(--surface);padding:20px 22px;min-width:0 }
+.root :global(.feature) h3 { font-size:16px;margin-bottom:6px }
+.root :global(.feature) p { color:var(--muted);font-size:15px;margin:0 }
+.root blockquote { margin:0;
+  padding:0 0 0 22px;
+  border-left:3px solid var(--accent);
+  font-family:var(--display);
+  font-weight:500;
+  font-size:clamp(18px,3vw,21px);
+  line-height:1.45;
+  letter-spacing:-0.01em;
+  color:var(--fg); }
+.root blockquote p { max-width:52ch }
+.root :global(.attrib) { font-family:var(--mono);
+  font-size:12px;
+  color:var(--muted);
+  margin-top:16px;
+  letter-spacing:0.04em; }
+.root :global(.facts) { width:100%;border-collapse:collapse;font-size:15px }
+.root :global(.facts) th, .root :global(.facts) td { text-align:left;
+  padding:12px 14px 12px 0;
+  border-bottom:1px solid var(--line);
+  vertical-align:top; }
+.root :global(.facts) th { font-family:var(--mono);
+  font-weight:400;
+  font-size:11.5px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--muted);
+  width:40%;
+  white-space:nowrap; }
+.root :global(.facts) td { font-weight:500 }
+.root :global(.facts) tr:last-child th, .root :global(.facts) tr:last-child td { border-bottom:0 }
+.root :global(.table-scroll) { overflow-x:auto }
+.root :global(.bio-grid) { display:grid;grid-template-columns:150px 1fr;gap:26px;align-items:start }
+.root :global(.assets) { list-style:none;padding:0;margin:0;display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden }
+.root :global(.assets) li { background:var(--surface);padding:16px 20px;display:flex;justify-content:space-between;gap:16px;align-items:baseline;flex-wrap:wrap;min-width:0 }
+.root :global(.assets) :global(.name) { font-weight:600;font-size:15.5px;min-width:0 }
+.root :global(.assets) :global(.meta) { font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:0.06em;white-space:nowrap }
+.root :global(.contact-line) { font-family:var(--display);
+  font-weight:600;
+  font-size:clamp(18px,3.2vw,22px);
+  letter-spacing:-0.01em;
+  margin:0 0 6px;
+  word-break:break-word; }
+.root :global(.rules) { color:var(--muted);font-size:14.5px }
+.root :global(.rules) li { margin-bottom:8px }
+.root footer { padding-block:34px 46px }
+.root footer p { font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:0.06em;max-width:none }
+.root :focus-visible { outline:2px solid var(--accent);outline-offset:2px }
+@media (max-width:560px){
+.root :global(.bio-grid) { grid-template-columns:1fr;gap:18px }
+.root section :global(.wrap) { padding-block:38px }
+.root :global(.facts) th { width:auto;white-space:normal }
+}
+@media (prefers-reduced-motion:reduce){
+.root * { transition:none!important;animation:none!important }
+}
+.root { min-height:100vh }

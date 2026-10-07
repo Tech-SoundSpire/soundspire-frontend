@@ -5,6 +5,7 @@ import Community from "@/models/Community";
 import CommunitySubscription from "@/models/CommunitySubscription";
 import { Op, fn, col } from "sequelize";
 import "@/models/index";
+import { genreKey } from "@/utils/genreKey";
 
 // Artists tagged with a genre, ranked by popularity (active community subscribers).
 // Onboarded artists carry a slug (→ community page); off-platform cached artists carry a
@@ -20,8 +21,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ genr
     // Duplicate genre rows exist (artist signup uses free-text chips + findOrCreate, so the same
     // genre gets multiple ids/casings). Gather artists across every Genres row sharing this name,
     // not just the curated id Explore links to - otherwise the list is wrongly empty.
+    // Every spelling variant of this genre (same genreKey: "Hip Hop" = "hip-hop").
+    const key = genreKey((target as any).name);
+    const variantIds = (await Genres.findAll({ attributes: ["genre_id", "name"] }))
+      .filter((g) => genreKey(g.name) === key).map((g) => g.genre_id);
     const sameName = await Genres.findAll({
-      where: { name: { [Op.iLike]: (target as any).name } },
+      where: { genre_id: variantIds },
       include: [{
         model: Artist,
         as: "artist",
