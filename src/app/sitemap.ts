@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { Op } from "sequelize";
 import Artist from "@/models/Artist";
+import BlogPost from "@/models/BlogPost";
 import { connectionTestingAndHelper } from "@/utils/dbConnection";
 import "@/models/index";
 
@@ -38,5 +39,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("sitemap: failed to load artists", err);
   }
 
-  return [...staticRoutes, ...artistRoutes];
+  // Blog posts (+ the blog index and press kit).
+  let blogRoutes: MetadataRoute.Sitemap = [
+    { url: `${BASE}/blog`, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${BASE}/press`, changeFrequency: "monthly", priority: 0.5 },
+  ];
+  try {
+    const posts = await BlogPost.findAll({ attributes: ["slug", "updated_at"] });
+    blogRoutes = blogRoutes.concat(posts.map((p) => ({
+      url: `${BASE}/blog/${p.slug}`, lastModified: p.updated_at, changeFrequency: "monthly" as const, priority: 0.6,
+    })));
+  } catch (err) {
+    console.error("sitemap: failed to load blog posts", err);
+  }
+
+  return [...staticRoutes, ...artistRoutes, ...blogRoutes];
 }

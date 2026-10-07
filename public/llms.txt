@@ -20,6 +20,8 @@
 - [Android app on Google Play](https://play.google.com/store/apps/details?id=com.aistudio.soundspire.vsqtyz)
 - [Artist sign up](https://app.soundspire.online/artist-onboarding)
 - [Community example](https://app.soundspire.online/community/coldplay): public artist community page
+- [Blog](https://app.soundspire.online/blog): news and stories from SoundSpire
+- [Press kit](https://app.soundspire.online/press): boilerplate, fact sheet, founder bio and brand usage
 
 ## Policies
 
