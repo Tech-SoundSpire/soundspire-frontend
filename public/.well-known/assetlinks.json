@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.aistudio.soundspire.vsqtyz",
+      "sha256_cert_fingerprints": [
+        "3C:2F:62:EF:D7:25:AE:99:1F:6E:35:11:14:A9:3F:19:F5:DA:5E:F7:FD:83:D4:CA:DF:01:1F:F4:6C:5B:F9:92",
+        "10:62:43:30:BE:10:C8:A0:13:0E:95:3C:1A:27:27:22:0F:FE:4F:57:08:88:03:76:26:F8:52:19:1A:25:78:BD"
+      ]
+    }
+  }
+]
