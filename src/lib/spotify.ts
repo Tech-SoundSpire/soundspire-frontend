@@ -76,10 +76,13 @@ export async function getArtist(artistId: string) {
   return spotifyFetch(`/artists/${artistId}`);
 }
 
-export async function getArtistAlbums(artistId: string, limit: number = 20, market: string = "US") {
+// Spotify Development Mode (since Mar 2026) caps this at 10 per page; page with `offset`.
+export async function getArtistAlbums(artistId: string, limit: number = 10, market: string = "US", offset: number = 0,
+  includeGroups: string = "album,single") {
   const params = new URLSearchParams({
-    include_groups: "album,single",
-    limit: String(limit),
+    include_groups: includeGroups,
+    limit: String(Math.min(limit, 10)),
+    offset: String(offset),
     market,
   });
   return spotifyFetch(`/artists/${artistId}/albums?${params}`);
@@ -96,4 +99,67 @@ export async function getAlbum(albumId: string, market: string = "US") {
 export async function getAlbumTracks(albumId: string, limit: number = 50, market: string = "US") {
   const params = new URLSearchParams({ limit: String(limit), market });
   return spotifyFetch(`/albums/${albumId}/tracks?${params}`);
+}
+
+// ---- Artist catalog by artist ID ----------------------------------------------------------
+// Spotify Development Mode (Mar 2026) removed /artists/{id}/top-tracks and the popularity
+// field, and caps search at 10 results, so name search can't find tracks for artists with
+// short or common names ("gini", "RANJ"). These look everything up by artist ID instead:
+// releases from /artists/{id}/albums (own + "appears on", so collaborations show up), and
+// tracks from those releases' tracklists, keeping only tracks the artist is credited on.
+//
+// ponytail: per-instance in-memory cache (10 min); move to a shared cache if Spotify rate
+// limits become a problem across serverless instances.
+const CATALOG_TTL_MS = 10 * 60 * 1000;
+const catalogCache = new Map<string, { at: number; value: Promise<any> }>();
+function cached<T>(key: string, load: () => Promise<T>): Promise<T> {
+  const hit = catalogCache.get(key);
+  if (hit && Date.now() - hit.at < CATALOG_TTL_MS) return hit.value;
+  const value = load().catch((e) => { catalogCache.delete(key); throw e; }); // don't cache failures
+  catalogCache.set(key, { at: Date.now(), value });
+  return value;
+}
+
+const MAX_RELEASE_PAGES = 3;   // up to 30 releases
+const MAX_TRACKLIST_FETCHES = 6;
+const MAX_TRACKS = 10;
+
+// Newest first; the artist's own releases before ones they only appear on.
+export function getArtistReleases(artistId: string): Promise<any[]> {
+  return cached(`releases:${artistId}`, async () => {
+    const out: any[] = [];
+    for (let page = 0; page < MAX_RELEASE_PAGES; page++) {
+      const res = await getArtistAlbums(artistId, 10, "US", page * 10, "album,single,appears_on");
+      out.push(...(res.items || []));
+      if (!res.next) break;
+    }
+    // "Own" = the artist is a main artist on the release (album_group was removed in Dev Mode).
+    const own = (a: any) => a.artists?.some((ar: any) => ar.id === artistId);
+    const seen = new Set<string>();
+    return out
+      .filter((a) => a?.id && !seen.has(a.id) && seen.add(a.id))
+      .sort((a, b) => Number(own(b)) - Number(own(a)) || String(b.release_date || "").localeCompare(String(a.release_date || "")));
+  });
+}
+
+// Tracks the artist is credited on, from their newest releases.
+export function getArtistTracks(artistId: string): Promise<any[]> {
+  return cached(`tracks:${artistId}`, async () => {
+    const releases = [...(await getArtistReleases(artistId))]
+      .sort((a, b) => String(b.release_date || "").localeCompare(String(a.release_date || "")))
+      .slice(0, MAX_TRACKLIST_FETCHES);
+    const tracks: any[] = [];
+    const seen = new Set<string>();
+    for (const rel of releases) {
+      if (tracks.length >= MAX_TRACKS) break;
+      const album = await getAlbum(rel.id);
+      for (const t of album.tracks?.items || []) {
+        if (tracks.length >= MAX_TRACKS) break;
+        if (!t?.id || seen.has(t.id) || !t.artists?.some((a: any) => a.id === artistId)) continue;
+        seen.add(t.id);
+        tracks.push({ ...t, album: { name: album.name, images: album.images } });
+      }
+    }
+    return tracks;
+  });
 }
