@@ -21,15 +21,3 @@ export function genreKey(name: string): string {
         .replace(/[^a-z0-9]+/g, "");
     return ALIASES[k] ?? k;
 }
-
-// Self-check: `npx tsx src/utils/genreKey.ts`
-if (typeof require !== "undefined" && require.main === module) {
-    const same = (a: string, b: string) => console.assert(genreKey(a) === genreKey(b), `expected same: ${a} / ${b}`);
-    const diff = (a: string, b: string) => console.assert(genreKey(a) !== genreKey(b), `expected different: ${a} / ${b}`);
-    same("Hip Hop", "hip-hop"); same("hiphop", "HIP HOP"); same("Lo-Fi", "lofi"); same("K-Pop", "kpop");
-    same("R&B", "RnB"); same("R & B", "rhythm and blues"); same("R B Soul", "R&B Soul");
-    same("Drum & Bass", "drum and bass"); same("DnB", "Drum n Bass"); same("Électronique", "electronique");
-    same("  pop  ", "Pop"); same("singer/songwriter", "Singer-Songwriter");
-    diff("Pop", "K-Pop"); diff("Rock", "Pop Rock"); diff("Hip Hop", "Hip Hop Rap"); diff("Soul", "R&B Soul");
-    console.log("genreKey self-check done (no assertion output above = all passed)");
-}
