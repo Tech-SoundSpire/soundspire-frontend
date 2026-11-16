@@ -30,9 +30,10 @@ export default function Analytics() {
             `}</Script>
             <Script id="ga-tag" strategy="afterInteractive" src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
 
+            {/* Bottom-centre, clear of the language picker (bottom-right, see FloatingLanguagePicker). */}
             {showBanner && (
                 <div role="dialog" aria-label="Analytics consent"
-                    className="fixed bottom-20 md:bottom-4 inset-x-4 md:left-auto md:right-4 md:max-w-md z-[9999] rounded-xl border border-white/15 bg-[#1a1625]/95 backdrop-blur p-4 text-sm text-white shadow-2xl">
+                    className="fixed bottom-36 md:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-[9999] rounded-xl border border-white/15 bg-[#1a1625]/95 backdrop-blur p-4 text-sm text-white shadow-2xl">
                     <p className="text-white/80 mb-3">
                         We use analytics cookies to understand how SoundSpire is used and improve it.
                         No ads, and you can decline. <Link href="/privacy" className="text-[#FF4E27] hover:underline">Privacy Policy</Link>
