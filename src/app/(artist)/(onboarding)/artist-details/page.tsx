@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { trackEvent } from "@/utils/analytics";
 import { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { FaArrowLeft } from "react-icons/fa";
@@ -548,6 +549,7 @@ function ArtistDetailsContent() {
 
             toast.success("Community created successfully!");
             setShowVerificationModal(true);
+            trackEvent("artist_sign_up");
         } catch (err: any) {
             toast.error(err.message || "Submission failed");
         } finally {

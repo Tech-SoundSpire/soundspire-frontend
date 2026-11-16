@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackEvent } from "@/utils/analytics";
 import { useParams } from "next/navigation";
 import { Star, Heart, Plus, Share, PenSquare, X } from "lucide-react";
 import Link from "next/link";
@@ -151,6 +152,7 @@ export default function SongPage() {
       });
       if (res.ok) {
         toast.success(existingReviewId ? "Review updated!" : "Review submitted!");
+        if (!existingReviewId) trackEvent("review_posted", { review_type: "song" });
         setShowReviewModal(false);
         if (!existingReviewId) {
           const data = await res.json();

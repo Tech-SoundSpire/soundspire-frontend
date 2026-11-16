@@ -4,6 +4,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { Toaster } from "react-hot-toast";
 import GlobalTranslation from "@/components/GlobalTranslation";
+import Analytics from "@/components/Analytics";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://app.soundspire.online";
 
@@ -57,6 +58,7 @@ export default function RootLayout({
                         <GlobalTranslation>
                             {children}
                         </GlobalTranslation>
+                        <Analytics />
                     </AuthProvider>
                 </LanguageProvider>
             </body>

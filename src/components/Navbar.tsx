@@ -12,6 +12,7 @@ import {
     FaAndroid,
 } from "react-icons/fa";
 import { MdOutlineDynamicFeed } from "react-icons/md";
+import { trackEvent } from "@/utils/analytics";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { getLogoUrl } from "@/utils/userProfileImageUtils";
@@ -182,6 +183,7 @@ const Navbar = () => {
                     {/* Download Android App — standout green */}
                     <a
                         href="/download/android"
+                        onClick={() => trackEvent("get_app_click", { link_location: "navbar" })}
                         className="flex items-center gap-4 rounded-lg transition-colors duration-200 hover:bg-[#3DDC84]/10"
                     >
                         <div className="w-[40px] h-[40px] flex-shrink-0 rounded-full flex items-center justify-center bg-[#3DDC84]">
