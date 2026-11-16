@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { trackEvent } from "@/utils/analytics";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -170,6 +171,7 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-4">
             <a
               href="/download/android"
+              onClick={() => trackEvent("get_app_click", { link_location: "landing_header" })}
               className="flex items-center gap-2 px-4 py-2 bg-[#3DDC84] hover:bg-[#32c476] text-[#0a3d23] rounded-xl font-semibold transition"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -215,7 +217,7 @@ export default function LandingPage() {
                 For Fans
               </Link>
               <hr className="border-white/10" />
-              <a href="/download/android" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-2 px-5 py-3 bg-[#3DDC84] hover:bg-[#32c476] text-[#0a3d23] rounded-xl font-semibold transition">
+              <a href="/download/android" onClick={() => { setMobileMenuOpen(false); trackEvent("get_app_click", { link_location: "landing_mobile_menu" }); }} className="flex items-center justify-center gap-2 px-5 py-3 bg-[#3DDC84] hover:bg-[#32c476] text-[#0a3d23] rounded-xl font-semibold transition">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M17.6 9.48l1.84-3.18a.4.4 0 0 0-.69-.4l-1.86 3.22a11.43 11.43 0 0 0-9.78 0L5.25 5.9a.4.4 0 1 0-.69.4l1.84 3.18A10.78 10.78 0 0 0 1 18h22a10.78 10.78 0 0 0-5.4-8.52zM7 15.25a1 1 0 1 1 1-1 1 1 0 0 1-1 1zm10 0a1 1 0 1 1 1-1 1 1 0 0 1-1 1z" />
                 </svg>

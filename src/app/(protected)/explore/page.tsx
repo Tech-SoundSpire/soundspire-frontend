@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { trackEvent } from "@/utils/analytics";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import {
@@ -123,6 +124,7 @@ export default function ExplorePage() {
                 {/* Get-the-app banner */}
                 <a
                     href="/download/android"
+                    onClick={() => trackEvent("get_app_click", { link_location: "explore_banner" })}
                     className="flex items-center justify-between gap-3 mb-6 px-4 md:px-5 py-3 rounded-xl bg-[#3DDC84] hover:bg-[#32c476] transition text-[#0a3d23]"
                 >
                     <div className="flex items-center gap-3">

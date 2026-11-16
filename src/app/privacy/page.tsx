@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacy Policy" pdfUrl="https://soundspirepublicassets.s3.ap-south-1.amazonaws.com/publicDocs/soundspire-privacy-policy.pdf">
+    <LegalPage title="Privacy Policy" lastUpdated="16 November 2026" pdfUrl="https://soundspirepublicassets.s3.ap-south-1.amazonaws.com/publicDocs/soundspire-privacy-policy.pdf">
       <p><strong>Effective date:</strong> 31 July 2026</p>
 
       <h2>1. Who we are</h2>
@@ -69,7 +69,7 @@ export default function PrivacyPage() {
       <h2>6. How we share information</h2>
       <p>We do <strong>not</strong> sell your personal information. We share it only:</p>
       <ul>
-        <li><strong>With service providers</strong> who process data on our behalf under contract, for example: <strong>Amazon Web Services (AWS)</strong> for storage, media delivery, and hosting; <strong>Supabase</strong> for our database and realtime messaging; <strong>Google</strong> for sign-in; and email and analytics vendors we use. These providers process data only to run the Services.</li>
+        <li><strong>With service providers</strong> who process data on our behalf under contract, for example: <strong>Amazon Web Services (AWS)</strong> for storage, media delivery, and hosting; <strong>Supabase</strong> for our database and realtime messaging; <strong>Google</strong> for sign-in and, if you accept analytics cookies, <strong>Google Analytics</strong> to understand how our website is used; and email vendors we use. These providers process data only to run the Services.</li>
         <li><strong>With other users</strong>, to the extent your profile, reviews, posts, and community activity are meant to be visible within the Services.</li>
         <li><strong>For legal reasons</strong>, to comply with applicable law, respond to lawful requests, or protect the rights, safety, and property of SoundSpire, our users, or the public.</li>
         <li><strong>In a business transfer</strong>, if we are involved in a merger, acquisition, financing, or sale of assets, subject to this policy.</li>
@@ -80,6 +80,7 @@ export default function PrivacyPage() {
 
       <h2>8. Cookies and similar technologies</h2>
       <p>On our website we use cookies and similar technologies for essential functionality (including keeping you signed in), to remember preferences, and with your consent where required for analytics. In our mobile app we use device identifiers for similar purposes.</p>
+      <p>For analytics we use <strong>Google Analytics 4</strong> on our website to measure visits, where visitors come from, and key actions such as signing up or joining a community. It is off by default: analytics cookies are set only after you choose &quot;Accept&quot; in our cookie banner, and if you decline, only cookieless, non-identifying signals are sent. We do not use advertising cookies. Google&apos;s use of this data is described in its <a href="https://policies.google.com/privacy">Privacy Policy</a>.</p>
       <p>You can control cookies through your browser settings and control app-level tracking through your device settings. Disabling some of these may affect functionality.</p>
 
       <h2>9. Data retention</h2>

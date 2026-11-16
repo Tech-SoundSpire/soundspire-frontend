@@ -1,5 +1,6 @@
 "use client";
 import BaseHeading from "@/components/BaseHeading/BaseHeading";
+import { trackEvent } from "@/utils/analytics";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArtistData } from "@/app/(artist)/artist/dashboard/page";
@@ -143,6 +144,7 @@ export default function CommunityClient({ slug, initialArtist }: { slug: string;
             const data = await res.json();
             if (data.subscription) {
                 setAlreadySubscribed(true);
+                trackEvent("join_group", { group_id: slug });
             }
         } catch (err: any) {
             toast.error(
