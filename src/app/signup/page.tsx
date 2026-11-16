@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackEvent } from "@/utils/analytics";
 import { FcGoogle } from "react-icons/fc";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -177,6 +178,7 @@ export default function SignupPage() {
 
             if (response.data.success) {
                 toast.success("Verification email sent! Please check your inbox and verify your email before logging in.");
+                trackEvent("sign_up", { method: "email" });
                 setUser({
                     username: "",
                     email: "",

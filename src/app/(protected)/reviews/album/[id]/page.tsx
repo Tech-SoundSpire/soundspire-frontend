@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackEvent } from "@/utils/analytics";
 import { useParams, useSearchParams } from "next/navigation";
 import { Star, Heart, PenSquare, X } from "lucide-react";
 import Link from "next/link";
@@ -76,6 +77,7 @@ export default function AlbumPage() {
       });
       if (res.ok) {
         toast.success("Album review submitted!");
+        trackEvent("review_posted", { review_type: "album" });
         setShowReviewModal(false);
         setReviewText("");
       } else {
